@@ -1,0 +1,3128 @@
+
+Naruto.png
+size: 3985,3586
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+Back/Body
+  rotate: false
+  xy: 2700, 977
+  size: 104, 119
+  orig: 104, 128
+  offset: 0, 0
+  index: -1
+Back/Head
+  rotate: true
+  xy: 1419, 1328
+  size: 213, 236
+  orig: 226, 240
+  offset: 7, 2
+  index: -1
+Back/L
+  rotate: true
+  xy: 3842, 1921
+  size: 54, 120
+  orig: 62, 120
+  offset: 2, 0
+  index: -1
+Back/R
+  rotate: true
+  xy: 3291, 1191
+  size: 52, 120
+  orig: 55, 120
+  offset: 3, 0
+  index: -1
+Back/Tay P
+  rotate: true
+  xy: 3832, 1748
+  size: 45, 127
+  orig: 45, 127
+  offset: 0, 0
+  index: -1
+Back/Tay T
+  rotate: true
+  xy: 3638, 956
+  size: 46, 128
+  orig: 46, 128
+  offset: 0, 0
+  index: -1
+Body
+  rotate: true
+  xy: 2166, 2
+  size: 107, 143
+  orig: 107, 143
+  offset: 0, 0
+  index: -1
+Eff_kill
+  rotate: false
+  xy: 549, 1665
+  size: 334, 333
+  orig: 340, 340
+  offset: 4, 3
+  index: -1
+FX/1/Hit
+  rotate: true
+  xy: 1874, 935
+  size: 179, 160
+  orig: 256, 256
+  offset: 44, 60
+  index: -1
+FX/1/image 1
+  rotate: false
+  xy: 549, 1167
+  size: 263, 100
+  orig: 290, 110
+  offset: 25, 3
+  index: -1
+FX/1/image 3
+  rotate: false
+  xy: 1967, 1642
+  size: 240, 95
+  orig: 250, 110
+  offset: 5, 9
+  index: -1
+FX/1/image 31
+  rotate: true
+  xy: 1785, 2929
+  size: 268, 43
+  orig: 300, 50
+  offset: 25, 5
+  index: -1
+FX/1/image 33
+  rotate: false
+  xy: 3393, 220
+  size: 115, 38
+  orig: 140, 50
+  offset: 18, 5
+  index: -1
+FX/1/image 35
+  rotate: true
+  xy: 1830, 3113
+  size: 84, 18
+  orig: 150, 20
+  offset: 54, 1
+  index: -1
+FX/1/image 47
+  rotate: false
+  xy: 650, 2
+  size: 226, 108
+  orig: 230, 130
+  offset: 0, 16
+  index: -1
+FX/1/image 49
+  rotate: true
+  xy: 3055, 2698
+  size: 244, 118
+  orig: 250, 130
+  offset: 4, 4
+  index: -1
+FX/1/image 5
+  rotate: true
+  xy: 1099, 1675
+  size: 160, 48
+  orig: 210, 60
+  offset: 7, 9
+  index: -1
+FX/1/image 51
+  rotate: false
+  xy: 814, 1164
+  size: 257, 109
+  orig: 270, 120
+  offset: 8, 9
+  index: -1
+FX/1/image 53
+  rotate: false
+  xy: 2228, 2223
+  size: 248, 140
+  orig: 260, 150
+  offset: 5, 4
+  index: -1
+FX/1/image 55
+  rotate: true
+  xy: 3931, 3372
+  size: 212, 52
+  orig: 240, 60
+  offset: 2, 8
+  index: -1
+FX/1/image 57
+  rotate: true
+  xy: 1161, 438
+  size: 214, 111
+  orig: 230, 130
+  offset: 10, 10
+  index: -1
+FX/1/image 59
+  rotate: false
+  xy: 2568, 2598
+  size: 225, 121
+  orig: 240, 130
+  offset: 6, 4
+  index: -1
+FX/10/1 (1)
+  rotate: true
+  xy: 900, 195
+  size: 244, 122
+  orig: 271, 139
+  offset: 21, 16
+  index: -1
+FX/10/1 (2)
+  rotate: false
+  xy: 2795, 2635
+  size: 258, 106
+  orig: 271, 139
+  offset: 11, 14
+  index: -1
+FX/10/1 (3)
+  rotate: false
+  xy: 2795, 2555
+  size: 259, 78
+  orig: 271, 139
+  offset: 11, 15
+  index: -1
+FX/10/1 (4)
+  rotate: true
+  xy: 2344, 323
+  size: 219, 60
+  orig: 271, 139
+  offset: 5, 15
+  index: -1
+FX/10/1 (5)
+  rotate: false
+  xy: 3589, 272
+  size: 81, 66
+  orig: 271, 139
+  offset: 2, 17
+  index: -1
+FX/10/1 (6)
+  rotate: false
+  xy: 3752, 2770
+  size: 70, 68
+  orig: 271, 139
+  offset: 67, 3
+  index: -1
+FX/10/1 (7)
+  rotate: false
+  xy: 3300, 967
+  size: 85, 115
+  orig: 271, 139
+  offset: 46, 1
+  index: -1
+FX/10/1 (8)
+  rotate: false
+  xy: 3702, 1925
+  size: 138, 132
+  orig: 271, 139
+  offset: 45, 2
+  index: -1
+FX/10/1 (9)
+  rotate: true
+  xy: 2018, 322
+  size: 216, 117
+  orig: 271, 139
+  offset: 48, 21
+  index: -1
+FX/10/Fx_speed2
+  rotate: true
+  xy: 1238, 714
+  size: 235, 152
+  orig: 256, 154
+  offset: 2, 0
+  index: -1
+FX/11/buff1_0
+  rotate: false
+  xy: 1027, 684
+  size: 132, 250
+  orig: 139, 255
+  offset: 5, 3
+  index: -1
+FX/11/buff1_10
+  rotate: false
+  xy: 1322, 29
+  size: 133, 225
+  orig: 139, 229
+  offset: 6, 2
+  index: -1
+FX/11/buff1_12
+  rotate: false
+  xy: 2027, 107
+  size: 136, 213
+  orig: 139, 235
+  offset: 3, 4
+  index: -1
+FX/11/buff1_14
+  rotate: false
+  xy: 1590, 310
+  size: 138, 217
+  orig: 139, 235
+  offset: 1, 3
+  index: -1
+FX/11/buff1_16
+  rotate: false
+  xy: 1730, 319
+  size: 136, 219
+  orig: 139, 228
+  offset: 2, 4
+  index: -1
+FX/11/buff1_18
+  rotate: true
+  xy: 2683, 1554
+  size: 131, 229
+  orig: 139, 233
+  offset: 5, 3
+  index: -1
+FX/11/buff1_2
+  rotate: true
+  xy: 2729, 2421
+  size: 132, 255
+  orig: 139, 261
+  offset: 4, 5
+  index: -1
+FX/11/buff1_20
+  rotate: false
+  xy: 1060, 936
+  size: 131, 226
+  orig: 139, 238
+  offset: 3, 4
+  index: -1
+FX/11/buff1_22
+  rotate: true
+  xy: 2722, 2192
+  size: 129, 235
+  orig: 139, 246
+  offset: 4, 4
+  index: -1
+FX/11/buff1_24
+  rotate: false
+  xy: 1024, 227
+  size: 127, 243
+  orig: 139, 255
+  offset: 5, 4
+  index: -1
+FX/11/buff1_26
+  rotate: false
+  xy: 751, 430
+  size: 125, 249
+  orig: 139, 262
+  offset: 7, 4
+  index: -1
+FX/11/buff1_28
+  rotate: false
+  xy: 772, 183
+  size: 126, 245
+  orig: 139, 264
+  offset: 5, 5
+  index: -1
+FX/11/buff1_4
+  rotate: true
+  xy: 2702, 1687
+  size: 135, 232
+  orig: 139, 236
+  offset: 2, 3
+  index: -1
+FX/11/buff1_6
+  rotate: false
+  xy: 1603, 86
+  size: 138, 222
+  orig: 139, 230
+  offset: 1, 3
+  index: -1
+FX/11/buff1_8
+  rotate: false
+  xy: 1743, 99
+  size: 135, 218
+  orig: 139, 221
+  offset: 4, 2
+  index: -1
+FX/12/buff1_0
+  rotate: false
+  xy: 2074, 1374
+  size: 130, 204
+  orig: 139, 255
+  offset: 5, 49
+  index: -1
+FX/12/buff1_10
+  rotate: false
+  xy: 2316, 131
+  size: 132, 190
+  orig: 139, 255
+  offset: 7, 49
+  index: -1
+FX/12/buff1_12
+  rotate: false
+  xy: 2590, 146
+  size: 137, 176
+  orig: 139, 255
+  offset: 2, 50
+  index: -1
+FX/12/buff1_14
+  rotate: false
+  xy: 2450, 142
+  size: 138, 180
+  orig: 139, 255
+  offset: 1, 51
+  index: -1
+FX/12/buff1_16
+  rotate: true
+  xy: 2914, 1395
+  size: 136, 189
+  orig: 139, 255
+  offset: 2, 50
+  index: -1
+FX/12/buff1_18
+  rotate: false
+  xy: 1813, 540
+  size: 131, 193
+  orig: 139, 255
+  offset: 4, 50
+  index: -1
+FX/12/buff1_2
+  rotate: false
+  xy: 1153, 231
+  size: 128, 205
+  orig: 139, 255
+  offset: 7, 49
+  index: -1
+FX/12/buff1_20
+  rotate: true
+  xy: 2607, 1420
+  size: 132, 190
+  orig: 139, 255
+  offset: 3, 49
+  index: -1
+FX/12/buff1_22
+  rotate: false
+  xy: 1946, 540
+  size: 129, 193
+  orig: 139, 255
+  offset: 4, 50
+  index: -1
+FX/12/buff1_24
+  rotate: false
+  xy: 2149, 735
+  size: 127, 198
+  orig: 139, 255
+  offset: 5, 49
+  index: -1
+FX/12/buff1_26
+  rotate: false
+  xy: 2278, 737
+  size: 120, 196
+  orig: 139, 255
+  offset: 9, 50
+  index: -1
+FX/12/buff1_28
+  rotate: true
+  xy: 2598, 1298
+  size: 120, 194
+  orig: 139, 255
+  offset: 8, 49
+  index: -1
+FX/12/buff1_4
+  rotate: false
+  xy: 2907, 1995
+  size: 134, 195
+  orig: 139, 255
+  offset: 2, 49
+  index: -1
+FX/12/buff1_6
+  rotate: false
+  xy: 2036, 935
+  size: 138, 187
+  orig: 139, 255
+  offset: 1, 49
+  index: -1
+FX/12/buff1_8
+  rotate: true
+  xy: 2563, 1098
+  size: 135, 188
+  orig: 139, 255
+  offset: 4, 49
+  index: -1
+FX/13/1
+  rotate: true
+  xy: 1985, 2241
+  size: 300, 241
+  orig: 399, 292
+  offset: 48, 23
+  index: -1
+FX/13/10
+  rotate: false
+  xy: 2806, 2944
+  size: 357, 253
+  orig: 399, 292
+  offset: 38, 25
+  index: -1
+FX/13/11
+  rotate: false
+  xy: 2498, 2970
+  size: 306, 253
+  orig: 399, 292
+  offset: 40, 25
+  index: -1
+FX/13/12
+  rotate: false
+  xy: 3165, 2947
+  size: 304, 250
+  orig: 399, 292
+  offset: 41, 26
+  index: -1
+FX/13/13
+  rotate: false
+  xy: 1436, 1963
+  size: 299, 246
+  orig: 399, 292
+  offset: 44, 28
+  index: -1
+FX/13/14
+  rotate: false
+  xy: 524, 936
+  size: 280, 229
+  orig: 399, 292
+  offset: 54, 36
+  index: -1
+FX/13/15
+  rotate: true
+  xy: 524, 401
+  size: 278, 225
+  orig: 399, 292
+  offset: 55, 39
+  index: -1
+FX/13/16
+  rotate: false
+  xy: 885, 1665
+  size: 212, 170
+  orig: 399, 292
+  offset: 111, 41
+  index: -1
+FX/13/17
+  rotate: false
+  xy: 2394, 1294
+  size: 202, 130
+  orig: 399, 292
+  offset: 118, 38
+  index: -1
+FX/13/18
+  rotate: false
+  xy: 3350, 6
+  size: 119, 69
+  orig: 399, 292
+  offset: 137, 62
+  index: -1
+FX/13/2
+  rotate: true
+  xy: 2225, 2636
+  size: 330, 252
+  orig: 399, 292
+  offset: 32, 23
+  index: -1
+FX/13/3
+  rotate: false
+  xy: 543, 2000
+  size: 371, 264
+  orig: 399, 292
+  offset: 11, 22
+  index: -1
+FX/13/4
+  rotate: true
+  xy: 549, 1269
+  size: 394, 263
+  orig: 399, 292
+  offset: 0, 23
+  index: -1
+FX/13/5
+  rotate: false
+  xy: 916, 2032
+  size: 390, 263
+  orig: 399, 292
+  offset: 9, 23
+  index: -1
+FX/13/6
+  rotate: false
+  xy: 3477, 3066
+  size: 391, 261
+  orig: 399, 292
+  offset: 8, 23
+  index: -1
+FX/13/7
+  rotate: true
+  xy: 814, 1275
+  size: 388, 256
+  orig: 399, 292
+  offset: 8, 23
+  index: -1
+FX/13/8
+  rotate: true
+  xy: 1728, 2512
+  size: 387, 254
+  orig: 399, 292
+  offset: 9, 24
+  index: -1
+FX/13/9
+  rotate: false
+  xy: 2135, 2968
+  size: 361, 255
+  orig: 399, 292
+  offset: 35, 25
+  index: -1
+FX/14/leiqiu_1
+  rotate: false
+  xy: 1392, 730
+  size: 211, 210
+  orig: 256, 256
+  offset: 28, 14
+  index: -1
+FX/14/leiqiu_21
+  rotate: false
+  xy: 3175, 2725
+  size: 228, 220
+  orig: 256, 256
+  offset: 14, 13
+  index: -1
+FX/14/leiqiu_23
+  rotate: false
+  xy: 1193, 951
+  size: 223, 204
+  orig: 256, 256
+  offset: 26, 15
+  index: -1
+FX/14/leiqiu_3
+  rotate: false
+  xy: 1657, 1116
+  size: 228, 197
+  orig: 256, 256
+  offset: 10, 20
+  index: -1
+FX/14/leiqiu_5
+  rotate: false
+  xy: 1418, 1126
+  size: 237, 200
+  orig: 256, 256
+  offset: 0, 31
+  index: -1
+FX/15/1 (1)
+  rotate: true
+  xy: 2, 3
+  size: 114, 322
+  orig: 180, 367
+  offset: 29, 24
+  index: -1
+FX/15/1 (2)
+  rotate: true
+  xy: 1436, 2211
+  size: 161, 290
+  orig: 180, 367
+  offset: 13, 42
+  index: -1
+FX/15/1 (3)
+  rotate: false
+  xy: 471, 108
+  size: 140, 287
+  orig: 180, 367
+  offset: 12, 39
+  index: -1
+FX/15/1 (4)
+  rotate: true
+  xy: 3471, 2718
+  size: 120, 279
+  orig: 180, 367
+  offset: 13, 44
+  index: -1
+FX/15/1 (5)
+  rotate: false
+  xy: 2479, 2685
+  size: 87, 281
+  orig: 180, 367
+  offset: 13, 42
+  index: -1
+FX/15/1 (6)
+  rotate: false
+  xy: 1161, 654
+  size: 75, 280
+  orig: 180, 367
+  offset: 23, 41
+  index: -1
+FX/15/1 (7)
+  rotate: false
+  xy: 1072, 1380
+  size: 78, 283
+  orig: 180, 367
+  offset: 22, 39
+  index: -1
+FX/4/impact2
+  rotate: true
+  xy: 1073, 1164
+  size: 168, 165
+  orig: 250, 250
+  offset: 41, 37
+  index: -1
+FX/4/impact2 (1)
+  rotate: false
+  xy: 1204, 1783
+  size: 230, 230
+  orig: 240, 240
+  offset: 5, 5
+  index: -1
+FX/4/impact2 (2)
+  rotate: false
+  xy: 1728, 2254
+  size: 255, 256
+  orig: 268, 268
+  offset: 7, 6
+  index: -1
+FX/4/impact2 (3)
+  rotate: false
+  xy: 1963, 1978
+  size: 261, 261
+  orig: 271, 271
+  offset: 6, 5
+  index: -1
+FX/4/impact2 (4)
+  rotate: false
+  xy: 2226, 1969
+  size: 252, 252
+  orig: 268, 268
+  offset: 8, 8
+  index: -1
+FX/4/impact2 (5)
+  rotate: false
+  xy: 776, 685
+  size: 249, 249
+  orig: 259, 259
+  offset: 5, 5
+  index: -1
+FX/4/impact2 (6)
+  rotate: false
+  xy: 524, 681
+  size: 250, 253
+  orig: 268, 268
+  offset: 9, 8
+  index: -1
+FX/4/wind
+  rotate: true
+  xy: 2702, 1995
+  size: 195, 203
+  orig: 256, 256
+  offset: 17, 36
+  index: -1
+FX/7/1
+  rotate: true
+  xy: 1743, 2
+  size: 95, 147
+  orig: 191, 205
+  offset: 88, 8
+  index: -1
+FX/7/2
+  rotate: true
+  xy: 2540, 977
+  size: 119, 158
+  orig: 191, 205
+  offset: 64, 5
+  index: -1
+FX/7/3
+  rotate: true
+  xy: 2936, 1687
+  size: 135, 181
+  orig: 191, 205
+  offset: 52, 6
+  index: -1
+FX/7/4
+  rotate: true
+  xy: 2381, 1121
+  size: 171, 180
+  orig: 191, 205
+  offset: 13, 2
+  index: -1
+FX/7/5
+  rotate: false
+  xy: 1887, 1124
+  size: 182, 185
+  orig: 191, 205
+  offset: 7, 4
+  index: -1
+FX/7/6
+  rotate: false
+  xy: 1816, 735
+  size: 164, 198
+  orig: 191, 205
+  offset: 15, 5
+  index: -1
+FX/7/7
+  rotate: false
+  xy: 2195, 542
+  size: 142, 191
+  orig: 191, 205
+  offset: 27, 3
+  index: -1
+FX/7/8
+  rotate: true
+  xy: 2565, 472
+  size: 147, 161
+  orig: 191, 205
+  offset: 21, 8
+  index: -1
+FX/7/9
+  rotate: true
+  xy: 3161, 660
+  size: 122, 134
+  orig: 191, 205
+  offset: 15, 16
+  index: -1
+FX/8/smoke (1)
+  rotate: true
+  xy: 3056, 2584
+  size: 50, 67
+  orig: 250, 250
+  offset: 100, 79
+  index: -1
+FX/8/smoke (10)
+  rotate: false
+  xy: 3767, 582
+  size: 92, 96
+  orig: 250, 250
+  offset: 54, 95
+  index: -1
+FX/8/smoke (11)
+  rotate: true
+  xy: 3767, 422
+  size: 61, 94
+  orig: 250, 250
+  offset: 57, 95
+  index: -1
+FX/8/smoke (2)
+  rotate: false
+  xy: 3894, 921
+  size: 88, 90
+  orig: 250, 250
+  offset: 78, 74
+  index: -1
+FX/8/smoke (3)
+  rotate: true
+  xy: 2806, 977
+  size: 114, 102
+  orig: 250, 250
+  offset: 62, 70
+  index: -1
+FX/8/smoke (4)
+  rotate: true
+  xy: 3716, 2059
+  size: 126, 109
+  orig: 250, 250
+  offset: 57, 69
+  index: -1
+FX/8/smoke (5)
+  rotate: true
+  xy: 2799, 1419
+  size: 133, 113
+  orig: 250, 250
+  offset: 54, 71
+  index: -1
+FX/8/smoke (6)
+  rotate: true
+  xy: 3842, 1977
+  size: 140, 109
+  orig: 250, 250
+  offset: 53, 76
+  index: -1
+FX/8/smoke (7)
+  rotate: true
+  xy: 3194, 373
+  size: 142, 109
+  orig: 250, 250
+  offset: 55, 80
+  index: -1
+FX/8/smoke (8)
+  rotate: true
+  xy: 3262, 1995
+  size: 139, 109
+  orig: 250, 250
+  offset: 55, 82
+  index: -1
+FX/8/smoke (9)
+  rotate: false
+  xy: 2027, 2
+  size: 137, 103
+  orig: 250, 250
+  offset: 55, 90
+  index: -1
+FX/9/smoke (10)
+  rotate: true
+  xy: 3387, 2350
+  size: 145, 167
+  orig: 250, 250
+  offset: 61, 22
+  index: -1
+FX/9/smoke (12)
+  rotate: false
+  xy: 2407, 557
+  size: 156, 183
+  orig: 250, 250
+  offset: 59, 22
+  index: -1
+FX/9/smoke (14)
+  rotate: false
+  xy: 1982, 735
+  size: 165, 198
+  orig: 250, 250
+  offset: 57, 22
+  index: -1
+FX/9/smoke (16)
+  rotate: true
+  xy: 2909, 1824
+  size: 169, 201
+  orig: 250, 250
+  offset: 56, 23
+  index: -1
+FX/9/smoke (18)
+  rotate: true
+  xy: 2702, 1824
+  size: 169, 205
+  orig: 250, 250
+  offset: 55, 23
+  index: -1
+FX/9/smoke (2)
+  rotate: false
+  xy: 1193, 1157
+  size: 14, 5
+  orig: 250, 250
+  offset: 90, 35
+  index: -1
+FX/9/smoke (20)
+  rotate: true
+  xy: 3556, 2349
+  size: 145, 166
+  orig: 250, 250
+  offset: 56, 65
+  index: -1
+FX/9/smoke (22)
+  rotate: true
+  xy: 3509, 962
+  size: 62, 127
+  orig: 250, 250
+  offset: 94, 105
+  index: -1
+FX/9/smoke (4)
+  rotate: true
+  xy: 3933, 1561
+  size: 73, 46
+  orig: 250, 250
+  offset: 70, 23
+  index: -1
+FX/9/smoke (6)
+  rotate: false
+  xy: 1633, 2
+  size: 98, 82
+  orig: 250, 250
+  offset: 64, 23
+  index: -1
+FX/9/smoke (8)
+  rotate: false
+  xy: 2986, 2421
+  size: 137, 132
+  orig: 250, 250
+  offset: 61, 23
+  index: -1
+FX/eff_wind
+  rotate: false
+  xy: 1657, 1315
+  size: 232, 228
+  orig: 262, 262
+  offset: 12, 19
+  index: -1
+FX/shuriken
+  rotate: false
+  xy: 2480, 2007
+  size: 220, 220
+  orig: 226, 226
+  offset: 3, 3
+  index: -1
+Hand RKv
+  rotate: false
+  xy: 1436, 2374
+  size: 290, 525
+  orig: 290, 525
+  offset: 0, 0
+  index: -1
+Hand_LK
+  rotate: true
+  xy: 2, 119
+  size: 276, 467
+  orig: 276, 467
+  offset: 0, 0
+  index: -1
+Head
+  rotate: false
+  xy: 1967, 1739
+  size: 239, 237
+  orig: 239, 237
+  offset: 0, 0
+  index: -1
+Hiennhan/Back/Body
+  rotate: false
+  xy: 3085, 366
+  size: 107, 143
+  orig: 107, 143
+  offset: 0, 0
+  index: -1
+Hiennhan/Back/Head
+  rotate: true
+  xy: 1718, 1711
+  size: 225, 247
+  orig: 249, 247
+  offset: 19, 0
+  index: -1
+Hiennhan/Back/L
+  rotate: false
+  xy: 3461, 830
+  size: 60, 120
+  orig: 69, 120
+  offset: 2, 0
+  index: -1
+Hiennhan/Back/R
+  rotate: false
+  xy: 3297, 660
+  size: 67, 122
+  orig: 71, 122
+  offset: 4, 0
+  index: -1
+Hiennhan/Back/Tay P
+  rotate: false
+  xy: 3458, 93
+  size: 53, 125
+  orig: 53, 125
+  offset: 0, 0
+  index: -1
+Hiennhan/Back/Tay T
+  rotate: true
+  xy: 3826, 1486
+  size: 55, 124
+  orig: 55, 124
+  offset: 0, 0
+  index: -1
+Hiennhan/Body
+  rotate: true
+  xy: 3559, 2064
+  size: 121, 155
+  orig: 121, 155
+  offset: 0, 0
+  index: -1
+Hiennhan/Body_Part
+  rotate: false
+  xy: 2821, 1093
+  size: 90, 142
+  orig: 90, 142
+  offset: 0, 0
+  index: -1
+Hiennhan/Hand_L
+  rotate: false
+  xy: 3706, 559
+  size: 59, 116
+  orig: 59, 116
+  offset: 0, 0
+  index: -1
+Hiennhan/Hand_R
+  rotate: false
+  xy: 3460, 704
+  size: 62, 124
+  orig: 62, 124
+  offset: 0, 0
+  index: -1
+Hiennhan/Head
+  rotate: true
+  xy: 806, 936
+  size: 226, 252
+  orig: 226, 252
+  offset: 0, 0
+  index: -1
+Hiennhan/Leg_L
+  rotate: true
+  xy: 3768, 948
+  size: 57, 124
+  orig: 57, 124
+  offset: 0, 0
+  index: -1
+Hiennhan/Leg_R
+  rotate: true
+  xy: 3055, 2636
+  size: 60, 118
+  orig: 60, 123
+  offset: 0, 0
+  index: -1
+Hiennhan/Mom
+  rotate: true
+  xy: 3936, 1636
+  size: 110, 37
+  orig: 111, 37
+  offset: 1, 0
+  index: -1
+Hiennhan/Side/Body
+  rotate: true
+  xy: 3847, 2373
+  size: 105, 134
+  orig: 107, 143
+  offset: 2, 0
+  index: -1
+Hiennhan/Side/Head
+  rotate: true
+  xy: 2795, 2743
+  size: 199, 258
+  orig: 199, 258
+  offset: 0, 0
+  index: -1
+Hiennhan/Side/L
+  rotate: true
+  xy: 772, 112
+  size: 69, 130
+  orig: 75, 130
+  offset: 6, 0
+  index: -1
+Hiennhan/Side/R
+  rotate: false
+  xy: 2869, 329
+  size: 67, 130
+  orig: 75, 130
+  offset: 8, 0
+  index: -1
+Hiennhan/Side/Tay P
+  rotate: true
+  xy: 3638, 677
+  size: 62, 125
+  orig: 62, 125
+  offset: 0, 0
+  index: -1
+Hiennhan/Side/Tay T
+  rotate: true
+  xy: 3857, 805
+  size: 55, 124
+  orig: 55, 124
+  offset: 0, 0
+  index: -1
+Hiennhan/hand (1)
+  rotate: false
+  xy: 3672, 272
+  size: 49, 70
+  orig: 49, 72
+  offset: 0, 0
+  index: -1
+Hiennhan/hand (10)
+  rotate: false
+  xy: 3413, 1180
+  size: 103, 68
+  orig: 104, 69
+  offset: 1, 0
+  index: -1
+Hiennhan/hand (11)
+  rotate: false
+  xy: 3763, 213
+  size: 55, 57
+  orig: 56, 57
+  offset: 1, 0
+  index: -1
+Hiennhan/hand (3)
+  rotate: true
+  xy: 3598, 92
+  size: 82, 66
+  orig: 83, 66
+  offset: 1, 0
+  index: -1
+Hiennhan/hand (4)
+  rotate: true
+  xy: 3930, 274
+  size: 60, 53
+  orig: 109, 53
+  offset: 49, 0
+  index: -1
+Hiennhan/hand (6)
+  rotate: false
+  xy: 3890, 1172
+  size: 93, 53
+  orig: 94, 53
+  offset: 0, 0
+  index: -1
+Hiennhan/hand (7)
+  rotate: false
+  xy: 1072, 1335
+  size: 70, 43
+  orig: 70, 44
+  offset: 0, 0
+  index: -1
+Kunaihand
+  rotate: false
+  xy: 3387, 2119
+  size: 170, 63
+  orig: 170, 63
+  offset: 0, 0
+  index: -1
+L
+  rotate: false
+  xy: 3589, 340
+  size: 57, 113
+  orig: 57, 113
+  offset: 0, 0
+  index: -1
+Mom
+  rotate: true
+  xy: 3937, 482
+  size: 110, 37
+  orig: 111, 37
+  offset: 1, 0
+  index: -1
+R
+  rotate: true
+  xy: 3524, 677
+  size: 63, 112
+  orig: 63, 112
+  offset: 0, 0
+  index: -1
+Side/Body
+  rotate: true
+  xy: 2980, 2323
+  size: 96, 134
+  orig: 107, 143
+  offset: 2, 0
+  index: -1
+Side/Head
+  rotate: false
+  xy: 2568, 2721
+  size: 225, 247
+  orig: 249, 247
+  offset: 13, 0
+  index: -1
+Side/L
+  rotate: false
+  xy: 3305, 373
+  size: 69, 130
+  orig: 75, 130
+  offset: 6, 0
+  index: -1
+Side/R
+  rotate: true
+  xy: 3853, 2605
+  size: 67, 130
+  orig: 75, 130
+  offset: 8, 0
+  index: -1
+Side/Tay P
+  rotate: true
+  xy: 3857, 862
+  size: 57, 125
+  orig: 62, 125
+  offset: 4, 0
+  index: -1
+Side/Tay T
+  rotate: true
+  xy: 3857, 754
+  size: 49, 124
+  orig: 49, 124
+  offset: 0, 0
+  index: -1
+Tay P
+  rotate: false
+  xy: 3703, 432
+  size: 62, 125
+  orig: 62, 125
+  offset: 0, 0
+  index: -1
+Tay T
+  rotate: true
+  xy: 3376, 373
+  size: 58, 106
+  orig: 58, 106
+  offset: 0, 0
+  index: -1
+bodyK
+  rotate: true
+  xy: 543, 2266
+  size: 625, 341
+  orig: 625, 341
+  offset: 0, 0
+  index: -1
+clone
+  rotate: false
+  xy: 1984, 2543
+  size: 239, 356
+  orig: 242, 360
+  offset: 1, 1
+  index: -1
+clone_hiennhan
+  rotate: true
+  xy: 3477, 3329
+  size: 255, 452
+  orig: 270, 476
+  offset: 8, 12
+  index: -1
+ear_LK
+  rotate: false
+  xy: 1737, 1938
+  size: 224, 314
+  orig: 224, 314
+  offset: 0, 0
+  index: -1
+ear_RK
+  rotate: true
+  xy: 1857, 2901
+  size: 322, 276
+  orig: 322, 276
+  offset: 0, 0
+  index: -1
+eye_iddleK
+  rotate: false
+  xy: 3767, 344
+  size: 95, 76
+  orig: 98, 80
+  offset: 2, 2
+  index: -1
+hand/hand (1)
+  rotate: false
+  xy: 3812, 272
+  size: 49, 70
+  orig: 49, 72
+  offset: 0, 0
+  index: -1
+hand/hand (10)
+  rotate: false
+  xy: 3854, 684
+  size: 103, 68
+  orig: 104, 69
+  offset: 1, 0
+  index: -1
+hand/hand (11)
+  rotate: false
+  xy: 3820, 213
+  size: 55, 57
+  orig: 56, 57
+  offset: 1, 0
+  index: -1
+hand/hand (3)
+  rotate: true
+  xy: 3666, 92
+  size: 82, 66
+  orig: 83, 66
+  offset: 1, 0
+  index: -1
+hand/hand (4)
+  rotate: true
+  xy: 3708, 210
+  size: 60, 53
+  orig: 109, 53
+  offset: 49, 0
+  index: -1
+hand/hand (6)
+  rotate: true
+  xy: 3648, 362
+  size: 93, 53
+  orig: 94, 53
+  offset: 0, 0
+  index: -1
+hand/hand (7)
+  rotate: false
+  xy: 3282, 1497
+  size: 70, 43
+  orig: 70, 44
+  offset: 0, 0
+  index: -1
+headK
+  rotate: false
+  xy: 3471, 2840
+  size: 351, 224
+  orig: 351, 224
+  offset: 0, 0
+  index: -1
+jump_fx
+  rotate: false
+  xy: 1152, 1543
+  size: 238, 238
+  orig: 238, 238
+  offset: 0, 0
+  index: -1
+leg_backL_1
+  rotate: true
+  xy: 2228, 2365
+  size: 269, 244
+  orig: 269, 244
+  offset: 0, 0
+  index: -1
+leg_backL_2
+  rotate: true
+  xy: 878, 441
+  size: 242, 142
+  orig: 242, 142
+  offset: 0, 0
+  index: -1
+leg_backL_3
+  rotate: false
+  xy: 2874, 179
+  size: 89, 148
+  orig: 89, 148
+  offset: 0, 0
+  index: -1
+leg_backL_4
+  rotate: false
+  xy: 3642, 1218
+  size: 132, 63
+  orig: 132, 63
+  offset: 0, 0
+  index: -1
+leg_backR_1
+  rotate: true
+  xy: 916, 1837
+  size: 193, 286
+  orig: 201, 286
+  offset: 0, 0
+  index: -1
+leg_backR_2
+  rotate: false
+  xy: 2209, 1623
+  size: 238, 129
+  orig: 238, 129
+  offset: 0, 0
+  index: -1
+leg_backR_3
+  rotate: false
+  xy: 2077, 541
+  size: 116, 192
+  orig: 116, 192
+  offset: 0, 0
+  index: -1
+leg_backR_4
+  rotate: false
+  xy: 2406, 324
+  size: 161, 83
+  orig: 161, 83
+  offset: 0, 0
+  index: -1
+mouht_iddleK
+  rotate: true
+  xy: 613, 112
+  size: 287, 157
+  orig: 287, 157
+  offset: 0, 0
+  index: -1
+tail_1
+  rotate: false
+  xy: 2810, 3199
+  size: 665, 385
+  orig: 665, 385
+  offset: 0, 0
+  index: -1
+tail_2
+  rotate: false
+  xy: 1857, 3225
+  size: 951, 359
+  orig: 952, 359
+  offset: 0, 0
+  index: -1
+tail_3
+  rotate: false
+  xy: 835, 2901
+  size: 948, 296
+  orig: 948, 296
+  offset: 0, 0
+  index: -1
+tail_4
+  rotate: false
+  xy: 2, 2893
+  size: 831, 691
+  orig: 831, 693
+  offset: 0, 2
+  index: -1
+tail_5
+  rotate: true
+  xy: 2, 1995
+  size: 896, 539
+  orig: 897, 539
+  offset: 1, 0
+  index: -1
+tail_6
+  rotate: true
+  xy: 2, 1181
+  size: 812, 545
+  orig: 812, 546
+  offset: 0, 1
+  index: -1
+tail_7
+  rotate: true
+  xy: 2, 397
+  size: 782, 520
+  orig: 782, 520
+  offset: 0, 0
+  index: -1
+tail_8
+  rotate: false
+  xy: 835, 3199
+  size: 1020, 385
+  orig: 1020, 385
+  offset: 0, 0
+  index: -1
+tail_9
+  rotate: false
+  xy: 886, 2297
+  size: 548, 602
+  orig: 549, 605
+  offset: 0, 2
+  index: -1
+wp/Lv11(ingame)/Blade_11
+  rotate: false
+  xy: 2914, 1533
+  size: 204, 152
+  orig: 204, 152
+  offset: 0, 0
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BladeFX/1/lv1 (1)
+  rotate: false
+  xy: 3217, 927
+  size: 81, 97
+  orig: 250, 250
+  offset: 60, 54
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BladeFX/1/lv1 (2)
+  rotate: true
+  xy: 3518, 1142
+  size: 89, 121
+  orig: 250, 250
+  offset: 63, 55
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BladeFX/1/lv1 (3)
+  rotate: true
+  xy: 2722, 329
+  size: 130, 145
+  orig: 250, 250
+  offset: 62, 55
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BladeFX/1/lv1 (4)
+  rotate: true
+  xy: 3365, 1682
+  size: 124, 159
+  orig: 250, 250
+  offset: 68, 53
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BladeFX/1/lv1 (5)
+  rotate: true
+  xy: 3393, 1377
+  size: 107, 123
+  orig: 250, 250
+  offset: 91, 82
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BladeFX/1/lv1 (6)
+  rotate: true
+  xy: 3678, 2674
+  size: 42, 65
+  orig: 250, 250
+  offset: 136, 126
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BladeFX/2/lv2 (1)
+  rotate: true
+  xy: 2794, 1237
+  size: 180, 117
+  orig: 250, 250
+  offset: 34, 72
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BladeFX/2/lv2 (2)
+  rotate: true
+  xy: 2237, 1124
+  size: 182, 142
+  orig: 250, 250
+  offset: 32, 49
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BladeFX/2/lv2 (3)
+  rotate: true
+  xy: 3288, 2446
+  size: 183, 97
+  orig: 250, 250
+  offset: 36, 89
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BladeFX/2/lv2 (4)
+  rotate: false
+  xy: 467, 2
+  size: 181, 104
+  orig: 250, 250
+  offset: 37, 81
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BladeFX/2/lv2 (5)
+  rotate: true
+  xy: 3276, 1817
+  size: 176, 90
+  orig: 250, 250
+  offset: 38, 85
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BladeFX/2/lv2 (6)
+  rotate: true
+  xy: 3293, 2158
+  size: 175, 92
+  orig: 250, 250
+  offset: 36, 87
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BladeFX/3/1 (1)
+  rotate: true
+  xy: 3773, 2187
+  size: 46, 45
+  orig: 250, 250
+  offset: 94, 12
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BladeFX/3/1 (11)
+  rotate: true
+  xy: 1457, 84
+  size: 224, 144
+  orig: 250, 250
+  offset: 26, 12
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BladeFX/3/1 (13)
+  rotate: false
+  xy: 2472, 1688
+  size: 228, 149
+  orig: 250, 250
+  offset: 22, 11
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BladeFX/3/1 (15)
+  rotate: true
+  xy: 1274, 483
+  size: 229, 151
+  orig: 250, 250
+  offset: 21, 10
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BladeFX/3/1 (17)
+  rotate: true
+  xy: 2400, 742
+  size: 191, 152
+  orig: 250, 250
+  offset: 59, 11
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BladeFX/3/1 (19)
+  rotate: true
+  xy: 2554, 799
+  size: 176, 154
+  orig: 250, 250
+  offset: 74, 10
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BladeFX/3/1 (21)
+  rotate: false
+  xy: 3365, 1531
+  size: 157, 149
+  orig: 250, 250
+  offset: 93, 11
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BladeFX/3/1 (23)
+  rotate: false
+  xy: 326, 2
+  size: 139, 115
+  orig: 250, 250
+  offset: 111, 15
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BladeFX/3/1 (3)
+  rotate: false
+  xy: 3776, 1203
+  size: 112, 84
+  orig: 250, 250
+  offset: 66, 12
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BladeFX/3/1 (7)
+  rotate: false
+  xy: 2206, 1308
+  size: 186, 127
+  orig: 250, 250
+  offset: 42, 12
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BladeFX/3/1 (9)
+  rotate: true
+  xy: 1022, 472
+  size: 210, 137
+  orig: 250, 250
+  offset: 32, 12
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BladeFX/Blade_11_glow
+  rotate: false
+  xy: 2480, 1839
+  size: 220, 166
+  orig: 222, 166
+  offset: 1, 0
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BowFX/Yumi_11_glow
+  rotate: false
+  xy: 1436, 1765
+  size: 280, 196
+  orig: 286, 196
+  offset: 3, 0
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BowFX/lv1/Big_Impact_00
+  rotate: false
+  xy: 2394, 1571
+  size: 53, 50
+  orig: 184, 173
+  offset: 66, 66
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BowFX/lv1/Big_Impact_01
+  rotate: false
+  xy: 3703, 368
+  size: 62, 62
+  orig: 184, 173
+  offset: 61, 61
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BowFX/lv1/Big_Impact_02
+  rotate: true
+  xy: 3125, 2300
+  size: 151, 161
+  orig: 184, 173
+  offset: 13, 6
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BowFX/lv1/Big_Impact_03
+  rotate: false
+  xy: 3120, 1522
+  size: 160, 163
+  orig: 184, 173
+  offset: 7, 5
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BowFX/lv1/Big_Impact_04
+  rotate: true
+  xy: 2565, 621
+  size: 176, 154
+  orig: 184, 173
+  offset: 4, 9
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BowFX/lv1/Big_Impact_05
+  rotate: true
+  xy: 2646, 2
+  size: 142, 124
+  orig: 184, 173
+  offset: 11, 24
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BowFX/lv1/Big_Impact_06
+  rotate: true
+  xy: 2728, 508
+  size: 150, 149
+  orig: 184, 173
+  offset: 6, 15
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BowFX/lv1/Big_Impact_07
+  rotate: false
+  xy: 3368, 1808
+  size: 159, 150
+  orig: 184, 173
+  offset: 8, 15
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BowFX/lv1/Big_Impact_08
+  rotate: true
+  xy: 3724, 2392
+  size: 139, 121
+  orig: 184, 173
+  offset: 27, 30
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BowFX/lv1/Big_Impact_09
+  rotate: false
+  xy: 3347, 834
+  size: 112, 116
+  orig: 184, 173
+  offset: 13, 35
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BowFX/lv2/Ray_Water00
+  rotate: true
+  xy: 1204, 2016
+  size: 14, 71
+  orig: 300, 300
+  offset: 138, 28
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BowFX/lv2/Ray_Water01
+  rotate: false
+  xy: 3258, 1194
+  size: 31, 181
+  orig: 300, 300
+  offset: 130, 34
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BowFX/lv2/Ray_Water02
+  rotate: true
+  xy: 2336, 935
+  size: 40, 211
+  orig: 300, 300
+  offset: 125, 37
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BowFX/lv2/Ray_Water03
+  rotate: true
+  xy: 3175, 2680
+  size: 43, 224
+  orig: 300, 300
+  offset: 123, 39
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BowFX/lv2/Ray_Water04
+  rotate: true
+  xy: 2728, 461
+  size: 45, 199
+  orig: 300, 300
+  offset: 121, 70
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BowFX/lv2/Ray_Water05
+  rotate: true
+  xy: 3175, 2631
+  size: 47, 203
+  orig: 300, 300
+  offset: 120, 73
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BowFX/lv2/Ray_Water06
+  rotate: true
+  xy: 3471, 2668
+  size: 48, 205
+  orig: 300, 300
+  offset: 120, 77
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BowFX/lv2/Ray_Water07
+  rotate: false
+  xy: 3054, 31
+  size: 46, 181
+  orig: 300, 300
+  offset: 122, 103
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BowFX/lv2/Ray_Water08
+  rotate: true
+  xy: 3366, 1486
+  size: 43, 150
+  orig: 300, 300
+  offset: 124, 136
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BowFX/lv2/Ray_Water09
+  rotate: false
+  xy: 3950, 2221
+  size: 33, 150
+  orig: 300, 300
+  offset: 133, 138
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BowFX/lv2/Ray_Water10
+  rotate: false
+  xy: 3225, 1087
+  size: 31, 126
+  orig: 300, 300
+  offset: 134, 165
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BowFX/lv3/1 (10)
+  rotate: true
+  xy: 3392, 1250
+  size: 125, 124
+  orig: 150, 150
+  offset: 7, 11
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BowFX/lv3/1 (11)
+  rotate: false
+  xy: 3376, 433
+  size: 110, 111
+  orig: 150, 150
+  offset: 15, 17
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BowFX/lv3/1 (12)
+  rotate: false
+  xy: 3393, 260
+  size: 110, 111
+  orig: 150, 150
+  offset: 15, 17
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BowFX/lv3/1 (13)
+  rotate: false
+  xy: 3861, 594
+  size: 87, 88
+  orig: 150, 150
+  offset: 34, 27
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BowFX/lv3/1 (14)
+  rotate: false
+  xy: 3572, 3
+  size: 87, 87
+  orig: 150, 150
+  offset: 34, 28
+  index: -1
+wp/Lv11(ingame)/FX_Wp/BowFX/lv3/1 (9)
+  rotate: false
+  xy: 3832, 1795
+  size: 126, 124
+  orig: 150, 150
+  offset: 7, 11
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FanFX/Tessen_11_glow
+  rotate: false
+  xy: 2478, 2229
+  size: 242, 175
+  orig: 272, 178
+  offset: 14, 1
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FanFX/lv1/1 (1)
+  rotate: false
+  xy: 2909, 807
+  size: 151, 130
+  orig: 190, 190
+  offset: 17, 23
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FanFX/lv1/1 (10)
+  rotate: false
+  xy: 3062, 784
+  size: 150, 141
+  orig: 190, 190
+  offset: 19, 18
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FanFX/lv1/1 (11)
+  rotate: true
+  xy: 3176, 517
+  size: 141, 128
+  orig: 190, 190
+  offset: 28, 18
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FanFX/lv1/1 (2)
+  rotate: false
+  xy: 3526, 1650
+  size: 158, 132
+  orig: 190, 190
+  offset: 8, 32
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FanFX/lv1/1 (3)
+  rotate: false
+  xy: 2569, 324
+  size: 151, 146
+  orig: 190, 190
+  offset: 9, 19
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FanFX/lv1/1 (4)
+  rotate: false
+  xy: 3119, 1687
+  size: 154, 136
+  orig: 190, 190
+  offset: 14, 18
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FanFX/lv1/1 (5)
+  rotate: true
+  xy: 2965, 214
+  size: 144, 124
+  orig: 190, 190
+  offset: 25, 19
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FanFX/lv1/1 (6)
+  rotate: false
+  xy: 3387, 1062
+  size: 126, 116
+  orig: 190, 190
+  offset: 43, 28
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FanFX/lv1/1 (7)
+  rotate: false
+  xy: 2959, 2192
+  size: 157, 129
+  orig: 190, 190
+  offset: 10, 26
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FanFX/lv1/1 (8)
+  rotate: false
+  xy: 3524, 1523
+  size: 158, 125
+  orig: 190, 190
+  offset: 11, 42
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FanFX/lv1/1 (9)
+  rotate: false
+  xy: 3103, 1995
+  size: 157, 139
+  orig: 190, 190
+  offset: 10, 26
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FanFX/lv2/1 (1)
+  rotate: false
+  xy: 3481, 565
+  size: 110, 110
+  orig: 250, 250
+  offset: 74, 73
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FanFX/lv2/1 (10)
+  rotate: false
+  xy: 3863, 274
+  size: 65, 60
+  orig: 250, 250
+  offset: 98, 98
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FanFX/lv2/1 (2)
+  rotate: true
+  xy: 2407, 409
+  size: 146, 156
+  orig: 250, 250
+  offset: 53, 48
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FanFX/lv2/1 (3)
+  rotate: false
+  xy: 3556, 2496
+  size: 164, 170
+  orig: 250, 250
+  offset: 42, 42
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FanFX/lv2/1 (4)
+  rotate: false
+  xy: 2071, 1124
+  size: 164, 182
+  orig: 250, 250
+  offset: 43, 32
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FanFX/lv2/1 (5)
+  rotate: true
+  xy: 3118, 2136
+  size: 162, 173
+  orig: 250, 250
+  offset: 45, 37
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FanFX/lv2/1 (6)
+  rotate: true
+  xy: 2913, 1227
+  size: 166, 176
+  orig: 250, 250
+  offset: 43, 36
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FanFX/lv2/1 (7)
+  rotate: true
+  xy: 3641, 1126
+  size: 90, 131
+  orig: 250, 250
+  offset: 87, 36
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FanFX/lv2/1 (8)
+  rotate: true
+  xy: 3857, 485
+  size: 95, 78
+  orig: 250, 250
+  offset: 90, 90
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FanFX/lv2/1 (9)
+  rotate: false
+  xy: 2135, 2901
+  size: 69, 65
+  orig: 250, 250
+  offset: 95, 96
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FanFX/lv3/buff (1)
+  rotate: true
+  xy: 3686, 1647
+  size: 134, 140
+  orig: 139, 145
+  offset: 0, 5
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FanFX/lv3/buff (10)
+  rotate: true
+  xy: 3767, 485
+  size: 95, 88
+  orig: 139, 145
+  offset: 22, 21
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FanFX/lv3/buff (11)
+  rotate: true
+  xy: 3661, 4
+  size: 86, 82
+  orig: 139, 145
+  offset: 28, 24
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FanFX/lv3/buff (12)
+  rotate: false
+  xy: 3513, 93
+  size: 83, 81
+  orig: 139, 145
+  offset: 30, 25
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FanFX/lv3/buff (2)
+  rotate: true
+  xy: 3023, 660
+  size: 122, 136
+  orig: 139, 145
+  offset: 0, 4
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FanFX/lv3/buff (3)
+  rotate: true
+  xy: 3853, 2480
+  size: 123, 129
+  orig: 139, 145
+  offset: 0, 7
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FanFX/lv3/buff (4)
+  rotate: true
+  xy: 3641, 1004
+  size: 120, 125
+  orig: 139, 145
+  offset: 0, 10
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FanFX/lv3/buff (5)
+  rotate: true
+  xy: 3827, 2119
+  size: 117, 121
+  orig: 139, 145
+  offset: 3, 10
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FanFX/lv3/buff (6)
+  rotate: false
+  xy: 3870, 3068
+  size: 113, 119
+  orig: 139, 145
+  offset: 6, 11
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FanFX/lv3/buff (7)
+  rotate: true
+  xy: 3638, 843
+  size: 111, 116
+  orig: 139, 145
+  offset: 8, 10
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FanFX/lv3/buff (8)
+  rotate: true
+  xy: 3593, 566
+  size: 109, 111
+  orig: 139, 145
+  offset: 11, 12
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FanFX/lv3/buff (9)
+  rotate: false
+  xy: 3775, 1289
+  size: 102, 101
+  orig: 139, 145
+  offset: 17, 16
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FluteFX/2/Tu (1)
+  rotate: true
+  xy: 3366, 720
+  size: 112, 92
+  orig: 240, 135
+  offset: 65, 28
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FluteFX/2/Tu (10)
+  rotate: false
+  xy: 3488, 373
+  size: 99, 80
+  orig: 240, 135
+  offset: 67, 34
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FluteFX/2/Tu (11)
+  rotate: true
+  xy: 3752, 2674
+  size: 94, 67
+  orig: 240, 135
+  offset: 71, 34
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FluteFX/2/Tu (12)
+  rotate: true
+  xy: 3655, 176
+  size: 94, 51
+  orig: 240, 135
+  offset: 71, 47
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FluteFX/2/Tu (2)
+  rotate: false
+  xy: 3796, 1392
+  size: 111, 92
+  orig: 240, 135
+  offset: 65, 28
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FluteFX/2/Tu (3)
+  rotate: true
+  xy: 3288, 2335
+  size: 109, 97
+  orig: 240, 135
+  offset: 65, 27
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FluteFX/2/Tu (4)
+  rotate: false
+  xy: 1892, 2
+  size: 101, 98
+  orig: 240, 135
+  offset: 66, 27
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FluteFX/2/Tu (5)
+  rotate: false
+  xy: 3774, 1105
+  size: 100, 96
+  orig: 240, 135
+  offset: 66, 28
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FluteFX/2/Tu (6)
+  rotate: false
+  xy: 3768, 1007
+  size: 100, 96
+  orig: 240, 135
+  offset: 66, 28
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FluteFX/2/Tu (7)
+  rotate: false
+  xy: 3756, 852
+  size: 99, 94
+  orig: 240, 135
+  offset: 67, 28
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FluteFX/2/Tu (8)
+  rotate: false
+  xy: 3471, 2
+  size: 99, 89
+  orig: 240, 135
+  offset: 67, 28
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FluteFX/2/Tu (9)
+  rotate: true
+  xy: 3505, 273
+  size: 98, 82
+  orig: 240, 135
+  offset: 68, 32
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FluteFX/3/tonardo (1)
+  rotate: false
+  xy: 1283, 231
+  size: 28, 23
+  orig: 200, 113
+  offset: 168, 48
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FluteFX/3/tonardo (10)
+  rotate: true
+  xy: 3329, 220
+  size: 151, 62
+  orig: 200, 113
+  offset: 23, 23
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FluteFX/3/tonardo (11)
+  rotate: false
+  xy: 3827, 2674
+  size: 156, 59
+  orig: 200, 113
+  offset: 17, 23
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FluteFX/3/tonardo (12)
+  rotate: true
+  xy: 3715, 2187
+  size: 160, 56
+  orig: 200, 113
+  offset: 13, 22
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FluteFX/3/tonardo (13)
+  rotate: true
+  xy: 2852, 821
+  size: 154, 55
+  orig: 200, 113
+  offset: 17, 22
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FluteFX/3/tonardo (14)
+  rotate: true
+  xy: 3773, 2235
+  size: 155, 49
+  orig: 200, 113
+  offset: 14, 22
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FluteFX/3/tonardo (15)
+  rotate: true
+  xy: 885, 1858
+  size: 140, 14
+  orig: 200, 113
+  offset: 14, 37
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FluteFX/3/tonardo (2)
+  rotate: false
+  xy: 3300, 927
+  size: 39, 38
+  orig: 200, 113
+  offset: 158, 42
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FluteFX/3/tonardo (3)
+  rotate: false
+  xy: 1647, 1720
+  size: 48, 43
+  orig: 200, 113
+  offset: 147, 37
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FluteFX/3/tonardo (4)
+  rotate: false
+  xy: 3909, 1433
+  size: 74, 51
+  orig: 200, 113
+  offset: 120, 33
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FluteFX/3/tonardo (5)
+  rotate: false
+  xy: 3366, 661
+  size: 85, 57
+  orig: 200, 113
+  offset: 109, 27
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FluteFX/3/tonardo (6)
+  rotate: false
+  xy: 3723, 278
+  size: 87, 64
+  orig: 200, 113
+  offset: 105, 27
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FluteFX/3/tonardo (7)
+  rotate: false
+  xy: 2074, 1308
+  size: 122, 64
+  orig: 200, 113
+  offset: 69, 26
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FluteFX/3/tonardo (8)
+  rotate: false
+  xy: 3518, 1233
+  size: 122, 65
+  orig: 200, 113
+  offset: 62, 24
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FluteFX/3/tonardo (9)
+  rotate: true
+  xy: 3306, 505
+  size: 153, 65
+  orig: 200, 113
+  offset: 31, 24
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FluteFX/4/1 (1)
+  rotate: false
+  xy: 3931, 3335
+  size: 43, 35
+  orig: 250, 250
+  offset: 193, 127
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KatarFX/lv3/1
+  rotate: false
+  xy: 3931, 3335
+  size: 43, 35
+  orig: 250, 250
+  offset: 193, 127
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FluteFX/4/1 (10)
+  rotate: false
+  xy: 3890, 1227
+  size: 93, 62
+  orig: 250, 250
+  offset: 6, 107
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KatarFX/lv3/10
+  rotate: false
+  xy: 3890, 1227
+  size: 93, 62
+  orig: 250, 250
+  offset: 6, 107
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FluteFX/4/1 (11)
+  rotate: true
+  xy: 3056, 2555
+  size: 27, 54
+  orig: 250, 250
+  offset: 12, 111
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KatarFX/lv3/11
+  rotate: true
+  xy: 3056, 2555
+  size: 27, 54
+  orig: 250, 250
+  offset: 12, 111
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FluteFX/4/1 (2)
+  rotate: false
+  xy: 3863, 422
+  size: 68, 61
+  orig: 250, 250
+  offset: 165, 101
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KatarFX/lv3/2
+  rotate: false
+  xy: 3863, 422
+  size: 68, 61
+  orig: 250, 250
+  offset: 165, 101
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FluteFX/4/1 (3)
+  rotate: false
+  xy: 3876, 1107
+  size: 106, 63
+  orig: 250, 250
+  offset: 122, 98
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KatarFX/lv3/3
+  rotate: false
+  xy: 3876, 1107
+  size: 106, 63
+  orig: 250, 250
+  offset: 122, 98
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FluteFX/4/1 (4)
+  rotate: true
+  xy: 2753, 1098
+  size: 135, 66
+  orig: 250, 250
+  offset: 70, 101
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KatarFX/lv3/4
+  rotate: true
+  xy: 2753, 1098
+  size: 135, 66
+  orig: 250, 250
+  offset: 70, 101
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FluteFX/4/1 (5)
+  rotate: false
+  xy: 1891, 1311
+  size: 181, 73
+  orig: 250, 250
+  offset: 8, 92
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KatarFX/lv3/5
+  rotate: false
+  xy: 1891, 1311
+  size: 181, 73
+  orig: 250, 250
+  offset: 8, 92
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FluteFX/4/1 (6)
+  rotate: true
+  xy: 3243, 76
+  size: 151, 74
+  orig: 250, 250
+  offset: 0, 92
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KatarFX/lv3/6
+  rotate: true
+  xy: 3243, 76
+  size: 151, 74
+  orig: 250, 250
+  offset: 0, 92
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FluteFX/4/1 (7)
+  rotate: true
+  xy: 3282, 1542
+  size: 148, 81
+  orig: 250, 250
+  offset: 0, 92
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KatarFX/lv3/7
+  rotate: true
+  xy: 3282, 1542
+  size: 148, 81
+  orig: 250, 250
+  offset: 0, 92
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FluteFX/4/1 (8)
+  rotate: true
+  xy: 1889, 1609
+  size: 100, 76
+  orig: 250, 250
+  offset: 0, 96
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KatarFX/lv3/8
+  rotate: true
+  xy: 1889, 1609
+  size: 100, 76
+  orig: 250, 250
+  offset: 0, 96
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FluteFX/4/1 (9)
+  rotate: true
+  xy: 3513, 176
+  size: 95, 71
+  orig: 250, 250
+  offset: 2, 99
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KatarFX/lv3/9
+  rotate: true
+  xy: 3513, 176
+  size: 95, 71
+  orig: 250, 250
+  offset: 2, 99
+  index: -1
+wp/Lv11(ingame)/FX_Wp/FluteFX/Flute_glow
+  rotate: true
+  xy: 1240, 1157
+  size: 175, 176
+  orig: 183, 181
+  offset: 4, 3
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KatarFX/Katar_11_glow
+  rotate: false
+  xy: 3387, 2497
+  size: 167, 169
+  orig: 173, 171
+  offset: 3, 2
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KatarFX/lv1/Radial01
+  rotate: false
+  xy: 3284, 2
+  size: 64, 72
+  orig: 200, 200
+  offset: 63, 96
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KatarFX/lv1/Radial03
+  rotate: true
+  xy: 3515, 1026
+  size: 114, 124
+  orig: 200, 200
+  offset: 57, 48
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KatarFX/lv1/Radial05
+  rotate: true
+  xy: 2875, 660
+  size: 145, 146
+  orig: 200, 200
+  offset: 23, 17
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KatarFX/lv1/Radial07
+  rotate: true
+  xy: 2772, 30
+  size: 146, 145
+  orig: 200, 200
+  offset: 27, 19
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KatarFX/lv1/Radial09
+  rotate: true
+  xy: 3214, 784
+  size: 141, 131
+  orig: 200, 200
+  offset: 32, 32
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KatarFX/lv1/Radial11
+  rotate: true
+  xy: 3870, 3189
+  size: 138, 113
+  orig: 200, 200
+  offset: 25, 45
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KatarFX/lv1/Radial13
+  rotate: true
+  xy: 3275, 1692
+  size: 123, 88
+  orig: 200, 200
+  offset: 30, 64
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KatarFX/lv2/1 (1)
+  rotate: false
+  xy: 3387, 2184
+  size: 160, 164
+  orig: 231, 207
+  offset: 32, 19
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KatarFX/lv2/1 (2)
+  rotate: false
+  xy: 3824, 2900
+  size: 159, 164
+  orig: 231, 207
+  offset: 32, 19
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KatarFX/lv2/1 (3)
+  rotate: false
+  xy: 2721, 660
+  size: 152, 156
+  orig: 231, 207
+  offset: 40, 21
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KatarFX/lv2/1 (4)
+  rotate: true
+  xy: 3529, 1784
+  size: 156, 159
+  orig: 231, 207
+  offset: 39, 17
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KatarFX/lv2/1 (5)
+  rotate: false
+  xy: 3824, 2735
+  size: 159, 163
+  orig: 231, 207
+  offset: 36, 18
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KatarFX/lv2/1 (6)
+  rotate: true
+  xy: 3091, 1215
+  size: 160, 165
+  orig: 231, 207
+  offset: 32, 17
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KatarFX/lv2/1 (7)
+  rotate: true
+  xy: 3373, 1960
+  size: 157, 164
+  orig: 231, 207
+  offset: 34, 19
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KatarFX/lv2/1 (8)
+  rotate: true
+  xy: 3549, 2187
+  size: 160, 164
+  orig: 231, 207
+  offset: 33, 19
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KatarFX/lv4/0_0
+  rotate: true
+  xy: 2913, 1084
+  size: 141, 154
+  orig: 189, 257
+  offset: 25, 8
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KatarFX/lv4/0_1
+  rotate: false
+  xy: 2710, 818
+  size: 140, 157
+  orig: 189, 257
+  offset: 24, 7
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KatarFX/lv4/0_10
+  rotate: false
+  xy: 3518, 1300
+  size: 122, 125
+  orig: 189, 257
+  offset: 25, 15
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KatarFX/lv4/0_11
+  rotate: true
+  xy: 2479, 2598
+  size: 85, 83
+  orig: 189, 257
+  offset: 24, 15
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KatarFX/lv4/0_2
+  rotate: true
+  xy: 3064, 927
+  size: 143, 151
+  orig: 189, 257
+  offset: 20, 9
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KatarFX/lv4/0_3
+  rotate: false
+  xy: 2729, 178
+  size: 143, 149
+  orig: 189, 257
+  offset: 18, 8
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KatarFX/lv4/0_4
+  rotate: true
+  xy: 3069, 1072
+  size: 141, 154
+  orig: 189, 257
+  offset: 17, 1
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KatarFX/lv4/0_5
+  rotate: true
+  xy: 2910, 939
+  size: 143, 152
+  orig: 189, 257
+  offset: 18, 0
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KatarFX/lv4/0_6
+  rotate: false
+  xy: 3030, 511
+  size: 144, 147
+  orig: 189, 257
+  offset: 19, 3
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KatarFX/lv4/0_7
+  rotate: false
+  xy: 2938, 360
+  size: 145, 146
+  orig: 189, 257
+  offset: 20, 6
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KatarFX/lv4/0_8
+  rotate: false
+  xy: 3690, 1783
+  size: 140, 140
+  orig: 189, 257
+  offset: 24, 8
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KatarFX/lv4/0_9
+  rotate: false
+  xy: 3824, 2238
+  size: 124, 133
+  orig: 189, 257
+  offset: 25, 11
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KunaiFX/Kunai_11_glow
+  rotate: false
+  xy: 2449, 1568
+  size: 232, 118
+  orig: 250, 120
+  offset: 9, 2
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KunaiFX/lv1/Dash_Move00
+  rotate: true
+  xy: 3586, 176
+  size: 94, 67
+  orig: 300, 300
+  offset: 38, 71
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KunaiFX/lv1/Dash_Move01
+  rotate: false
+  xy: 3642, 1283
+  size: 131, 113
+  orig: 300, 300
+  offset: 0, 71
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KunaiFX/lv1/Dash_Move02
+  rotate: false
+  xy: 2176, 935
+  size: 158, 187
+  orig: 300, 300
+  offset: 0, 77
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KunaiFX/lv1/Dash_Move03
+  rotate: false
+  xy: 1891, 1386
+  size: 181, 192
+  orig: 300, 300
+  offset: 44, 68
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KunaiFX/lv1/Dash_Move04
+  rotate: true
+  xy: 1605, 737
+  size: 196, 209
+  orig: 300, 300
+  offset: 60, 67
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KunaiFX/lv1/Dash_Move05
+  rotate: true
+  xy: 1655, 935
+  size: 179, 217
+  orig: 300, 300
+  offset: 101, 13
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KunaiFX/lv1/Dash_Move06
+  rotate: false
+  xy: 1392, 1543
+  size: 253, 220
+  orig: 300, 300
+  offset: 20, 33
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KunaiFX/lv1/Dash_Move07
+  rotate: false
+  xy: 2208, 1754
+  size: 262, 213
+  orig: 300, 300
+  offset: 18, 40
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KunaiFX/lv1/Dash_Move08
+  rotate: false
+  xy: 2336, 977
+  size: 202, 142
+  orig: 300, 300
+  offset: 89, 74
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KunaiFX/lv2/00002
+  rotate: false
+  xy: 3722, 2533
+  size: 129, 139
+  orig: 200, 175
+  offset: 34, 23
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KunaiFX/lv2/00003
+  rotate: true
+  xy: 3684, 1506
+  size: 139, 140
+  orig: 200, 175
+  offset: 31, 24
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KunaiFX/lv2/00004
+  rotate: false
+  xy: 3105, 1377
+  size: 174, 143
+  orig: 200, 175
+  offset: 1, 25
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KunaiFX/lv2/00005
+  rotate: true
+  xy: 3281, 1379
+  size: 105, 110
+  orig: 200, 175
+  offset: 52, 30
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KunaiFX/lv2/00007
+  rotate: true
+  xy: 3894, 1013
+  size: 92, 89
+  orig: 200, 175
+  offset: 52, 45
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KunaiFX/lv2/00009
+  rotate: true
+  xy: 3864, 336
+  size: 84, 69
+  orig: 200, 175
+  offset: 57, 49
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KunaiFX/lv3/1 (1)
+  rotate: true
+  xy: 2137, 325
+  size: 214, 63
+  orig: 250, 250
+  offset: 12, 86
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KunaiFX/lv3/1 (10)
+  rotate: false
+  xy: 1967, 1580
+  size: 223, 60
+  orig: 250, 250
+  offset: 12, 90
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KunaiFX/lv3/1 (2)
+  rotate: true
+  xy: 3405, 2717
+  size: 228, 64
+  orig: 250, 250
+  offset: 12, 86
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KunaiFX/lv3/1 (3)
+  rotate: true
+  xy: 2985, 29
+  size: 183, 67
+  orig: 250, 250
+  offset: 14, 86
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KunaiFX/lv3/1 (4)
+  rotate: true
+  xy: 2339, 544
+  size: 191, 66
+  orig: 250, 250
+  offset: 16, 87
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KunaiFX/lv3/1 (5)
+  rotate: true
+  xy: 2919, 2
+  size: 175, 64
+  orig: 250, 250
+  offset: 21, 90
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KunaiFX/lv3/1 (6)
+  rotate: false
+  xy: 3102, 11
+  size: 180, 63
+  orig: 250, 250
+  offset: 28, 89
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KunaiFX/lv3/1 (7)
+  rotate: false
+  xy: 2598, 1235
+  size: 194, 61
+  orig: 250, 250
+  offset: 17, 89
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KunaiFX/lv3/1 (8)
+  rotate: true
+  xy: 3043, 1995
+  size: 195, 58
+  orig: 250, 250
+  offset: 16, 90
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KunaiFX/lv3/1 (9)
+  rotate: true
+  xy: 2165, 111
+  size: 212, 59
+  orig: 250, 250
+  offset: 14, 91
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KunaiFX/lv4/0
+  rotate: true
+  xy: 1283, 256
+  size: 225, 145
+  orig: 248, 158
+  offset: 18, 7
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KunaiFX/lv4/1
+  rotate: false
+  xy: 1418, 942
+  size: 235, 182
+  orig: 248, 186
+  offset: 10, 0
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KunaiFX/lv4/2
+  rotate: false
+  xy: 2474, 2406
+  size: 253, 190
+  orig: 257, 197
+  offset: 1, 0
+  index: -1
+wp/Lv11(ingame)/FX_Wp/KunaiFX/lv4/3
+  rotate: false
+  xy: 1152, 1334
+  size: 265, 207
+  orig: 274, 212
+  offset: 1, 1
+  index: -1
+wp/Lv11(ingame)/FX_Wp/SurikenFX/Shuriken_11_glow
+  rotate: false
+  xy: 1427, 529
+  size: 195, 199
+  orig: 206, 202
+  offset: 5, 3
+  index: -1
+wp/Lv11(ingame)/FX_Wp/SurikenFX/lv1/1 (1)
+  rotate: false
+  xy: 2729, 2564
+  size: 45, 32
+  orig: 480, 270
+  offset: 200, 93
+  index: -1
+wp/Lv11(ingame)/FX_Wp/SurikenFX/lv1/1 (10)
+  rotate: true
+  xy: 3765, 758
+  size: 92, 90
+  orig: 480, 270
+  offset: 174, 167
+  index: -1
+wp/Lv11(ingame)/FX_Wp/SurikenFX/lv1/1 (2)
+  rotate: false
+  xy: 3765, 680
+  size: 87, 76
+  orig: 480, 270
+  offset: 144, 92
+  index: -1
+wp/Lv11(ingame)/FX_Wp/SurikenFX/lv1/1 (3)
+  rotate: true
+  xy: 3518, 1427
+  size: 94, 137
+  orig: 480, 270
+  offset: 131, 93
+  index: -1
+wp/Lv11(ingame)/FX_Wp/SurikenFX/lv1/1 (4)
+  rotate: false
+  xy: 3091, 221
+  size: 127, 143
+  orig: 480, 270
+  offset: 132, 102
+  index: -1
+wp/Lv11(ingame)/FX_Wp/SurikenFX/lv1/1 (5)
+  rotate: false
+  xy: 3102, 76
+  size: 139, 143
+  orig: 480, 270
+  offset: 135, 111
+  index: -1
+wp/Lv11(ingame)/FX_Wp/SurikenFX/lv1/1 (6)
+  rotate: true
+  xy: 3319, 77
+  size: 141, 137
+  orig: 480, 270
+  offset: 139, 120
+  index: -1
+wp/Lv11(ingame)/FX_Wp/SurikenFX/lv1/1 (7)
+  rotate: false
+  xy: 3657, 1398
+  size: 137, 106
+  orig: 480, 270
+  offset: 143, 152
+  index: -1
+wp/Lv11(ingame)/FX_Wp/SurikenFX/lv1/1 (8)
+  rotate: false
+  xy: 3258, 1084
+  size: 127, 105
+  orig: 480, 270
+  offset: 150, 155
+  index: -1
+wp/Lv11(ingame)/FX_Wp/SurikenFX/lv1/1 (9)
+  rotate: false
+  xy: 3638, 741
+  size: 114, 100
+  orig: 480, 270
+  offset: 161, 160
+  index: -1
+wp/Lv11(ingame)/FX_Wp/SurikenFX/lv2/1 (1)
+  rotate: false
+  xy: 3488, 455
+  size: 108, 108
+  orig: 240, 135
+  offset: 70, 14
+  index: -1
+wp/Lv11(ingame)/FX_Wp/SurikenFX/lv2/1 (2)
+  rotate: false
+  xy: 3598, 457
+  size: 103, 107
+  orig: 240, 135
+  offset: 73, 18
+  index: -1
+wp/Lv11(ingame)/FX_Wp/SurikenFX/lv2/1 (3)
+  rotate: false
+  xy: 3828, 1645
+  size: 106, 101
+  orig: 240, 135
+  offset: 68, 24
+  index: -1
+wp/Lv11(ingame)/FX_Wp/SurikenFX/lv2/1 (4)
+  rotate: false
+  xy: 3826, 1543
+  size: 105, 100
+  orig: 240, 135
+  offset: 67, 26
+  index: -1
+wp/Lv11(ingame)/FX_Wp/SurikenFX/lv2/1 (5)
+  rotate: true
+  xy: 3879, 1291
+  size: 99, 104
+  orig: 240, 135
+  offset: 66, 22
+  index: -1
+wp/Lv11(ingame)/FX_Wp/SurikenFX/lv2/1 (6)
+  rotate: false
+  xy: 3373, 546
+  size: 106, 113
+  orig: 240, 135
+  offset: 65, 11
+  index: -1
+wp/Lv11(ingame)/FX_Wp/SurikenFX/lv2/1 (7)
+  rotate: true
+  xy: 3523, 849
+  size: 111, 113
+  orig: 240, 135
+  offset: 64, 10
+  index: -1
+wp/Lv11(ingame)/FX_Wp/SurikenFX/lv2/1 (8)
+  rotate: false
+  xy: 3524, 742
+  size: 112, 105
+  orig: 240, 135
+  offset: 64, 12
+  index: -1
+wp/Lv11(ingame)/FX_Wp/SwordFX/Katana_11_glow
+  rotate: true
+  xy: 1308, 2015
+  size: 280, 126
+  orig: 298, 130
+  offset: 7, 1
+  index: -1
+wp/Lv11(ingame)/FX_Wp/SwordFX/lv1/1 (1)
+  rotate: false
+  xy: 3387, 952
+  size: 120, 108
+  orig: 250, 250
+  offset: 60, 0
+  index: -1
+wp/Lv11(ingame)/FX_Wp/SwordFX/lv1/1 (2)
+  rotate: false
+  xy: 3125, 2453
+  size: 161, 176
+  orig: 250, 250
+  offset: 40, 0
+  index: -1
+wp/Lv11(ingame)/FX_Wp/SwordFX/lv1/1 (3)
+  rotate: false
+  xy: 1880, 102
+  size: 145, 216
+  orig: 250, 250
+  offset: 54, 0
+  index: -1
+wp/Lv11(ingame)/FX_Wp/SwordFX/lv1/1 (4)
+  rotate: false
+  xy: 1024, 2
+  size: 149, 223
+  orig: 250, 250
+  offset: 58, 3
+  index: -1
+wp/Lv11(ingame)/FX_Wp/SwordFX/lv1/1 (5)
+  rotate: false
+  xy: 1175, 3
+  size: 145, 226
+  orig: 250, 250
+  offset: 58, 2
+  index: -1
+wp/Lv11(ingame)/FX_Wp/SwordFX/lv1/1 (6)
+  rotate: true
+  xy: 2394, 1426
+  size: 140, 211
+  orig: 250, 250
+  offset: 60, 11
+  index: -1
+wp/Lv11(ingame)/FX_Wp/SwordFX/lv1/1 (7)
+  rotate: false
+  xy: 904, 16
+  size: 118, 177
+  orig: 250, 250
+  offset: 60, 30
+  index: -1
+wp/Lv11(ingame)/FX_Wp/SwordFX/lv1/1 (8)
+  rotate: false
+  xy: 3220, 229
+  size: 107, 142
+  orig: 250, 250
+  offset: 61, 56
+  index: -1
+wp/Lv11(ingame)/FX_Wp/SwordFX/lv2/0
+  rotate: false
+  xy: 1457, 2
+  size: 174, 80
+  orig: 178, 83
+  offset: 2, 2
+  index: -1
+wp/Lv11(ingame)/FX_Wp/SwordFX/lv2/1
+  rotate: false
+  xy: 1624, 540
+  size: 187, 195
+  orig: 189, 199
+  offset: 1, 3
+  index: -1
+wp/Lv11(ingame)/FX_Wp/SwordFX/lv2/2
+  rotate: false
+  xy: 2206, 1437
+  size: 186, 184
+  orig: 189, 191
+  offset: 2, 6
+  index: -1
+wp/Lv11(ingame)/FX_Wp/SwordFX/lv2/3
+  rotate: false
+  xy: 1430, 310
+  size: 158, 217
+  orig: 162, 226
+  offset: 2, 4
+  index: -1
+wp/Lv11(ingame)/FX_Wp/SwordFX/lv2/4
+  rotate: false
+  xy: 1868, 320
+  size: 148, 218
+  orig: 158, 222
+  offset: 4, 2
+  index: -1
+wp/Lv11(ingame)/FX_Wp/SwordFX/lv2/5
+  rotate: true
+  xy: 2311, 2
+  size: 124, 191
+  orig: 127, 195
+  offset: 2, 2
+  index: -1
+wp/Lv11(ingame)/FX_Wp/SwordFX/lv2/6
+  rotate: true
+  xy: 3539, 1942
+  size: 120, 161
+  orig: 127, 165
+  offset: 4, 2
+  index: -1
+wp/Lv11(ingame)/FX_Wp/SwordFX/lv2/7
+  rotate: false
+  xy: 3291, 1245
+  size: 99, 132
+  orig: 115, 135
+  offset: 9, 2
+  index: -1
+wp/Lv11(ingame)/Fukiya_11
+  rotate: false
+  xy: 2879, 508
+  size: 149, 150
+  orig: 149, 151
+  offset: 0, 0
+  index: -1
+wp/Lv11(ingame)/Katana_11
+  rotate: false
+  xy: 2729, 2323
+  size: 249, 96
+  orig: 260, 108
+  offset: 6, 12
+  index: -1
+wp/Lv11(ingame)/Katar_11
+  rotate: true
+  xy: 2504, 2
+  size: 138, 140
+  orig: 139, 141
+  offset: 0, 1
+  index: -1
+wp/Lv11(ingame)/Kunai_11
+  rotate: true
+  xy: 2226, 128
+  size: 199, 88
+  orig: 200, 88
+  offset: 0, 0
+  index: -1
+wp/Lv11(ingame)/Shuriken_11
+  rotate: false
+  xy: 3112, 1825
+  size: 162, 168
+  orig: 164, 168
+  offset: 0, 0
+  index: -1
+wp/Lv11(ingame)/Tessen_11
+  rotate: true
+  xy: 2202, 329
+  size: 211, 140
+  orig: 212, 140
+  offset: 0, 0
+  index: -1
+wp/Lv11(ingame)/Yumi_11
+  rotate: false
+  xy: 1647, 1545
+  size: 240, 164
+  orig: 240, 164
+  offset: 0, 0
+  index: -1

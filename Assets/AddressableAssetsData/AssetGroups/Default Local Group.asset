@@ -1,0 +1,137 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Default Local Group
+  m_EditorClassIdentifier: 
+  m_GroupName: Default Local Group
+  m_Data:
+    m_SerializedData: []
+  m_GUID: 1f871dc9df4758746960ecda73e05717
+  m_SerializeEntries:
+  - m_GUID: 0c3bff15d80f4434fa7a7098bb9c6568
+    m_Address: Dausi
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - ClassData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 0dcbbeb21d8ae4342a71cf7144f66937
+    m_Address: EmptyMapTemplate
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 12b997b23aacdca4d9e09b7dc0510844
+    m_Address: Assets/Sprite/UI/bag/SkillNa.spriteatlasv2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 23a1a42e6de8e734a9881a8dfaddabc9
+    m_Address: Assets/Sprite/Mob/mob_1.spriteatlasv2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2868f5e56e13a6249bbae8de665fbe4c
+    m_Address: Assets/SO/SkillDatabase.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 3e8ede0c71f4613409c4f8aed97f20a3
+    m_Address: Map_2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 460bef3578d80cf4781ead6bc87a4b91
+    m_Address: Assets/Character/Satthu.asset
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - ClassData
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4d2d5e6af49342e4eb16057aa2c1eacf
+    m_Address: PortalPrefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 634a487284ae78b42871661ad0e5db0f
+    m_Address: BasePlayer
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6ff219f2ac724584fb9a017a418024ad
+    m_Address: map_2.json
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 70fedab9012b99344b0346253a8c9f1b
+    m_Address: Char_Data_3
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 75c430751b67e6345b36d8c814d0e6bf
+    m_Address: Assets/SO/NpcDatabase.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 9e518a976322df04abb5a1e4c497db7f
+    m_Address: Assets/Prefabs/SkeletonGraphic (Naruto) 1.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a01d59f210c5cc2468eb268dccb743c8
+    m_Address: Assets/Atlas/HUD.spriteatlasv2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b12d95f643764374fb78d3e197ceb45c
+    m_Address: Assets/Prefabs/Mob.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b4731e27bb807894b94bcb81b952dfc9
+    m_Address: Map_1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c6521f92b52dde3418bacf18e5946ee2
+    m_Address: map_1.json
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e235fe7307252e544af73a5dca10702b
+    m_Address: Assets/Prefabs/NpcPrefabs.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e2386e2e9a3e6964595f8e6509ae4301
+    m_Address: Assets/Atlas/NPC.spriteatlasv2
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e5a21db0fcb04d14b94dfd0fe13f713f
+    m_Address: Assets/Prefabs/SkeletonGraphic (Naruto).prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e698b4b5dc62c4b4fb220886350aaa6f
+    m_Address: Char_Data_1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e6afa446fea156e43bdfc93a08e1b400
+    m_Address: Assets/SO/MobDatabase.asset
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 0e2640c18ea1afb4682cb0a791daccf5, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: feb8eb55b72d56d4b93409573be69a13, type: 2}
+    - {fileID: 11400000, guid: 878ce3f069e00d24c8abb0f713cd3f37, type: 2}

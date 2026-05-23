@@ -1,0 +1,65 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Image
+  m_EditorClassIdentifier: 
+  m_GroupName: Image
+  m_Data:
+    m_SerializedData: []
+  m_GUID: d7df49e6c26b46848b1efc0e1a7abefd
+  m_SerializeEntries:
+  - m_GUID: 2f61bc8ceb3c8bd458e3f2d8ae98e9c9
+    m_Address: Assets/Sprite/Mob/MobTemplate1/0_2.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 302fed24793074f418e4add0ba66647c
+    m_Address: Assets/Tilemap/img0 #5344.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 56064696e3afff64fae8f9e97678b9d7
+    m_Address: Assets/Tilemap/img1 #6703.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a354aa3e361b639498f0495b6d5459ed
+    m_Address: Assets/Sprite/Mob/MobTemplate1/3_3.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b9600dfd15278d74986f383959526e09
+    m_Address: Assets/Sprite/Mob/MobTemplate1/3_1.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ba0c6fa563595b040819b6cd87c6a9bd
+    m_Address: Assets/Sprite/Mob/MobTemplate1/0_0.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d12739589801bd44baf67e3a5c2379d3
+    m_Address: Assets/Sprite/Mob/MobTemplate1/3_2.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e47c913eff86ec84a9e0c52f883bfa33
+    m_Address: Assets/Sprite/Mob/MobTemplate1/3_0.png
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 0e2640c18ea1afb4682cb0a791daccf5, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 7c846ea2f85a3b445a2b77752cde8cdc, type: 2}
+    - {fileID: 11400000, guid: bc05969e8a222ca44b3afa15ac35d765, type: 2}

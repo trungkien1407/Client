@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d4ac13dc17ee7c44ac3f3000654871b, type: 3}
+  m_Name: MobDatabase
+  m_EditorClassIdentifier: 
+  mobs:
+  - mobName: "B\xF9 Nh\xECn"
+    templateId: 1
+    frameRate: 0.15
+    mobAtlas:
+      m_AssetGUID: 23a1a42e6de8e734a9881a8dfaddabc9
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_EditorAssetChanged: 0
+  - mobName: "Nh\xEDm"
+    templateId: 3
+    frameRate: 0.15
+    mobAtlas:
+      m_AssetGUID: 23a1a42e6de8e734a9881a8dfaddabc9
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_EditorAssetChanged: 0
