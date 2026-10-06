@@ -236,6 +236,18 @@ namespace Assets.Script.Player
             }
         }
 
+        /// <summary>Chọn mục tiêu từ code (vd bấm đánh khi chưa chọn ai -> tự chọn quái gần nhất).</summary>
+        public void SelectTarget(ITargetable t)
+        {
+            if (t != null) SetTarget(t);
+        }
+
+        /// <summary>Mục tiêu đang chọn vừa chết/biến mất -> bỏ chọn.</summary>
+        public void ClearIfTarget(ITargetable t)
+        {
+            if (currentTarget != null && ReferenceEquals(currentTarget, t)) ClearTarget();
+        }
+
         private void HandleTargetHpChanged(int currentHp, int maxHp)
         {
             if (UISetup.Instance != null)

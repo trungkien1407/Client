@@ -61,14 +61,33 @@ namespace Assets.Script.Player
 
         #region Animation Logic
 
+        // Đang diễn 1 động tác 1 lần (đánh, tung chiêu) -> tạm khoá anim di chuyển tới thời điểm này
+        private float _actionLockUntil;
+
         public void PlayAnimation(string animName, bool loop)
         {
             if (mainSkeleton == null || mainVisualObj == null || !mainVisualObj.activeSelf) return;
+            if (Time.time < _actionLockUntil) return;
 
             // Tránh chơi đè lại cùng 1 animation đang chạy
             if (mainSkeleton.AnimationName == animName) return;
 
             mainSkeleton.AnimationState.SetAnimation(0, animName, loop);
+        }
+
+        /// <summary>
+        /// Diễn 1 động tác KHÔNG lặp (vd "Punch_Combo" khi đánh) rồi tự quay về Idle.
+        /// Trong lúc diễn, các lệnh PlayAnimation của di chuyển bị bỏ qua.
+        /// </summary>
+        public void PlayActionOnce(string animName, float maxSeconds = 0.6f)
+        {
+            if (mainSkeleton == null || mainVisualObj == null || !mainVisualObj.activeSelf) return;
+            var anim = mainSkeleton.Skeleton?.Data?.FindAnimation(animName);
+            if (anim == null) return;
+
+            mainSkeleton.AnimationState.SetAnimation(0, anim, false);
+            mainSkeleton.AnimationState.AddAnimation(0, idleAnimation, true, 0f);
+            _actionLockUntil = Time.time + Mathf.Min(anim.Duration, maxSeconds);
         }
 
         /// <summary>

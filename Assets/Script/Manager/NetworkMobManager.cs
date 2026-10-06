@@ -60,6 +60,8 @@ namespace Assets.Script.Manager
             NetworkEventDispatcher.Instance.AddHandler(Cmd.MOB_LIST, OnMobList);
             NetworkEventDispatcher.Instance.AddHandler(Cmd.MOB_MOVE, OnMobMove);
             NetworkEventDispatcher.Instance.AddHandler(Cmd.MOB_MOVE_BATCH, OnMobMoveBatch);
+            NetworkEventDispatcher.Instance.AddHandler(Cmd.MOB_ADD, OnMobAdd);
+            NetworkEventDispatcher.Instance.AddHandler(Cmd.MOB_DIE, OnMobDie);
         }
 
         private void UnregisterNetworkHandlers()
@@ -69,6 +71,8 @@ namespace Assets.Script.Manager
                 NetworkEventDispatcher.Instance.RemoveHandler(Cmd.MOB_LIST, OnMobList);
                 NetworkEventDispatcher.Instance.RemoveHandler(Cmd.MOB_MOVE, OnMobMove);
                 NetworkEventDispatcher.Instance.RemoveHandler(Cmd.MOB_MOVE_BATCH, OnMobMoveBatch);
+                NetworkEventDispatcher.Instance.RemoveHandler(Cmd.MOB_ADD, OnMobAdd);
+                NetworkEventDispatcher.Instance.RemoveHandler(Cmd.MOB_DIE, OnMobDie);
             }
         }
 
@@ -99,6 +103,52 @@ namespace Assets.Script.Manager
             }
             catch (Exception e) { Debug.LogError("Lỗi MOB_LIST: " + e.Message); }
             finally { reader.Cleanup(); }
+        }
+
+        // ==========================================
+        // QUÁI HỒI SINH / CHẾT
+        // ==========================================
+
+        /// <summary>MOB_ADD: quái hồi sinh (cùng id cũ). Payload giống 1 phần tử MOB_LIST.</summary>
+        private void OnMobAdd(byte[] data)
+        {
+            if (!_isDatabaseReady) return;
+            MessageReader reader = new MessageReader(data);
+            try
+            {
+                int mobId = reader.ReadInt();
+                int templateId = reader.ReadInt();
+                float x = reader.ReadFloat();
+                float y = reader.ReadFloat();
+                int hp = reader.ReadInt();
+                int maxHp = reader.ReadInt();
+                byte isDead = reader.ReadByte();
+
+                RemoveMob(mobId); // xác cũ còn nằm đó thì dọn trước
+                if (isDead == 0) SpawnMob(mobId, (short)templateId, x, y, hp, maxHp);
+            }
+            catch (Exception e) { Debug.LogError("Lỗi MOB_ADD: " + e.Message); }
+            finally { reader.Cleanup(); }
+        }
+
+        /// <summary>MOB_DIE: hiện xác 1 giây rồi thu về Pool.</summary>
+        private void OnMobDie(byte[] data)
+        {
+            MessageReader reader = new MessageReader(data);
+            int mobId = reader.ReadInt();
+            reader.Cleanup();
+
+            if (!activeMobs.TryGetValue(mobId, out var mob)) return;
+            mob.PlayDeath();
+            FindAnyObjectByType<Assets.Script.Player.PlayerTargeting>()?.ClearIfTarget(mob);
+            StartCoroutine(RemoveCorpseLater(mobId, mob, 1.0f));
+        }
+
+        private System.Collections.IEnumerator RemoveCorpseLater(int mobId, MobController mob, float delay)
+        {
+            yield return new WaitForSeconds(delay);
+            // Chỉ xoá nếu id này vẫn đang là đúng con quái đó (chưa bị thay bằng con hồi sinh)
+            if (activeMobs.TryGetValue(mobId, out var current) && current == mob) RemoveMob(mobId);
         }
 
         public void SpawnMob(int mobId, short templateId, float x, float y, int hp, int maxHp)
@@ -234,6 +284,20 @@ namespace Assets.Script.Manager
                 }
             }
             finally { reader.Cleanup(); }
+        }
+
+        /// <summary>Tìm quái CÒN SỐNG gần vị trí nhất trong bán kính (dùng để tự chọn mục tiêu khi bấm đánh).</summary>
+        public MobController FindNearestAlive(Vector3 pos, float radius)
+        {
+            MobController best = null;
+            float bestSqr = radius * radius;
+            foreach (var mob in activeMobs.Values)
+            {
+                if (mob == null || mob.IsDead) continue;
+                float sqr = ((Vector2)(mob.transform.position - pos)).sqrMagnitude;
+                if (sqr <= bestSqr) { bestSqr = sqr; best = mob; }
+            }
+            return best;
         }
 
         public MobController GetMob(int mobId)

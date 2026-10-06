@@ -367,7 +367,9 @@ namespace Assets.Script.Manager
             float x = reader.ReadFloat();
             float y = reader.ReadFloat();
             reader.Cleanup();
-            if (localPlayer != null) localPlayer.transform.position = new Vector3(x, y, 0);
+            // Server phát hiện vị trí sai (xuyên tường / chạy quá nhanh / bay) -> kéo về.
+            // Dùng SnapTo để xoá cả vận tốc Rigidbody2D, nếu không nhân vật sẽ trượt tiếp.
+            if (localPlayer != null) localPlayer.SnapTo(new Vector2(x, y));
         }
 
         private void OnChangeZone(byte[] data)
@@ -408,11 +410,7 @@ namespace Assets.Script.Manager
 
                 ClearAllRemotePlayers();
 
-                if (localPlayer != null)
-                {
-                    localPlayer.transform.position = new Vector3(newX, newY, 0);
-                    if (localPlayer.TryGetComponent(out Rigidbody2D rb)) rb.velocity = Vector2.zero;
-                }
+                if (localPlayer != null) localPlayer.SnapTo(new Vector2(newX, newY));
 
                 if (MapManager.Instance != null)
                 {
@@ -435,6 +433,7 @@ namespace Assets.Script.Manager
                 localPlayer = null;
             }
             myPlayerId = -1;
+            LocalPlayerState.Reset();
         }
 
         public void ClearAllRemotePlayers()

@@ -19,7 +19,7 @@ namespace Assets.Script.Database
         }
 
         public List<NpcConfig> npcs = new List<NpcConfig>();
-
+        public int test;
         public NpcConfig GetNpcConfig(int templateId)
         {
             return npcs.Find(n => n.templateId == templateId);

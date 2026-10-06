@@ -2,7 +2,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
-using UnityEditor; // Khuyên dùng TextMeshPro cho chữ hiển thị đẹp và nét
+// (đã bỏ "using UnityEditor;" — namespace chỉ có trong Editor, để lại sẽ làm build game lỗi)
 
 namespace Assets.Script.Manager
 {

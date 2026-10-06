@@ -120,7 +120,7 @@ public class RemotePlayer : MonoBehaviour, ITargetable, IHasHealth
     // ==========================================
     public void UpdateHp(int newHp)
     {
-        if (visualCtrl.isdead) return;
+        if (visualCtrl != null && visualCtrl.isdead) return;
 
         currentHp = newHp;
         UpdateUI(); // Cập nhật thanh máu trên đỉnh đầu
@@ -129,6 +129,31 @@ public class RemotePlayer : MonoBehaviour, ITargetable, IHasHealth
         OnHpChanged?.Invoke(currentHp, maxHp);
 
         //   if (currentHp <= 0) Die();
+    }
+
+    /// <summary>Server báo người này chết (PLAYER_DIE) hoặc sống lại (REVIVE).</summary>
+    public void SetDead(bool dead, int hp = 0)
+    {
+        visualCtrl?.SetDeathState(dead);
+        currentHp = dead ? 0 : hp;
+        UpdateUI();
+        OnHpChanged?.Invoke(currentHp, maxHp);
+    }
+
+    public void SetMaxHp(int newMaxHp)
+    {
+        maxHp = newMaxHp;
+        UpdateUI();
+    }
+
+    /// <summary>Diễn động tác đánh khi server báo người này vừa ra đòn.</summary>
+    public void PlayAttack() => visualCtrl?.PlayActionOnce("Punch_Combo");
+
+    /// <summary>Server đặt lại vị trí (REVIVE) -> nhảy thẳng tới, không trượt mượt.</summary>
+    public void TeleportTo(float x, float y)
+    {
+        targetPos = new Vector2(x, y);
+        transform.position = targetPos;
     }
 
     private void UpdateUI()

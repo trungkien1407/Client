@@ -9,6 +9,9 @@ using System.Collections.Generic;
 
 public class MapExporter : EditorWindow
 {
+    private const string DefaultServerMapDir = @"D:\Server\Server\data\maps";
+    private const string LastDirKey = "NinjaMapExporter.LastDir";
+
     private GameObject mapRoot;
     private int mapId = 1;
     private string mapName = "Làng Lá";
@@ -148,10 +151,13 @@ public class MapExporter : EditorWindow
 
         // Lưu File JSON
         string json = JsonConvert.SerializeObject(data, Formatting.Indented);
-        string path = EditorUtility.SaveFilePanel("Lưu Server Map JSON", "", $"server_map_{mapId}.json", "json");
+        // Mặc định mở thẳng thư mục map của server, tên file đúng chuẩn server nạp: map_<id>.json
+        string defaultDir = EditorPrefs.GetString(LastDirKey, DefaultServerMapDir);
+        string path = EditorUtility.SaveFilePanel("Lưu Server Map JSON", defaultDir, $"map_{mapId}.json", "json");
 
         if (!string.IsNullOrEmpty(path))
         {
+            EditorPrefs.SetString(LastDirKey, Path.GetDirectoryName(path));
             File.WriteAllText(path, json);
             Debug.Log($"Xuất thành công Server Map {mapId}! Có {data.npcs.Count} NPCs, {data.monsters.Count} Quái và {data.portals.Count} Cổng. (Đã lược bỏ Camera Bounds)");
         }

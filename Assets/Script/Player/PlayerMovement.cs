@@ -35,6 +35,7 @@ public class PlayerMovement : MonoBehaviour
 
     private PlayerControls controls;
     private Vector2 moveInput;
+    private bool isDead;   // chết -> khoá điều khiển + ngừng gửi PLAYER_MOVE (server bỏ qua move của người chết)
     private bool isGrounded;
     private bool isFacingLeft;
 
@@ -115,7 +116,9 @@ public class PlayerMovement : MonoBehaviour
             return;
         }
 
-        moveInput = controls.Player.Move.ReadValue<Vector2>();
+        // Chết hoặc đang gõ chat -> không nhận phím di chuyển
+        bool blocked = isDead || Assets.Script.Combat.ChatBox.IsTyping;
+        moveInput = blocked ? Vector2.zero : controls.Player.Move.ReadValue<Vector2>();
 
         if (isOnWaterSurface)
         {
@@ -133,12 +136,43 @@ public class PlayerMovement : MonoBehaviour
             }
         }
 
+        if (isDead) return;
         UpdateVisuals();
         HandleNetworkSync();
     }
 
+    // ==========================================
+    // ĐIỀU KHIỂN TỪ SERVER
+    // ==========================================
+
+    /// <summary>
+    /// Server ép vị trí (FORCE_MOVE / REVIVE / đổi map). Phải đặt qua Rigidbody2D và xoá vận tốc,
+    /// nếu chỉ gán transform.position thì vật lý frame sau sẽ kéo nhân vật đi tiếp theo quán tính.
+    /// Đồng thời coi vị trí này là "đã gửi" để không gửi ngược lại 1 gói thừa.
+    /// </summary>
+    public void SnapTo(Vector2 pos)
+    {
+        if (rb != null)
+        {
+            rb.position = pos;
+            rb.velocity = Vector2.zero;
+        }
+        transform.position = new Vector3(pos.x, pos.y, transform.position.z);
+        lastSentPos = pos;
+        lastVelocityY = 0f;
+    }
+
+    /// <summary>Chết: khoá điều khiển. Hồi sinh: mở lại.</summary>
+    public void SetDead(bool dead)
+    {
+        isDead = dead;
+        if (dead && rb != null) rb.velocity = new Vector2(0f, rb.velocity.y);
+        if (!dead) lastSentState = -1; // ép gửi 1 gói trạng thái mới sau khi sống lại
+    }
+
     void OnJump()
     {
+        if (isDead || Assets.Script.Combat.ChatBox.IsTyping) return;
         if (isGrounded || isOnWaterSurface || isInWater)
         {
             if (isOnWaterSurface)

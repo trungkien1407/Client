@@ -51,7 +51,36 @@ namespace Assets.Script.Entities
             this.currentHp = hp;
             this.maxHp = max;
             _targetPosition = transform.position;
+            // Quái lấy lại từ Pool có thể còn trạng thái Dead của lần chết trước -> reset
+            _currentState = MobState.Idle;
+            _currentFrameIndex = 0;
+            _attackAnimUntil = 0f;
+            if (_spriteRenderer != null) _spriteRenderer.color = Color.white;
             UpdateUI();
+        }
+
+        public bool IsDead => _currentState == MobState.Dead;
+
+        // Giữ frame "attack" trong 1 khoảng ngắn khi quái đánh người
+        private float _attackAnimUntil;
+
+        /// <summary>Server báo quái vừa đánh (MOB_ATTACK) -> quay mặt về mục tiêu + hiện frame tấn công.</summary>
+        public void PlayAttack(Vector3 targetPos)
+        {
+            if (_currentState == MobState.Dead) return;
+            _spriteRenderer.flipX = targetPos.x < transform.position.x;
+            ChangeState(MobState.Attack);
+            _attackAnimUntil = Time.time + 0.4f;
+        }
+
+        /// <summary>Server báo quái chết (MOB_DIE): hiện frame chết, mờ dần. Manager sẽ thu hồi về Pool sau.</summary>
+        public void PlayDeath()
+        {
+            currentHp = 0;
+            UpdateUI();
+            OnHpChanged?.Invoke(currentHp, maxHp);
+            ChangeState(MobState.Dead);
+            if (_spriteRenderer != null) _spriteRenderer.color = new Color(1f, 1f, 1f, 0.6f);
         }
 
         public void SetVisual(MobVisualData visualData)
@@ -142,11 +171,14 @@ namespace Assets.Script.Entities
 
             // 2. Di chuyển mượt (Lerp/MoveTowards) theo Server
             float distance = Vector3.Distance(transform.position, _targetPosition);
+            bool attacking = Time.time < _attackAnimUntil;
+            if (!attacking && _currentState == MobState.Attack) ChangeState(MobState.Idle);
+
             if (distance > 0.05f)
             {
-                float requiredSpeed = distance / 0.2f; 
+                float requiredSpeed = distance / 0.2f;
                 transform.position = Vector3.MoveTowards(transform.position, _targetPosition, requiredSpeed * 1.15f * Time.deltaTime);
-                if (_currentState != MobState.Walk) ChangeState(MobState.Walk);
+                if (!attacking && _currentState != MobState.Walk) ChangeState(MobState.Walk);
             }
             else
             {
@@ -230,7 +262,7 @@ namespace Assets.Script.Entities
         public void OnTargeted() { if (hpBarContainer != null) hpBarContainer.SetActive(true); }
         public void OnDeselected() { if (hpBarContainer != null) hpBarContainer.SetActive(false); }
 
-        public string GetTargetName() => _visualData.mobName;
+        public string GetTargetName() => _visualData != null ? _visualData.mobName : $"Quái {templateId}";
         public int GetCurrentHp() => currentHp;
         public int GetMaxHp() => maxHp;
 

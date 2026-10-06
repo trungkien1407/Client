@@ -60,8 +60,9 @@ public class SkillBarManager : MonoBehaviour
             }
         }
 
-        // 3. Tự động chọn (Highlight) ô skill đầu tiên
-        SelectSlotAndUse(0);
+        // 3. Tự động chọn (Highlight) ô skill đầu tiên (chỉ chọn, không tung chiêu)
+        currentSelectedIndex = 0;
+        UpdateHighlight();
     }
     private void Awake()
     {
@@ -98,8 +99,15 @@ public class SkillBarManager : MonoBehaviour
         currentSelectedIndex = index;
         UpdateHighlight();
 
-        // 2. Tung chiêu
-      //  UseCurrentlySelectedSkill();
+        // 2. Tung chiêu (CombatNetwork tự kiểm tra có mục tiêu / hồi chiêu chưa)
+        Assets.Script.Combat.CombatNetwork.Instance?.TryUseSkill(skillSlots[index].assignedSkillId);
+    }
+
+    /// <summary>Id skill (templateId) đang được chọn trên thanh phím tắt, -1 nếu ô trống.</summary>
+    public int GetSelectedSkillId()
+    {
+        if (skillSlots == null || currentSelectedIndex < 0 || currentSelectedIndex >= skillSlots.Length) return -1;
+        return skillSlots[currentSelectedIndex].assignedSkillId;
     }
 
     // Hàm cập nhật viền sáng
