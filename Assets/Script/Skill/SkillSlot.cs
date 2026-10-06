@@ -15,10 +15,35 @@ public class SkillSlotUI : MonoBehaviour
     public int assignedSkillId = -1; // -1 nghĩa là ô trống
 
     // Gọi hàm này để gán skill vào ô
+    // Chữ tên kỹ năng (tạo bằng code) — hiện khi kỹ năng chưa có icon trong SkillDatabase
+    private TMPro.TextMeshProUGUI _nameText;
+
+    private void SetNameText(string text)
+    {
+        if (_nameText == null)
+        {
+            var go = new GameObject("SkillName", typeof(RectTransform));
+            go.transform.SetParent(transform, false);
+            var rt = (RectTransform)go.transform;
+            rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one; rt.offsetMin = rt.offsetMax = Vector2.zero;
+            _nameText = go.AddComponent<TMPro.TextMeshProUGUI>();
+            _nameText.fontSize = 14;
+            _nameText.alignment = TMPro.TextAlignmentOptions.Center;
+            _nameText.enableWordWrapping = true;
+            _nameText.raycastTarget = false;
+        }
+        _nameText.text = text;
+    }
+
     public void AssignSkill(int templateId, SkillDatabaseSO database)
     {
         assignedSkillId = templateId;
-        SkillVisualData visualData = database.GetSkillVisual(templateId);
+        SkillVisualData visualData = templateId == -1 ? null : database.GetSkillVisual(templateId);
+
+        // Chưa có icon → ghi tên kỹ năng (lấy từ dữ liệu server). [CẦN ĐIỀN] thêm icon vào Assets/SO/SkillDatabase.asset
+        bool noIcon = templateId != -1 && (visualData == null || visualData.iconSprite == null);
+        SetNameText(noIcon && Assets.Script.Data.GameData.Skills.TryGetValue(templateId, out var tpl) ? tpl.name
+                    : noIcon ? $"Skill {templateId}" : "");
 
         if (visualData != null && visualData.iconSprite != null)
         {

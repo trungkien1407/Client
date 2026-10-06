@@ -115,6 +115,9 @@ namespace Assets.Script.Manager
         // SEND REQUESTS
         // ==========================================
 
+        /// <summary>Đăng nhập không qua ô nhập (dùng cho AutoTestRunner / công cụ kiểm thử).</summary>
+        public void AutoLogin(string user, string pass) => DoSocketLogin(user, pass);
+
         private void DoSocketLogin(string user, string pass)
         {
             if (string.IsNullOrEmpty(user) || string.IsNullOrEmpty(pass))
@@ -265,6 +268,8 @@ namespace Assets.Script.Manager
             UISetup.Instance.SetupAvatar(classType);
             // Lưu chỉ số chính chủ vào 1 chỗ; các gói HP/EXP sau này cập nhật vào đây (tự vẽ lại HUD)
             Assets.Script.Player.LocalPlayerState.Init(id, name, level, exp, yen, hp, maxHp, mp, maxMp);
+            Assets.Script.Data.GameData.ClearSession();
+            Assets.Script.Data.GameData.ClassType = classType;
 
             // Parse Skill & Shortcuts
             if (!string.IsNullOrEmpty(skillsJson) && skillsJson != "{}")

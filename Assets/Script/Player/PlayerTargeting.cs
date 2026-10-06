@@ -11,6 +11,7 @@ namespace Assets.Script.Player
     {
         [Header("Targeting Settings")]
         public ITargetable currentTarget;
+        [Tooltip("[CẦN ĐIỀN] Chọn các Layer chứa quái/người/NPC có Collider2D (click chuột & phím Tab chỉ bắt được object thuộc layer này)")]
         public LayerMask targetableLayer;
 
        

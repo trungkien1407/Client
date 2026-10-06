@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Assets.Script.Constants;
 using Assets.Script.Entities;
 using Assets.Script.Interfaces;
@@ -14,11 +14,11 @@ namespace Assets.Script.Combat
     /// ĐỒNG BỘ CHIẾN ĐẤU với server (server là trọng tài, client chỉ gửi ý định + vẽ kết quả):
     ///   Gửi:  USE_SKILL (phím J / nút AttackBtn / bấm ô skill), REVIVE (phím R), HEARTBEAT (20s/lần cho khỏi bị kick).
     ///   Nhận: BROADCAST_ATTACK, MOB_ATTACK, PLAYER_HEAL, PLAYER_EXP_UPDATE, PLAYER_STATS,
-    ///         PLAYER_DIE, REVIVE (+ log EQUIPMENT/QUEST cho khỏi cảnh báo "chưa có handler").
+    ///         PLAYER_DIE, REVIVE. (Túi đồ/trang bị/nhiệm vụ → Data/GameDataNetwork.)
     ///
     /// Không cần kéo vào scene: GameplayBootstrap tự tạo khi game chạy.
     /// </summary>
-    public class CombatNetwork : MonoBehaviour
+    public class CombatNetwork : NetworkListener
     {
         public static CombatNetwork Instance { get; private set; }
 
@@ -30,7 +30,6 @@ namespace Assets.Script.Combat
 
         private float _lastHeartbeat;
         private float _nextAttackTime;
-        private bool _registered;
         private PlayerTargeting _targeting;
         private bool _attackButtonHooked;
         private float _nextHookTry;
@@ -47,9 +46,9 @@ namespace Assets.Script.Combat
             DontDestroyOnLoad(gameObject);
         }
 
-        private void Update()
+        protected override void Update()
         {
-            if (!_registered) TryRegister();
+            base.Update(); // NetworkListener: đăng ký handler khi dispatcher sẵn sàng
 
             bool inGame = LocalPlayerState.Id >= 0 && NetworkManager.Instance != null && NetworkManager.Instance.IsConnected;
             if (!inGame) return;
@@ -89,38 +88,16 @@ namespace Assets.Script.Combat
             _attackButtonHooked = true;
         }
 
-        private void TryRegister()
+        protected override void RegisterHandlers()
         {
-            var d = NetworkEventDispatcher.Instance;
-            if (d == null) return;
-            d.AddHandler(Cmd.BROADCAST_ATTACK, OnBroadcastAttack);
-            d.AddHandler(Cmd.MOB_ATTACK, OnMobAttack);
-            d.AddHandler(Cmd.PLAYER_HEAL, OnPlayerHeal);
-            d.AddHandler(Cmd.PLAYER_EXP_UPDATE, OnExpUpdate);
-            d.AddHandler(Cmd.PLAYER_STATS, OnPlayerStats);
-            d.AddHandler(Cmd.PLAYER_DIE, OnPlayerDie);
-            d.AddHandler(Cmd.REVIVE, OnRevive);
-            d.AddHandler(Cmd.EQUIPMENT, OnEquipment);
-            d.AddHandler(Cmd.QUEST_LIST, OnQuestList);
-            d.AddHandler(Cmd.QUEST_UPDATE, OnQuestUpdate);
-            d.AddHandler(Cmd.LOGOUT, _ => { });
-            _registered = true;
-        }
-
-        private void OnDestroy()
-        {
-            var d = NetworkEventDispatcher.Instance;
-            if (d == null || !_registered) return;
-            d.RemoveHandler(Cmd.BROADCAST_ATTACK, OnBroadcastAttack);
-            d.RemoveHandler(Cmd.MOB_ATTACK, OnMobAttack);
-            d.RemoveHandler(Cmd.PLAYER_HEAL, OnPlayerHeal);
-            d.RemoveHandler(Cmd.PLAYER_EXP_UPDATE, OnExpUpdate);
-            d.RemoveHandler(Cmd.PLAYER_STATS, OnPlayerStats);
-            d.RemoveHandler(Cmd.PLAYER_DIE, OnPlayerDie);
-            d.RemoveHandler(Cmd.REVIVE, OnRevive);
-            d.RemoveHandler(Cmd.EQUIPMENT, OnEquipment);
-            d.RemoveHandler(Cmd.QUEST_LIST, OnQuestList);
-            d.RemoveHandler(Cmd.QUEST_UPDATE, OnQuestUpdate);
+            Listen(Cmd.BROADCAST_ATTACK, OnBroadcastAttack);
+            Listen(Cmd.MOB_ATTACK, OnMobAttack);
+            Listen(Cmd.PLAYER_HEAL, OnPlayerHeal);
+            Listen(Cmd.PLAYER_EXP_UPDATE, OnExpUpdate);
+            Listen(Cmd.PLAYER_STATS, OnPlayerStats);
+            Listen(Cmd.PLAYER_DIE, OnPlayerDie);
+            Listen(Cmd.REVIVE, OnRevive);
+            Listen(Cmd.LOGOUT, _ => { });
         }
 
         // ==========================================
@@ -161,7 +138,11 @@ namespace Assets.Script.Combat
             {
                 case TargetType.Mob: targetType = 0; break;
                 case TargetType.Player: targetType = 1; break;
-                default: return; // NPC / Item không đánh được
+                case TargetType.NPC:
+                    // "Đánh" vào NPC = nói chuyện (tiện cho điện thoại: chạm NPC rồi bấm nút tấn công)
+                    Data.GameActions.NpcTalk(target.GetId());
+                    return;
+                default: return; // Item không đánh được
             }
 
             _nextAttackTime = Time.time + LocalAttackGap;
@@ -207,7 +188,7 @@ namespace Assets.Script.Combat
                 var mob = NetworkMobManager.Instance?.GetMob(targetId);
                 if (mob == null) return;
                 mob.UpdateHp(hpRemain);
-                DamagePopup.Show(mob.transform.position, "-" + damage, mine ? MyHitColor : OtherHitColor);
+                DamagePopup.Show(mob.transform.position, DamageText(damage), mine ? MyHitColor : OtherHitColor);
             }
             else
             {
@@ -239,13 +220,13 @@ namespace Assets.Script.Combat
             {
                 LocalPlayerState.SetHp(hpRemain);
                 var t = GetPlayerTransform(playerId);
-                if (t != null) DamagePopup.Show(t.position, "-" + damage, HurtColor);
+                if (t != null) DamagePopup.Show(t.position, DamageText(damage), HurtColor);
                 return;
             }
             var rp = NetworkPlayerManager.Instance?.GetRemotePlayer(playerId);
             if (rp == null) return;
             rp.UpdateHp(hpRemain);
-            DamagePopup.Show(rp.transform.position, "-" + damage, OtherHitColor);
+            DamagePopup.Show(rp.transform.position, DamageText(damage), OtherHitColor);
         }
 
         /// <summary>PLAYER_HEAL: int id, int hpHeal, int mpHeal, int hp, int maxHp, int mp, int maxMp (hồi máu mỗi giây / dùng bình)</summary>
@@ -294,6 +275,9 @@ namespace Assets.Script.Combat
             LocalPlayerState.Exp = exp;
             LocalPlayerState.Level = level;
             LocalPlayerState.SetHpMp(hp, maxHp, mp, maxMp);
+            Data.GameData.Me.exp = exp;
+            Data.GameData.Me.level = level;
+            Data.GameData.Notify(Data.DataKind.Character);
 
             if (levelUp)
             {
@@ -315,6 +299,10 @@ namespace Assets.Script.Combat
             LocalPlayerState.Yen = r.ReadInt();
             r.Cleanup();
             LocalPlayerState.SetHpMp(hp, maxHp, mp, maxMp);
+            Data.GameData.Me.yen = LocalPlayerState.Yen;
+            Data.GameData.Me.maxHp = maxHp;
+            Data.GameData.Me.maxMp = maxMp;
+            Data.GameData.Notify(Data.DataKind.Character);
         }
 
         /// <summary>PLAYER_DIE: int playerId, long expLost</summary>
@@ -376,32 +364,8 @@ namespace Assets.Script.Combat
             rp.SetDead(false, hp);
         }
 
-        // ---- Chưa có UI: tạm log ra Console để biết server đã gửi ----
-        private void OnEquipment(byte[] data)
-        {
-            var r = new MessageReader(data);
-            short count = r.ReadShort();
-            var sb = new System.Text.StringBuilder("[Trang bị] ");
-            for (int i = 0; i < count; i++) sb.Append($"slot{r.ReadInt()}=item{r.ReadInt()} ");
-            r.Cleanup();
-            Debug.Log(sb.ToString());
-        }
-
-        private void OnQuestList(byte[] data)
-        {
-            var r = new MessageReader(data);
-            short count = r.ReadShort();
-            for (int i = 0; i < count; i++)
-                Debug.Log($"[Nhiệm vụ] #{r.ReadInt()} tiến độ {r.ReadInt()} xong={r.ReadByte()}");
-            r.Cleanup();
-        }
-
-        private void OnQuestUpdate(byte[] data)
-        {
-            var r = new MessageReader(data);
-            Debug.Log($"[Nhiệm vụ] #{r.ReadInt()} tiến độ {r.ReadInt()} xong={r.ReadByte()}");
-            r.Cleanup();
-        }
+        /// <summary>Sát thương 0 = mục tiêu né được (server tính theo Thân pháp).</summary>
+        private static string DamageText(int damage) => damage <= 0 ? "Né" : "-" + damage;
 
         // ==========================================
         private static Transform GetPlayerTransform(int playerId)

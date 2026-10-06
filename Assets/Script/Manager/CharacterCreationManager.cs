@@ -48,7 +48,7 @@ public class CharacterCreationManager : MonoBehaviour
         yield return initHandle;
 
         // BƯỚC 1: Kiểm tra size (Cần cực kỳ cẩn thận đoạn này)
-        var sizeHandle = Addressables.GetDownloadSizeAsync("ClassData");
+        var sizeHandle = Addressables.GetDownloadSizeAsync(Assets.Script.Core.AddressKeys.ClassDataLabel);
         yield return sizeHandle;
 
         // KIỂM TRA TÍNH HỢP LỆ TRƯỚC KHI TRUY CẬP STATUS
@@ -61,7 +61,7 @@ public class CharacterCreationManager : MonoBehaviour
 
                 if (downloadSize > 0)
                 {
-                    var downloadHandle = Addressables.DownloadDependenciesAsync("ClassData");
+                    var downloadHandle = Addressables.DownloadDependenciesAsync(Assets.Script.Core.AddressKeys.ClassDataLabel);
                     yield return downloadHandle;
 
                     if (downloadHandle.IsValid() && downloadHandle.Status == AsyncOperationStatus.Failed)
@@ -91,7 +91,7 @@ public class CharacterCreationManager : MonoBehaviour
 
     private void LoadAllNinjaClasses()
     {
-        Addressables.LoadAssetsAsync<NinjaClassData>("ClassData", (data) =>
+        Addressables.LoadAssetsAsync<NinjaClassData>(Assets.Script.Core.AddressKeys.ClassDataLabel, (data) =>
         {
             if (data != null) availableClasses.Add(data);
         }).Completed += handle => {

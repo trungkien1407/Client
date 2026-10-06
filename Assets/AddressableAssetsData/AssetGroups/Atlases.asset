@@ -1,0 +1,45 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Atlases
+  m_EditorClassIdentifier: 
+  m_GroupName: Atlases
+  m_Data:
+    m_SerializedData: []
+  m_GUID: f9f1e2b5dd21ec44a84b91f40234a0ba
+  m_SerializeEntries:
+  - m_GUID: 12b997b23aacdca4d9e09b7dc0510844
+    m_Address: Atlas/Skill
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 23a1a42e6de8e734a9881a8dfaddabc9
+    m_Address: Atlas/Mob_1
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a01d59f210c5cc2468eb268dccb743c8
+    m_Address: Atlas/HUD
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e2386e2e9a3e6964595f8e6509ae4301
+    m_Address: Atlas/NPC
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 0e2640c18ea1afb4682cb0a791daccf5, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: eb17bfc650d0ec344a170c0ee93f6a16, type: 2}
+    - {fileID: 11400000, guid: f49fede66f587644f971e958651401a4, type: 2}

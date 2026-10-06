@@ -16,7 +16,9 @@ namespace Assets.Script.Manager
         public static NetworkMobManager Instance;
 
         [Header("Databases (Kéo Addressables vào đây)")]
+        [Tooltip("[CẦN ĐIỀN] Kéo Assets/SO/MobDatabase.asset (đã là Addressable, group Core)")]
         public AssetReferenceT<MobDatabaseSO> mobDatabaseRef;
+        [Tooltip("[CẦN ĐIỀN] Kéo Assets/Prefabs/Mob.prefab (prefab gốc dùng chung cho mọi quái)")]
         public AssetReferenceGameObject baseMobPrefab;
 
         // Biến giữ dữ liệu thực tế sau khi load
@@ -155,12 +157,10 @@ namespace Assets.Script.Manager
         {
             if (_mobDatabase == null) return;
 
+            // Không có cấu hình hình ảnh → vẫn tạo quái với hình placeholder (xem MobController.SetPlaceholder)
             var visual = _mobDatabase.GetMobVisual(templateId);
             if (visual == null)
-            {
-                Debug.LogWarning($"Không tìm thấy Visual cho Mob ID: {templateId}");
-                return;
-            }
+                Debug.LogWarning($"[CẦN ĐIỀN] Quái templateId={templateId} chưa có trong Assets/SO/MobDatabase.asset → hiện placeholder.");
 
             // [MỚI] 1. KIỂM TRA POOL TRƯỚC
             GameObject poolObj = ObjectPoolManager.Instance.GetFromPool(BASE_MOB_POOL_KEY);
@@ -207,10 +207,11 @@ namespace Assets.Script.Manager
             if (mob != null)
             {
                 mob.Initialize(mobId, templateId, hp, maxHp);
-                mob.SetVisual(visual);
+                if (visual != null) mob.SetVisual(visual);
+                else mob.SetPlaceholder();
 
                 activeMobs[mobId] = mob;
-                obj.name = $"Mob_{visual.mobName}_{mobId}";
+                obj.name = $"Mob_{Assets.Script.Data.GameData.MobName(templateId)}_{mobId}";
             }
 
             // Đảm bảo quái không bị trôi do vật lý cũ còn kẹt lại

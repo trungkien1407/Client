@@ -7,8 +7,10 @@ public class SkillBarManager : MonoBehaviour
     public static SkillBarManager Instance;
 
     [Header("Danh sách các ô Skill (Kéo thả từ UI vào)")]
+    [Tooltip("[CẦN ĐIỀN] Kéo 5 ô SkillSlotUI trên HUD theo thứ tự phím 1→5")]
     public SkillSlotUI[] skillSlots; // Mảng 5 ô skill
 
+    [Tooltip("[CẦN ĐIỀN] Kéo Assets/SO/SkillDatabase.asset. Thêm skill mới: mở asset đó, thêm dòng templateId (khớp skill_template.id bên server) + iconId + atlas icon")]
     public SkillDatabaseSO skillDatabase;
 
     private int currentSelectedIndex = 0; // Mặc định chọn ô đầu tiên (index 0)

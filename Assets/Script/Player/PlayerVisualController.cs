@@ -8,12 +8,12 @@ namespace Assets.Script.Player
     {
         [Header("Visual Components")]
         [SerializeField] private GameObject mainVisualObj;      // Object chứa SkeletonAnimation nhân vật
-        [SerializeField] private GameObject jumpFXObj;          // Object chứa SkeletonAnimation hiệu ứng nhảy (để trống nếu chưa dùng)
+        [Assets.Script.Core.Optional, SerializeField] private GameObject jumpFXObj;          // Object chứa SkeletonAnimation hiệu ứng nhảy (để trống nếu chưa dùng)
         [SerializeField] private GameObject deathVisualObj;     // Object chứa SpriteRenderer ảnh chết
 
         [Header("Spine Renderers")]
         public SkeletonAnimation mainSkeleton;
-        public SkeletonAnimation jumpFXSkeleton;                // (để trống nếu chưa dùng)
+        [Assets.Script.Core.Optional] public SkeletonAnimation jumpFXSkeleton;                // (để trống nếu chưa dùng)
         public SpriteRenderer deathSprite;
         
 

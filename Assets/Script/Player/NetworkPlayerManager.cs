@@ -20,11 +20,11 @@ namespace Assets.Script.Manager
         public static NetworkPlayerManager Instance;
 
         public int myPlayerId = -1;
-        public PlayerMovement localPlayer;
+        [HideInInspector] public PlayerMovement localPlayer; // gán lúc chạy khi spawn nhân vật, KHÔNG kéo tay
         private Dictionary<int, RemotePlayer> remotePlayers = new Dictionary<int, RemotePlayer>();
         private HashSet<int> loadingPlayers = new HashSet<int>();
 
-        private const string BASE_PLAYER_PREFAB = "BasePlayer";
+        private const string BASE_PLAYER_PREFAB = Assets.Script.Core.AddressKeys.BasePlayer;
 
         void Awake()
         {
@@ -205,7 +205,7 @@ namespace Assets.Script.Manager
         private async void SpawnPlayerAsync(PlayerData pData, bool isLocal)
         {
             loadingPlayers.Add(pData.id);
-            string spineKey = $"Char_Data_{pData.class_type}";
+            string spineKey = Assets.Script.Core.AddressKeys.CharacterSkeleton(pData.class_type);
 
             try
             {

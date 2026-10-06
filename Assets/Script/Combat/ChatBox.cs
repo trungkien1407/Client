@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Assets.Script.Constants;
 using Assets.Script.Network;
 using Assets.Script.Player;
@@ -15,7 +15,7 @@ namespace Assets.Script.Combat
     ///   Esc          : đóng ô nhập
     ///   "/w Tên nội dung" : chat riêng (kênh 2) | "/a nội dung" : kênh thế giới (0) | mặc định: trong khu (1)
     /// </summary>
-    public class ChatBox : MonoBehaviour
+    public class ChatBox : NetworkListener
     {
         /// <summary>Đang gõ chat -> PlayerMovement/CombatNetwork phải bỏ qua phím di chuyển/đánh.</summary>
         public static bool IsTyping { get; private set; }
@@ -23,18 +23,15 @@ namespace Assets.Script.Combat
         private const int MaxLines = 8;
         private readonly List<string> _lines = new List<string>();
         private string _input = "";
-        private bool _registered;
         private bool _focusNextFrame;
         private int _openedFrame; // frame vừa mở ô nhập: bỏ qua phím Enter của chính frame đó (không gửi rỗng)
         private GUIStyle _lineStyle;
 
-        private void Update()
+        protected override void RegisterHandlers() => Listen(Cmd.CHAT, OnChat);
+
+        protected override void Update()
         {
-            if (!_registered && NetworkEventDispatcher.Instance != null)
-            {
-                NetworkEventDispatcher.Instance.AddHandler(Cmd.CHAT, OnChat);
-                _registered = true;
-            }
+            base.Update();
 
             if (LocalPlayerState.Id < 0) { IsTyping = false; return; }
 
@@ -48,10 +45,9 @@ namespace Assets.Script.Combat
             }
         }
 
-        private void OnDestroy()
+        protected override void OnDestroy()
         {
-            if (_registered && NetworkEventDispatcher.Instance != null)
-                NetworkEventDispatcher.Instance.RemoveHandler(Cmd.CHAT, OnChat);
+            base.OnDestroy();
             IsTyping = false;
         }
 
@@ -65,9 +61,28 @@ namespace Assets.Script.Combat
             string msg = r.ReadUTF();
             r.Cleanup();
 
+            if (channel == 3) { AddSystem(msg); return; } // tin hệ thống (trả lời lệnh GM, thông báo lỗi...)
             string tag = channel == 0 ? "[TG]" : channel == 2 ? "[Riêng]" : "[Khu]";
-            _lines.Add($"{tag} {from}: {msg}");
-            if (_lines.Count > MaxLines) _lines.RemoveAt(0);
+            Push($"{tag} {from}: {msg}");
+        }
+
+        private static ChatBox _instance;
+        private void Awake() => _instance = this;
+
+        private void Push(string line)
+        {
+            foreach (var l in line.Split('\n'))
+            {
+                _lines.Add(l);
+                if (_lines.Count > MaxLines) _lines.RemoveAt(0);
+            }
+        }
+
+        /// <summary>Thêm 1 dòng thông báo hệ thống vào khung chat (gọi được từ mọi nơi).</summary>
+        public static void AddSystem(string text)
+        {
+            if (_instance != null) _instance.Push("[Hệ thống] " + text);
+            Debug.Log("[Hệ thống] " + text);
         }
 
         private void Send(string text)

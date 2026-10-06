@@ -7,6 +7,8 @@ namespace Assets.Script.Database
     [CreateAssetMenu(fileName = "MobDatabase", menuName = "NinjaSchool/Mob Database")]
     public class MobDatabaseSO : ScriptableObject
     {
+        // [CẦN ĐIỀN mỗi khi server thêm quái mới] thêm 1 dòng: templateId = monster_template.id bên server,
+        // mobAtlas = atlas chứa ảnh "<templateId>_0/_1 (đi), _2 (đánh), _3 (chết)" của con quái đó.
         [Header("Danh sách cấu hình hình ảnh Quái vật")]
         public List<MobVisualData> mobs = new List<MobVisualData>();
 

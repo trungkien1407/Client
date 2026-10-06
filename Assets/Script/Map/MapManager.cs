@@ -13,7 +13,7 @@ namespace Assets.Script.Map
         public static MapManager Instance { get; private set; }
 
         [Header("Runtime")]
-        public GameObject currentMapInstance;
+        [HideInInspector] public GameObject currentMapInstance; // gán lúc chạy (map vừa load), KHÔNG kéo tay
         private AsyncOperationHandle<GameObject> currentMapHandle;
 
         // Trả về luôn GameObject của Map vừa load để các hệ thống khác (như Cinemachine/Minimap) dễ setup
@@ -37,7 +37,7 @@ namespace Assets.Script.Map
 
             // 2. Định nghĩa Key của Prefab trong Addressables (Ví dụ: "Map_1", "Map_2")
             // Hãy đảm bảo bạn đặt tên Prefab trong nhóm Addressables khớp với chuỗi này.
-            string prefabKey = $"Map_{mapId}";
+            string prefabKey = Assets.Script.Core.AddressKeys.Map(mapId);
 
             // 3. Tải và sinh ra Prefab Map ngay lập tức
             currentMapHandle = Addressables.InstantiateAsync(prefabKey);

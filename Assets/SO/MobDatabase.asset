@@ -13,17 +13,51 @@ MonoBehaviour:
   m_Name: MobDatabase
   m_EditorClassIdentifier: 
   mobs:
-  - mobName: "B\xF9 Nh\xECn"
+  - mobName: "M\u1ED9c Nh\xE2n"
     templateId: 1
     frameRate: 0.15
+    spriteKey: 0
+    scale: 1
     mobAtlas:
       m_AssetGUID: 23a1a42e6de8e734a9881a8dfaddabc9
       m_SubObjectName: 
       m_SubObjectType: 
       m_EditorAssetChanged: 0
-  - mobName: "Nh\xEDm"
+  - mobName: "C\xF3c L\u1EE5c"
     templateId: 3
     frameRate: 0.15
+    spriteKey: 3
+    scale: 1.15
+    mobAtlas:
+      m_AssetGUID: 23a1a42e6de8e734a9881a8dfaddabc9
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_EditorAssetChanged: 0
+  - mobName: "\u1ED0c S\xEAn"
+    templateId: 2
+    frameRate: 0.15
+    spriteKey: 3
+    scale: 1
+    mobAtlas:
+      m_AssetGUID: 23a1a42e6de8e734a9881a8dfaddabc9
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_EditorAssetChanged: 0
+  - mobName: "\u1ED0c S\xEAn Tinh Anh"
+    templateId: 4
+    frameRate: 0.15
+    spriteKey: 3
+    scale: 1.35
+    mobAtlas:
+      m_AssetGUID: 23a1a42e6de8e734a9881a8dfaddabc9
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_EditorAssetChanged: 0
+  - mobName: "C\xF3c Ch\xFAa"
+    templateId: 5
+    frameRate: 0.15
+    spriteKey: 3
+    scale: 1.8
     mobAtlas:
       m_AssetGUID: 23a1a42e6de8e734a9881a8dfaddabc9
       m_SubObjectName: 

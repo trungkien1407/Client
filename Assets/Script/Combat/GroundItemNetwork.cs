@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Text;
 using Assets.Script.Constants;
 using Assets.Script.Manager;
@@ -15,10 +15,9 @@ namespace Assets.Script.Combat
     ///   ITEM_DROP   -> vẽ 1 ô vuông nhỏ + nhãn tại chỗ rơi
     ///   ITEM_REMOVE -> xoá
     ///   Tự nhặt     : đứng gần (<= 1.2 đơn vị) -> gửi PICK_ITEM (server kiểm tầm 3.0 và quyền nhặt)
-    ///   INVENTORY   -> lưu lại; phím Q = dùng bình máu (item 1), E = bình chakra (item 2)
-    ///   Góc phải trên: Level / EXP / Yen / túi đồ (IMGUI, chưa có UI thật).
+    ///   Phím Q = dùng bình máu (item 1), E = bình chakra (item 2) — số lượng đọc từ GameData.Inventory
     /// </summary>
-    public class GroundItemNetwork : MonoBehaviour
+    public class GroundItemNetwork : NetworkListener
     {
         private const float PickRadius = 1.2f;
         private const float PickRetrySeconds = 1.0f;
@@ -33,23 +32,19 @@ namespace Assets.Script.Combat
         }
 
         private readonly Dictionary<int, GroundItem> _items = new Dictionary<int, GroundItem>();
-        // templateId -> số lượng (theo gói INVENTORY mới nhất)
-        private readonly SortedDictionary<int, int> _inventory = new SortedDictionary<int, int>();
-        private bool _registered;
         private static Sprite _squareSprite;
-        private GUIStyle _style;
 
-        private void Update()
+        protected override void RegisterHandlers()
         {
-            if (!_registered && NetworkEventDispatcher.Instance != null)
-            {
-                NetworkEventDispatcher.Instance.AddHandler(Cmd.ITEM_DROP, OnItemDrop);
-                NetworkEventDispatcher.Instance.AddHandler(Cmd.ITEM_REMOVE, OnItemRemove);
-                NetworkEventDispatcher.Instance.AddHandler(Cmd.INVENTORY, OnInventory);
-                NetworkEventDispatcher.Instance.AddHandler(Cmd.CHANGE_MAP, OnChangeMapOrZone);
-                NetworkEventDispatcher.Instance.AddHandler(Cmd.CHANGE_ZONE, OnChangeMapOrZone);
-                _registered = true;
-            }
+            Listen(Cmd.ITEM_DROP, OnItemDrop);
+            Listen(Cmd.ITEM_REMOVE, OnItemRemove);
+            Listen(Cmd.CHANGE_MAP, OnChangeMapOrZone);
+            Listen(Cmd.CHANGE_ZONE, OnChangeMapOrZone);
+        }
+
+        protected override void Update()
+        {
+            base.Update();
 
             var local = NetworkPlayerManager.Instance != null ? NetworkPlayerManager.Instance.localPlayer : null;
             if (local == null || LocalPlayerState.IsDead) return;
@@ -60,16 +55,6 @@ namespace Assets.Script.Combat
             if (kb == null || ChatBox.IsTyping) return;
             if (kb.qKey.wasPressedThisFrame) UseItem(HpPotionId);
             if (kb.eKey.wasPressedThisFrame) UseItem(MpPotionId);
-        }
-
-        private void OnDestroy()
-        {
-            if (!_registered || NetworkEventDispatcher.Instance == null) return;
-            NetworkEventDispatcher.Instance.RemoveHandler(Cmd.ITEM_DROP, OnItemDrop);
-            NetworkEventDispatcher.Instance.RemoveHandler(Cmd.ITEM_REMOVE, OnItemRemove);
-            NetworkEventDispatcher.Instance.RemoveHandler(Cmd.INVENTORY, OnInventory);
-            NetworkEventDispatcher.Instance.RemoveHandler(Cmd.CHANGE_MAP, OnChangeMapOrZone);
-            NetworkEventDispatcher.Instance.RemoveHandler(Cmd.CHANGE_ZONE, OnChangeMapOrZone);
         }
 
         private void AutoPick(Vector3 playerPos)
@@ -89,7 +74,7 @@ namespace Assets.Script.Combat
 
         private void UseItem(int templateId)
         {
-            if (!_inventory.TryGetValue(templateId, out int qty) || qty <= 0) return;
+            if (Assets.Script.Data.GameData.CountItem(templateId) <= 0) return;
             var w = new MessageWriter();
             w.WriteInt(templateId);
             NetworkManager.Instance?.Send(Cmd.USE_ITEM, w.ToArray());
@@ -121,21 +106,6 @@ namespace Assets.Script.Combat
                 if (it.go != null) Destroy(it.go);
                 _items.Remove(id);
             }
-        }
-
-        /// <summary>INVENTORY: short count, [int templateId, int qty] x count — luôn là TOÀN BỘ túi</summary>
-        private void OnInventory(byte[] data)
-        {
-            var r = new MessageReader(data);
-            short count = r.ReadShort();
-            _inventory.Clear();
-            for (int i = 0; i < count; i++)
-            {
-                int tpl = r.ReadInt();
-                int qty = r.ReadInt();
-                _inventory[tpl] = qty;
-            }
-            r.Cleanup();
         }
 
         /// <summary>Đổi map/khu: đồ rơi của khu cũ không còn -> xoá hết (khu mới sẽ gửi lại ITEM_DROP).</summary>
@@ -170,32 +140,12 @@ namespace Assets.Script.Combat
             label.transform.SetParent(go.transform, false);
             label.transform.localPosition = new Vector3(0f, 0.7f, 0f);
             var tmp = label.AddComponent<TextMeshPro>();
-            tmp.text = it.qty > 1 ? $"Item {it.templateId} x{it.qty}" : $"Item {it.templateId}";
+            string nm = Assets.Script.Data.GameData.ItemName(it.templateId);
+            tmp.text = it.qty > 1 ? $"{nm} x{it.qty}" : nm;
             tmp.fontSize = 2.5f;
             tmp.alignment = TextAlignmentOptions.Center;
             tmp.sortingOrder = 6;
             return go;
-        }
-
-        private void OnGUI()
-        {
-            if (LocalPlayerState.Id < 0) return;
-            if (_style == null)
-            {
-                _style = new GUIStyle(GUI.skin.box) { alignment = TextAnchor.UpperLeft, fontSize = 13 };
-                _style.normal.textColor = Color.white;
-            }
-
-            var sb = new StringBuilder();
-            sb.Append($"{LocalPlayerState.Name}  Lv {LocalPlayerState.Level}\n");
-            sb.Append($"EXP {LocalPlayerState.Exp}/{LocalPlayerState.Level * 1000L}   Yen {LocalPlayerState.Yen}\n");
-            sb.Append("Túi: ");
-            if (_inventory.Count == 0) sb.Append("(trống)");
-            foreach (var kv in _inventory) sb.Append($"[{kv.Key}]x{kv.Value} ");
-            sb.Append("\nJ đánh · Q bình máu · E bình chakra · Enter chat");
-            if (LocalPlayerState.IsDead) sb.Append("\n<ĐÃ CHẾT> bấm R để hồi sinh");
-
-            GUI.Box(new Rect(Screen.width - 330, 10, 320, LocalPlayerState.IsDead ? 92 : 76), sb.ToString(), _style);
         }
     }
 }

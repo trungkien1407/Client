@@ -30,6 +30,7 @@ namespace Assets.Script.UI
         public TMP_Text targetName;
 
         [Header("Assets References")]
+        [Tooltip("[CẦN ĐIỀN] Kéo Assets/Atlas/HUD.spriteatlasv2 (chứa ảnh avatar img2713/img2768/img2716 theo hệ 1/2/3)")]
         public AssetReferenceT<SpriteAtlas> avatarAtlasRef;
 
         // Biến lưu trữ Handle để quản lý vòng đời Addressables trong Single Scene

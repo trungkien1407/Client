@@ -1,4 +1,4 @@
-namespace Assets.Script.Constants
+﻿namespace Assets.Script.Constants
 {
     /// <summary>
     /// Bảng opcode — PHẢI khớp 100% với server: D:\Server\Server\src\main\java\com\server\constant\Cmd.java
@@ -37,6 +37,11 @@ namespace Assets.Script.Constants
         public const short REVIVE = 202;            // C→S rỗng | S→C int id, float x, float y, int hp, int maxHp, int mp, int maxMp
         public const short BROADCAST_ATTACK = 203;  // S→C int attackerId, byte targetType, int targetId, int skillId, int damage, int hpRemain, byte dead
         public const short PLAYER_EXP_UPDATE = 204; // S→C long exp, short level, int maxHp, int maxMp, int hp, int mp
+        public const short ADD_POTENTIAL = 205;     // C→S byte stat (0 Sức mạnh/1 Thân pháp/2 Chakra/3 Thể lực), short amount
+        public const short CHARACTER_INFO = 206;    // S→C bảng chỉ số nhân vật (xem GameDataNetwork.OnCharacterInfo)
+        public const short SKILL_UPGRADE = 207;     // C→S int skillTemplateId
+        public const short SKILL_LIST = 208;        // S→C short count, [int templateId, short point]
+        public const short SET_SKILL_SHORTCUT = 209; // C→S byte slot 0..4, int skillTemplateId (-1 = xoá)
 
         // ==========================================
         // 4. VẬT PHẨM & TÚI ĐỒ (300 - 399)
@@ -71,6 +76,11 @@ namespace Assets.Script.Constants
         // 5. CẬP NHẬT TÀI NGUYÊN (600)
         // ==========================================
         public const short CHECK_VERSION = 600;
+        public const short GAME_DATA_ITEMS = 601;   // S→C mẫu vật phẩm (gửi 1 lần sau CLIENT_READY)
+        public const short GAME_DATA_SKILLS = 602;  // S→C mẫu kỹ năng + thông số từng cấp
+        public const short GAME_DATA_QUESTS = 603;  // S→C mẫu nhiệm vụ
+        public const short GAME_DATA_MOBS = 604;    // S→C mẫu quái (tên, cấp, hạng)
+        public const short GAME_DATA_NPCS = 605;    // S→C tên NPC
 
         // ==========================================
         // XÃ HỘI (700 - 799)
@@ -91,6 +101,9 @@ namespace Assets.Script.Constants
         // NPC (800)
         // ==========================================
         public const short NPC_LIST = 800;
+        public const short NPC_TALK = 801;          // C→S int npcId
+        public const short NPC_MENU = 802;          // S→C int npcId, UTF tên, UTF lời thoại, byte n, [UTF lựa chọn]
+        public const short NPC_SELECT = 803;        // C→S int npcId, byte index
 
         public const short PLAYER_TAKE_DAMGE = 900; // (chưa dùng)
         public const short PLAYER_HEAL = 901;       // S→C int id, int hpHeal, int mpHeal, int hp, int maxHp, int mp, int maxMp

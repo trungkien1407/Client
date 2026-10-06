@@ -18,7 +18,7 @@ MonoBehaviour:
   academy: aaa
   description: Hotro
   spinePrefab:
-    m_AssetGUID: e5a21db0fcb04d14b94dfd0fe13f713f
+    m_AssetGUID: 6be8978e70a72f548959d31c2b1f41d0
     m_SubObjectName: 
     m_SubObjectType: 
     m_EditorAssetChanged: 0

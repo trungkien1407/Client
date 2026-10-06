@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace Assets.Script.Combat
 {
@@ -19,6 +19,9 @@ namespace Assets.Script.Combat
             go.AddComponent<CombatNetwork>();      // Awake() tự DontDestroyOnLoad
             go.AddComponent<GroundItemNetwork>();
             go.AddComponent<ChatBox>();
+            go.AddComponent<Assets.Script.Data.GameDataNetwork>(); // dữ liệu tĩnh, túi đồ, chỉ số, nhiệm vụ
+            go.AddComponent<Assets.Script.UI.GameHud>();           // thanh EXP, nút menu, NPC, cửa hàng
+            go.AddComponent<Assets.Script.UI.MobileControls>();    // joystick + nút ảo (chỉ hiện trên máy cảm ứng)
         }
     }
 }

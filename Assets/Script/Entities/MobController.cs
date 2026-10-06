@@ -83,10 +83,64 @@ namespace Assets.Script.Entities
             if (_spriteRenderer != null) _spriteRenderer.color = new Color(1f, 1f, 1f, 0.6f);
         }
 
+        private string SpriteKey => _visualData != null && !string.IsNullOrEmpty(_visualData.spriteKey) ? _visualData.spriteKey : templateId.ToString();
+
+        // ==========================================
+        // NHÃN TÊN + CẤP TRÊN ĐẦU (màu theo hạng) — tạo bằng code, không cần sửa prefab
+        // ==========================================
+        private TMPro.TextMeshPro _nameLabel;
+
+        private void UpdateNameLabel()
+        {
+            if (_nameLabel == null)
+            {
+                var go = new GameObject("NameLabel");
+                go.transform.SetParent(transform, false);
+                _nameLabel = go.AddComponent<TMPro.TextMeshPro>();
+                _nameLabel.fontSize = 2.6f;
+                _nameLabel.alignment = TMPro.TextAlignmentOptions.Center;
+                _nameLabel.sortingOrder = 20;
+                _nameLabel.outlineWidth = 0.2f;
+                _nameLabel.outlineColor = Color.black;
+            }
+            Data.GameData.Mobs.TryGetValue(templateId, out var tpl);
+            string name = tpl != null ? tpl.name : (_visualData != null ? _visualData.mobName : $"Quái {templateId}");
+            int rank = tpl != null ? tpl.rank : 0;
+            string rankTag = rank == 2 ? " [Thủ lĩnh]" : rank == 1 ? " [Tinh anh]" : "";
+            _nameLabel.text = tpl != null ? $"{name} Lv{tpl.level}{rankTag}" : name;
+            _nameLabel.color = rank == 2 ? new Color(1f, 0.35f, 0.3f) : rank == 1 ? new Color(1f, 0.85f, 0.3f) : Color.white;
+
+            float top = _spriteRenderer != null && _spriteRenderer.sprite != null ? _spriteRenderer.sprite.bounds.max.y : 1f;
+            _nameLabel.transform.localPosition = new Vector3(0, top + 0.35f, 0);
+        }
+
+        /// <summary>
+        /// Quái CHƯA CÓ HÌNH (không có trong MobDatabase hoặc atlas thiếu sprite): vẽ ô vuông màu + tên
+        /// để vẫn chơi/test được. [CẦN ĐIỀN] thêm dòng vào Assets/SO/MobDatabase.asset cho templateId này.
+        /// </summary>
+        private static Sprite _placeholderSprite;
+
+        public void SetPlaceholder()
+        {
+            _visualData = null;
+            UnloadAtlas();
+            _animationCache.Clear();
+            if (_placeholderSprite == null)
+                // ô 4x4 px, 4 px/đơn vị → đúng 1x1 đơn vị world, gốc ở giữa đáy (đứng trên mặt đất)
+                _placeholderSprite = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 4, 4), new Vector2(0.5f, 0f), 4f);
+            transform.localScale = Vector3.one;
+            _spriteRenderer.sprite = _placeholderSprite;
+            _spriteRenderer.color = new Color(0.6f, 0.3f, 0.8f, 0.85f);
+            _isReady = true;
+            UpdateNameLabel();
+        }
+
         public void SetVisual(MobVisualData visualData)
         {
             this._visualData = visualData;
             _isReady = false;
+            float s = visualData != null && visualData.scale > 0 ? visualData.scale : 1f;
+            transform.localScale = new Vector3(s, s, 1f);
 
             // Xóa dữ liệu cũ
             UnloadAtlas();
@@ -109,6 +163,7 @@ namespace Assets.Script.Entities
 
                     // 2. Tính toán lại vị trí thanh máu dựa trên ảnh vừa gán
                     AdjustHpBarPosition();
+                    UpdateNameLabel();
                 }
             };
         }
@@ -120,8 +175,8 @@ namespace Assets.Script.Entities
             // Xử lý riêng cho trạng thái Walk: cần swap giữa ảnh 0 và 1
             if (action == "walk")
             {
-                Sprite frame0 = atlas.GetSprite($"{templateId}_0");
-                Sprite frame1 = atlas.GetSprite($"{templateId}_1");
+                Sprite frame0 = atlas.GetSprite($"{SpriteKey}_0");
+                Sprite frame1 = atlas.GetSprite($"{SpriteKey}_1");
 
                 if (frame0 != null) frames.Add(frame0);
                 if (frame1 != null) frames.Add(frame1);
@@ -137,7 +192,7 @@ namespace Assets.Script.Entities
                     _ => 0
                 };
 
-                string spriteName = $"{templateId}_{actionIdx}";
+                string spriteName = $"{SpriteKey}_{actionIdx}";
                 Sprite s = atlas.GetSprite(spriteName);
 
                 if (s != null)
@@ -152,7 +207,9 @@ namespace Assets.Script.Entities
                 return frames.ToArray();
             }
 
-            Debug.LogWarning($"[Mob] Không tìm thấy ảnh cho hành động '{action}' của Mob {templateId} trong Atlas!");
+            // Thiếu frame đánh/chết → dùng tạm frame đứng (không báo lỗi lặp lại). Thiếu cả frame đứng mới cảnh báo.
+            if (action != "idle") return ExtractSprites(atlas, "idle");
+            Debug.LogWarning($"[Mob] Không tìm thấy ảnh '{SpriteKey}_0' của quái {templateId} trong Atlas! [CẦN ĐIỀN] sửa spriteKey trong MobDatabase.");
             return new Sprite[0];
         }
         private void Update()

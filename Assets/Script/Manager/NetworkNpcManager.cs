@@ -16,8 +16,11 @@ namespace Assets.Script.Manager
         public static NetworkNpcManager Instance;
 
         [Header("Databases & Resources (Kéo Addressables vào đây)")]
+        [Tooltip("[CẦN ĐIỀN] Kéo Assets/SO/NpcDatabase.asset")]
         public AssetReferenceT<NpcDatabaseSO> npcDatabaseRef;
+        [Tooltip("[CẦN ĐIỀN] Kéo Assets/Prefabs/NpcPrefabs.prefab")]
         public AssetReferenceGameObject baseNpcPrefab;
+        [Tooltip("[CẦN ĐIỀN] Kéo Assets/Atlas/NPC.spriteatlasv2 (chứa ảnh đầu/chân mọi NPC)")]
         public AssetReferenceT<SpriteAtlas> npcAtlasReference;
 
         // Lưu trữ dữ liệu thực tế sau khi tải từ RAM/Server

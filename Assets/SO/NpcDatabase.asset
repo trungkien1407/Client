@@ -14,6 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   npcs:
   - templateId: 1
-    defaultName: Tho ren
+    defaultName: Hokage
+    headSpriteName: TsunadeBody
+    legSpriteName: tsunadeLeg
+  - templateId: 2
+    defaultName: "Th\u1EE3 R\xE8n"
     headSpriteName: TsunadeBody
     legSpriteName: tsunadeLeg

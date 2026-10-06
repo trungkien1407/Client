@@ -18,8 +18,8 @@ namespace Assets.Script.Database
             // public string bodySpriteName;
         }
 
+        // [CẦN ĐIỀN mỗi khi thêm NPC] templateId = npc_template.id bên server; tên sprite đầu/chân nằm trong Atlas/NPC.
         public List<NpcConfig> npcs = new List<NpcConfig>();
-        public int test;
         public NpcConfig GetNpcConfig(int templateId)
         {
             return npcs.Find(n => n.templateId == templateId);

@@ -13,9 +13,10 @@ namespace Assets.Script.Manager
         [SerializeField] private GameObject systemCanvas;  // Chứa popup, loading
 
         [Header("In-Game Windows (Các Panel trong Window Canvas)")]
-        [SerializeField] private GameObject inventoryPanel; // Hành trang
-        [SerializeField] private GameObject characterPanel; // Bảng chỉ số nhân vật
-        [SerializeField] private GameObject questPanel;     // Nhiệm vụ
+        // [CẦN ĐIỀN khi làm UI] kéo các panel cửa sổ vào đây. Chưa có thì để trống (game vẫn chạy).
+        [Assets.Script.Core.Optional, SerializeField] private GameObject inventoryPanel; // Hành trang
+        [Assets.Script.Core.Optional, SerializeField] private GameObject characterPanel; // Bảng chỉ số nhân vật
+        [Assets.Script.Core.Optional, SerializeField] private GameObject questPanel;     // Nhiệm vụ
 
         // Danh sách để quản lý các cửa sổ dễ dàng hơn
         private List<GameObject> allWindows = new List<GameObject>();

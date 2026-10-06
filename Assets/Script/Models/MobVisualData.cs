@@ -11,8 +11,16 @@ namespace Assets.Script.Models
         public short templateId;
         public float frameRate = 0.15f;
 
+        [Tooltip("Tiền tố tên sprite trong atlas: <spriteKey>_0,_1 (đi) _2 (đánh) _3 (chết). Để trống = dùng templateId. "
+               + "Cho nhiều loại quái dùng chung 1 bộ hình (vd Ốc Sên Tinh Anh dùng hình Ốc Sên).")]
+        public string spriteKey;
+
+        [Tooltip("Nhân kích thước hình (tinh anh/boss to hơn). 0 = 1.")]
+        public float scale = 1f;
+
         [Header("Data Package (Sprite Atlas)")]
         // Đây chính là "File Data" chứa toàn bộ ảnh của quái vật
+        [Tooltip("[CẦN ĐIỀN] Atlas ảnh của quái này (vd Assets/Sprite/Mob/mob_1.spriteatlasv2). Atlas phải là Addressable (group Atlases)")]
         public AssetReferenceT<SpriteAtlas> mobAtlas;
     }
 }
