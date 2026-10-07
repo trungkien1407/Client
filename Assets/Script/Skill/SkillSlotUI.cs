@@ -86,15 +86,6 @@ public class SkillSlotUI : MonoBehaviour
             highlightObj.SetActive(isSelected);
     }
 
-    // Hàm này được gọi khi User CLICK thẳng vào nút UI của ô này
-    public void OnClickSlot()
-    {
-        if (assignedSkillId == -1) return;
-
-        // Báo cho Manager biết ô này vừa được chọn
-        SkillBarManager.Instance.SelectSlotAndUse(slotIndex);
-    }
-
     private void OnDestroy()
     {
         // Giải phóng RAM khi ô UI này bị hủy (Chuyển scene)

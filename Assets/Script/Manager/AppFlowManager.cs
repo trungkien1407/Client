@@ -204,15 +204,15 @@ public class AppFlowManager : MonoBehaviour
             {
                 PopupAndLoad.Instance.HidePopup();
             }
-            else if (status == 1) // Cảnh báo nhẹ
+            else if (status == 1) // Phiên bản khác server → BẮT BUỘC cập nhật (server cũng chặn đăng nhập, mã 11)
             {
                 PopupAndLoad.Instance.HidePopup();
-                Debug.LogWarning("Server Warning: Có bản cập nhật tài nguyên!");
+                PopupAndLoad.Instance.ShowPopup("Bản cài đặt đã cũ. Vui lòng cập nhật game lên phiên bản mới nhất!");
             }
-            else // -1 (Bắt buộc update client mới trên Store)
+            else // -1: server lỗi khi kiểm tra
             {
                 PopupAndLoad.Instance.HidePopup();
-                PopupAndLoad.Instance.ShowPopup("Bản cài đặt đã cũ. Vui lòng cập nhật game trên Cửa Hàng!");
+                PopupAndLoad.Instance.ShowPopup("Không kiểm tra được phiên bản. Vui lòng thử lại sau.");
             }
         }
         catch (Exception e)
@@ -220,14 +220,6 @@ public class AppFlowManager : MonoBehaviour
             Debug.LogError("Lỗi đọc dữ liệu Version: " + e.Message);
             PopupAndLoad.Instance.ShowPopup("Dữ liệu phiên bản không hợp lệ!");
         }
-    }
-
-    public void OnLoginSuccessAndEnterGame()
-    {
-        PopupAndLoad.Instance.HidePopup();
-        if (UIManager.Instance != null) UIManager.Instance.ShowHUD(true);
-
-        Destroy(gameObject);
     }
 
     private void OnDestroy()

@@ -190,9 +190,6 @@ namespace Assets.Script.UI.Kit
             for (int i = t.childCount - 1; i >= 0; i--) UnityEngine.Object.Destroy(t.GetChild(i).gameObject);
         }
 
-        /// <summary>Đang trỏ/chạm lên UI không (để click UI không bị tính là click chọn mục tiêu trong map).</summary>
-        public static bool PointerOverUI() => EventSystem.current != null && EventSystem.current.IsPointerOverGameObject();
-
         /// <summary>Thanh tiến trình (máu/EXP): trả về Image fill (đổi fillAmount 0..1).</summary>
         public static Image Bar(string name, Transform parent, Color fill)
         {

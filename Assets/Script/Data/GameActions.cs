@@ -84,7 +84,6 @@ namespace Assets.Script.Data
         // ---- Chat ----
         /// <param name="channel">0 thế giới · 1 khu · 4 gia tộc</param>
         public static void Chat(int channel, string msg) => Send(Cmd.CHAT, w => { w.WriteByte((byte)channel); w.WriteUTF(msg); });
-        public static void Whisper(string to, string msg) => Send(Cmd.CHAT, w => { w.WriteByte((byte)2); w.WriteUTF(to); w.WriteUTF(msg); });
 
         // ---- Nhân vật / kỹ năng ----
         /// <param name="stat">0 Sức mạnh · 1 Thân pháp · 2 Chakra · 3 Thể lực</param>

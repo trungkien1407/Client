@@ -163,13 +163,6 @@ namespace Assets.Script.Data
             return n;
         }
 
-        /// <summary>Ô túi đầu tiên chứa món này (-1 nếu không có).</summary>
-        public static int FirstIndexOf(int templateId)
-        {
-            for (int i = 0; i < Inventory.Count; i++) if (Inventory[i].tpl == templateId) return i;
-            return -1;
-        }
-
         public static BagSlot BagAt(int index) => index >= 0 && index < Inventory.Count ? Inventory[index] : null;
 
         /// <summary>Tên đơn vị tiền theo mã currency (0 yên/1 xu/2 lượng).</summary>

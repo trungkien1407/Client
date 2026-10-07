@@ -37,7 +37,6 @@ namespace Assets.Script.Manager
             NetworkEventDispatcher.Instance.AddHandler(Cmd.PLAYER_ADD, OnPlayerAdd);
             NetworkEventDispatcher.Instance.AddHandler(Cmd.PLAYER_LIST, OnPlayerList);
             NetworkEventDispatcher.Instance.AddHandler(Cmd.PLAYER_REMOVE, OnPlayerRemove);
-            NetworkEventDispatcher.Instance.AddHandler(Cmd.PLAYER_MOVE, OnPlayerMove);
             NetworkEventDispatcher.Instance.AddHandler(Cmd.PLAYER_MOVE_BATCH, OnPlayerMoveBatch);
             NetworkEventDispatcher.Instance.AddHandler(Cmd.FORCE_MOVE, OnForceMove);
             NetworkEventDispatcher.Instance.AddHandler(Cmd.CHANGE_ZONE, OnChangeZone);
@@ -54,7 +53,6 @@ namespace Assets.Script.Manager
                 NetworkEventDispatcher.Instance.RemoveHandler(Cmd.PLAYER_ADD, OnPlayerAdd);
                 NetworkEventDispatcher.Instance.RemoveHandler(Cmd.PLAYER_LIST, OnPlayerList);
                 NetworkEventDispatcher.Instance.RemoveHandler(Cmd.PLAYER_REMOVE, OnPlayerRemove);
-                NetworkEventDispatcher.Instance.RemoveHandler(Cmd.PLAYER_MOVE, OnPlayerMove);
                 NetworkEventDispatcher.Instance.RemoveHandler(Cmd.PLAYER_MOVE_BATCH, OnPlayerMoveBatch);
                 NetworkEventDispatcher.Instance.RemoveHandler(Cmd.FORCE_MOVE, OnForceMove);
                 NetworkEventDispatcher.Instance.RemoveHandler(Cmd.CHANGE_ZONE, OnChangeZone);
@@ -131,22 +129,6 @@ namespace Assets.Script.Manager
                 }
             }
             finally { reader.Cleanup(); }
-        }
-
-        private void OnPlayerMove(byte[] data)
-        {
-            MessageReader reader = new MessageReader(data);
-            int pId = reader.ReadInt();
-            float x = reader.ReadFloat();
-            float y = reader.ReadFloat();
-            byte dir = reader.ReadByte();
-            byte state = reader.ReadByte();
-            reader.Cleanup();
-
-            if (pId != myPlayerId && remotePlayers.TryGetValue(pId, out RemotePlayer rp))
-            {
-                rp.UpdateNetworkData(x, y, dir, state);
-            }
         }
 
         private void OnPlayerList(byte[] data)

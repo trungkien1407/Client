@@ -186,9 +186,10 @@ public class CharacterCreationManager : MonoBehaviour
     public void OnCreateButtonClicked()
     {
         string charName = inputName.text.Trim();
-        if (string.IsNullOrEmpty(charName) || charName.Length < 4)
+        // Khớp server (CreateCharacterHandler): 3–15 ký tự
+        if (string.IsNullOrEmpty(charName) || charName.Length < 3 || charName.Length > 15)
         {
-            PopupAndLoad.Instance.ShowPopup("Tên nhân vật quá ngắn!");
+            PopupAndLoad.Instance.ShowPopup("Tên nhân vật phải từ 3 đến 15 ký tự!");
             return;
         }
 

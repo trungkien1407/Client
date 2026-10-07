@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using Assets.Script.Database;
 
 namespace Assets.Script.Map
 {
@@ -21,50 +20,20 @@ namespace Assets.Script.Map
         private Vector3 moveAxis;
         private bool isReady = false;
 
-        public void InitData(PortalData data)
+        /// <summary>
+        /// Cổng được đặt sẵn trong prefab map → tự khởi tạo: hướng nhấp nhô lấy theo góc xoay / lật (scale X âm)
+        /// của mũi tên đã chỉnh trong Editor; vị trí gốc = baseOffset lùi ngược hướng chỉ pushBackDistance.
+        /// (Trước đây cần gọi InitData(PortalData) nhưng không nơi nào gọi → mũi tên đứng im.)
+        /// </summary>
+        private void Start()
         {
-            if (arrowTransform != null)
-            {
-                // Reset Scale để chống lỗi lộn ngược
-                arrowTransform.localScale = Vector3.one;
-
-                // 1. Xác định hướng chỉ (moveAxis) và xoay/lật ảnh
-                switch (data.direction)
-                {
-                    case 0: // Up
-                        arrowTransform.localRotation = Quaternion.Euler(0, 0, 90);
-                        moveAxis = Vector3.up;
-                        break;
-                    case 1: // Down
-                        arrowTransform.localRotation = Quaternion.Euler(0, 0, -90);
-                        moveAxis = Vector3.down;
-                        break;
-                    case 2: // Left
-                        // Lật ảnh sang trái bằng Scale X = -1
-                        arrowTransform.localRotation = Quaternion.Euler(0, 0, 0);
-                        arrowTransform.localScale = new Vector3(-1, 1, 1);
-                        moveAxis = Vector3.left;
-                        break;
-                    case 3: // Right
-                    default:
-                        // Bình thường hướng sang phải
-                        arrowTransform.localRotation = Quaternion.Euler(0, 0, 0);
-                        arrowTransform.localScale = new Vector3(1, 1, 1);
-                        moveAxis = Vector3.right;
-                        break;
-                }
-
-                // [MỚI] 2. TÍNH TOÁN VỊ TRÍ GỐC THÔNG MINH
-                // Bước A: Lấy vị trí baseOffset làm nền tảng
-                Vector3 calculatedPos = new Vector3(baseOffset.x, baseOffset.y, 0f);
-
-                // Bước B: Lùi mông lại ngược hướng chỉ (-moveAxis) một khoảng pushBackDistance
-                calculatedPos -= moveAxis * pushBackDistance;
-
-                // Gán vị trí cuối cùng
-                startPos = calculatedPos;
-                isReady = true;
-            }
+            if (arrowTransform == null) return;
+            moveAxis = arrowTransform.localRotation * Vector3.right;
+            if (arrowTransform.localScale.x < 0) moveAxis = -moveAxis;
+            moveAxis.z = 0f;
+            moveAxis.Normalize();
+            startPos = new Vector3(baseOffset.x, baseOffset.y, 0f) - moveAxis * pushBackDistance;
+            isReady = true;
         }
 
         private void Update()

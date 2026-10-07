@@ -60,7 +60,7 @@ namespace Assets.Script.UI.Windows
             ((RectTransform)reload.transform).Place(new Vector2(1, 0.5f), new Vector2(1, 0.5f), Vector2.zero, new Vector2(110, 38), new Vector2(1, 0.5f));
 
             _guildNone = Head(body, "GuildNone", 60);
-            _guildName = UIKit.Input("GName", _guildNone, "Tên gia tộc (3–12 ký tự)", 16, TMP_InputField.ContentType.Standard, 12);
+            _guildName = UIKit.Input("GName", _guildNone, "Tên gia tộc (3–20 ký tự)", 16, TMP_InputField.ContentType.Standard, 20); // khớp GuildService.create
             ((RectTransform)_guildName.transform).Place(new Vector2(0, 0.5f), new Vector2(0, 0.5f), Vector2.zero, new Vector2(260, 38), new Vector2(0, 0.5f));
             var create = UIKit.Button("Create", _guildNone, "Lập gia tộc", () =>
             {

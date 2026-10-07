@@ -66,25 +66,6 @@ namespace Assets.Script.Manager
             }
         }
 
-        // Mở một cửa sổ cụ thể (Ví dụ bấm nút Túi đồ thì gọi hàm này)
-        public void ToggleInventory()
-        {
-            bool isActive = inventoryPanel.activeSelf;
-
-            // Tắt hết các cửa sổ khác trước (để tránh đè lên nhau)
-            CloseAllWindows();
-
-            // Bật/Tắt cửa sổ hành trang
-            inventoryPanel.SetActive(!isActive);
-        }
-
-        public void ToggleCharacterStats()
-        {
-            bool isActive = characterPanel.activeSelf;
-            CloseAllWindows();
-            characterPanel.SetActive(!isActive);
-        }
-
         // ==========================================
         // TÍCH HỢP GỌI NHANH POPUP (Tiện ích)
         // ==========================================

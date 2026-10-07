@@ -60,7 +60,6 @@ namespace Assets.Script.Manager
         private void RegisterNetworkHandlers()
         {
             NetworkEventDispatcher.Instance.AddHandler(Cmd.MOB_LIST, OnMobList);
-            NetworkEventDispatcher.Instance.AddHandler(Cmd.MOB_MOVE, OnMobMove);
             NetworkEventDispatcher.Instance.AddHandler(Cmd.MOB_MOVE_BATCH, OnMobMoveBatch);
             NetworkEventDispatcher.Instance.AddHandler(Cmd.MOB_ADD, OnMobAdd);
             NetworkEventDispatcher.Instance.AddHandler(Cmd.MOB_DIE, OnMobDie);
@@ -72,7 +71,6 @@ namespace Assets.Script.Manager
             if (NetworkEventDispatcher.Instance != null)
             {
                 NetworkEventDispatcher.Instance.RemoveHandler(Cmd.MOB_LIST, OnMobList);
-                NetworkEventDispatcher.Instance.RemoveHandler(Cmd.MOB_MOVE, OnMobMove);
                 NetworkEventDispatcher.Instance.RemoveHandler(Cmd.MOB_MOVE_BATCH, OnMobMoveBatch);
                 NetworkEventDispatcher.Instance.RemoveHandler(Cmd.MOB_ADD, OnMobAdd);
                 NetworkEventDispatcher.Instance.RemoveHandler(Cmd.MOB_DIE, OnMobDie);
@@ -264,20 +262,6 @@ namespace Assets.Script.Manager
                 ReturnMobToPool(mob);
             }
             activeMobs.Clear();
-        }
-
-        private void OnMobMove(byte[] data)
-        {
-            MessageReader reader = new MessageReader(data);
-            try
-            {
-                int id = reader.ReadInt();
-                float x = reader.ReadFloat();
-                float y = reader.ReadFloat();
-
-                if (activeMobs.TryGetValue(id, out var mob)) mob.MoveTo(x, y);
-            }
-            finally { reader.Cleanup(); }
         }
 
         private void OnMobMoveBatch(byte[] data)

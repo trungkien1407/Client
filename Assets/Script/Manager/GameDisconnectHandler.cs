@@ -21,21 +21,6 @@ namespace Assets.Script.Manager
             NetworkEventDispatcher.Instance.AddHandler(Cmd.LOGOUT, OnLogoutResponse);
         }
 
-        // ==========================================
-        // LUỒNG 1: CHỦ ĐỘNG ĐĂNG XUẤT (GẮN VÀO NÚT BẤM TRÊN UI)
-        // ==========================================
-        public void SendLogoutRequest()
-        {
-            if (PopupAndLoad.Instance != null)
-            {
-                PopupAndLoad.Instance.ShowLoading();
-            }
-
-            MessageWriter writer = new MessageWriter();
-            NetworkManager.Instance.Send(Cmd.LOGOUT, writer.ToArray());
-            writer.Cleanup();
-        }
-
         private void OnLogoutResponse(byte[] data)
         {
             MessageReader reader = new MessageReader(data);

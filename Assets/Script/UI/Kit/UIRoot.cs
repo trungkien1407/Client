@@ -58,13 +58,6 @@ namespace Assets.Script.UI.Kit
 
         public void BringToFront(GameWindow w) => w.transform.SetAsLastSibling();
 
-        /// <summary>Có cửa sổ nào đang mở không (để chặn phím tấn công/di chuyển nếu cần).</summary>
-        public bool AnyWindowOpen()
-        {
-            foreach (var w in _windows) if (w.IsOpen) return true;
-            return false;
-        }
-
         private void Update()
         {
             var kb = Keyboard.current;

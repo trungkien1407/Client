@@ -260,6 +260,7 @@ namespace Assets.Script.Manager
                     8 => $"Mạng của bạn đăng nhập quá nhiều lần. Đợi {WaitText(extra)} rồi thử lại.",
                     9 => $"Sai mật khẩu quá 5 lần. Đợi {WaitText(extra)} rồi thử lại.",
                     10 => $"Tài khoản vừa đăng nhập. Đợi {WaitText(extra)} rồi thử lại.",
+                    11 => "Bản cài đặt đã cũ. Vui lòng cập nhật game lên phiên bản mới nhất!",
                     _ => "Lỗi máy chủ!"
                 };
                 // Mật khẩu đã lưu không còn đúng (đổi mật khẩu ở máy khác) → quên mật khẩu, điền sẵn tên để gõ lại
@@ -369,6 +370,7 @@ namespace Assets.Script.Manager
                 2 => "Tài khoản hoặc email đã được dùng!",
                 3 => "Email không hợp lệ.",
                 4 => "Mạng của bạn thử quá nhiều lần. Đợi ít phút rồi thử lại.",
+                5 => "Bản cài đặt đã cũ. Vui lòng cập nhật game lên phiên bản mới nhất!",
                 _ => "Lỗi máy chủ!"
             });
         }

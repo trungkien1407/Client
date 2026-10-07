@@ -21,7 +21,6 @@
         // 2. NHÂN VẬT & DI CHUYỂN (100 - 199)
         // ==========================================
         public const short PLAYER_MOVE = 100;       // C→S float x, float y, byte dir, byte state
-        public const short ENTER_MAP = 101;
         public const short CHANGE_MAP = 102;        // S→C short mapId, byte zoneId, float x, float y
         public const short FORCE_MOVE = 103;        // S→C float x, float y (server kéo về vì sai/hack)
         public const short PLAYER_ADD = 104;
@@ -98,7 +97,6 @@
         // ==========================================
         public const short MOB_ADD = 500;           // S→C MOB (quái hồi sinh)
         public const short MOB_LIST = 501;
-        public const short MOB_MOVE = 502;
         public const short MOB_DIE = 503;           // S→C int mobId
         public const short MOB_MOVE_BATCH = 504;
         public const short MOB_ATTACK = 505;        // S→C int mobId, int playerId, int damage, int playerHpRemain
@@ -170,7 +168,6 @@
         public const short EVENT_STATE = 851;       // S→C byte type(1 boss/2 lôi đài), byte state(0 hết/1 báo trước/2 đang diễn ra), int secs, UTF text
         public const short ARENA_SCORE = 852;       // S→C short n, [UTF name, short kills]
 
-        public const short PLAYER_TAKE_DAMGE = 900; // (chưa dùng)
         public const short PLAYER_HEAL = 901;       // S→C int id, int hpHeal, int mpHeal, int hp, int maxHp, int mp, int maxMp
     }
 }
