@@ -146,6 +146,20 @@ namespace Assets.Script.Combat
                 default: return; // Item không đánh được
             }
 
+            // Tầm chiêu (GĐ7: Kiếm cận chiến 1,8 · Tiêu 6 · Hoả 5 — dữ liệu từ GAME_DATA_SKILLS). Xa quá thì báo, không gửi
+            // (server cũng chặn — trước đây nhân vật diễn đòn suông mà người chơi không biết vì sao không trúng).
+            float range = SkillRange(skillTemplateId);
+            var tt = target.GetTransform();
+            if (tt != null && Vector2.Distance(local.transform.position, tt.position) > range + 0.3f)
+            {
+                if (Time.time >= _nextRangeWarn)
+                {
+                    ChatBox.AddSystem($"Quá xa (tầm chiêu {range:0.#}) — lại gần mục tiêu.");
+                    _nextRangeWarn = Time.time + 1.5f;
+                }
+                return;
+            }
+
             _nextAttackTime = Time.time + LocalAttackGap;
 
             var w = new MessageWriter();
@@ -157,6 +171,17 @@ namespace Assets.Script.Combat
 
             // Diễn anim ngay cho mượt (nếu server từ chối do cooldown/hết mana thì chỉ là anim suông)
             if (local.TryGetComponent(out PlayerVisualController vc)) vc.PlayActionOnce("Punch_Combo");
+        }
+
+        private float _nextRangeWarn;
+
+        /// <summary>Tầm của chiêu ở cấp đang có (0 trong dữ liệu = mặc định 5 như server).</summary>
+        private static float SkillRange(int skillTemplateId)
+        {
+            if (!Data.GameData.Skills.TryGetValue(skillTemplateId, out var tpl)) return 5f;
+            Data.GameData.MySkills.TryGetValue(skillTemplateId, out int point);
+            var lv = tpl.Level(point) ?? (tpl.levels.Count > 0 ? tpl.levels[0] : null);
+            return lv != null && lv.range > 0 ? lv.range : 5f;
         }
 
         public void SendRevive()

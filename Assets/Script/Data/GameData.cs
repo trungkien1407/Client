@@ -21,6 +21,7 @@ namespace Assets.Script.Data
         public int point, manaUse, coolDown, damage; public float range, aoe; public string info;
         // Hiệu ứng (GĐ4): "stun" / "slow" / "burn" hoặc rỗng
         public string effect; public float effectChance; public int effectMs, effectValue;
+        public int levelRequire; // GĐ7: cấp nhân vật tối thiểu để học / nâng lên cấp này (0 = không giới hạn)
     }
 
     public class SkillTpl
@@ -49,6 +50,7 @@ namespace Assets.Script.Data
         public long exp, expToNext;
         public int maxHp, maxMp, bonusDamage, yen, xu, luong, pkPoint;
         public float dodge, crit, moveSpeed;
+        public int defense; public float reduction; // GĐ7: phòng thủ + % giảm sát thương (quái / người cùng cấp)
     }
 
     /// <summary>1 Ô ĐỒ (túi / rương / giao dịch / thư): mẫu, số lượng, cấp cường hoá +N, khoá (không giao dịch được).</summary>

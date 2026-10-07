@@ -55,6 +55,7 @@ namespace Assets.Script.Data
             var r = new MessageReader(data);
             int n = r.ReadShort();
             GameData.Skills.Clear();
+            var order = new List<SkillTpl>(n);
             for (int i = 0; i < n; i++)
             {
                 var t = new SkillTpl
@@ -72,7 +73,19 @@ namespace Assets.Script.Data
                         effect = r.ReadUTF(), effectChance = r.ReadFloat(), effectMs = r.ReadInt(), effectValue = r.ReadInt()
                     });
                 GameData.Skills[t.id] = t;
+                order.Add(t);
             }
+            // GĐ7 — thêm cuối gói (server cũ không gửi): cấp nhân vật cần cho từng cấp chiêu, cùng thứ tự kỹ năng ở trên
+            if (r.Available() > 0)
+                foreach (var t in order)
+                {
+                    int cnt = r.ReadByte();
+                    for (int j = 0; j < cnt; j++)
+                    {
+                        int req = r.ReadShort();
+                        if (j < t.levels.Count) t.levels[j].levelRequire = req;
+                    }
+                }
             r.Cleanup();
             GameData.Notify(DataKind.Templates);
         }
@@ -129,6 +142,7 @@ namespace Assets.Script.Data
             c.maxHp = r.ReadInt(); c.maxMp = r.ReadInt(); c.bonusDamage = r.ReadInt();
             c.dodge = r.ReadFloat(); c.crit = r.ReadFloat(); c.moveSpeed = r.ReadFloat();
             c.yen = r.ReadInt(); c.xu = r.ReadInt(); c.luong = r.ReadInt(); c.pkPoint = r.ReadShort();
+            if (r.Available() >= 8) { c.defense = r.ReadInt(); c.reduction = r.ReadFloat(); } // GĐ7 (server cũ không gửi)
             r.Cleanup();
 
             LocalPlayerState.Level = c.level;

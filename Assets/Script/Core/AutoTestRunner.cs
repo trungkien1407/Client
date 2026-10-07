@@ -134,6 +134,7 @@ namespace Assets.Script.Core
                     GameWindow.Get<SocialWindow>(), GameWindow.Get<MailWindow>(), GameWindow.Get<LeaderboardWindow>(),
                     GameWindow.Get<SettingsWindow>(), GameWindow.Get<UpgradeWindow>(), GameWindow.Get<StorageWindow>(),
                     GameWindow.Get<PlayerActionWindow>(), GameWindow.Get<InventoryWindow>(), GameWindow.Get<TutorialWindow>(),
+                    GameWindow.Get<CharacterWindow>(), GameWindow.Get<SkillWindow>(), // GĐ7: phòng thủ, cổng cấp kỹ năng
                 };
                 foreach (var w in all) w.Hide();
                 yield return Shot("00_hud");

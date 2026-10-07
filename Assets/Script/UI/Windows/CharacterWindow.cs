@@ -59,6 +59,7 @@ namespace Assets.Script.UI.Windows
                 $"HP: {LocalPlayerState.Hp}/{c.maxHp}    MP: {LocalPlayerState.Mp}/{c.maxMp}\n" +
                 $"Sát thương cộng thêm: +{c.bonusDamage}\n" +
                 $"Né: {c.dodge * 100:F1}%    Chí mạng: {c.crit * 100:F1}%\n" +
+                $"Phòng thủ: {c.defense}  <size=13><color=#9aa>(giảm {c.reduction * 100:F0}% sát thương quái cùng cấp)</color></size>\n" +
                 $"Tốc chạy: {c.moveSpeed:F1}    Điểm PK: {c.pkPoint}\n" +
                 $"Yên: {c.yen:N0}   Xu: {c.xu:N0}   Lượng: {c.luong:N0}";
             _points.text = $"Điểm tiềm năng còn: {c.potential}";
