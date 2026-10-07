@@ -249,13 +249,14 @@ namespace Assets.Script.Data
             GameData.Notify(DataKind.Mails);
         }
 
-        /// <summary>MAIL_CONTENT: long id, UTF from, UTF title, UTF content, int yen, [ô đồ], byte claimed</summary>
+        /// <summary>MAIL_CONTENT: long id, UTF from, UTF title, UTF content, int yen, [ô đồ], byte claimed, int xu, int luong (xu/lượng: quà từ trang quản trị)</summary>
         private void OnMailContent(byte[] data)
         {
             var r = new MessageReader(data);
             var m = new MailBody { id = r.ReadLong(), from = r.ReadUTF(), title = r.ReadUTF(), content = r.ReadUTF(), yen = r.ReadInt() };
             m.items.AddRange(BagSlot.ReadList(r));
             m.claimed = r.ReadByte() != 0;
+            if (r.Available() >= 8) { m.xu = r.ReadInt(); m.luong = r.ReadInt(); } // server cũ không gửi
             r.Cleanup();
             GameData.OpenMail = m;
             GameData.Notify(DataKind.Mails);

@@ -72,7 +72,7 @@ namespace Assets.Script.Data
     public class PartyMember { public int id, hp, maxHp, level; public string name; }
     public class FriendInfo { public int id, level; public string name; public bool online; }
     public class MailHeader { public long id, createdMs; public string from, title; public bool read, claimed, hasAttach; }
-    public class MailBody { public long id; public string from, title, content; public int yen; public List<BagSlot> items = new List<BagSlot>(); public bool claimed; }
+    public class MailBody { public long id; public string from, title, content; public int yen, xu, luong; public List<BagSlot> items = new List<BagSlot>(); public bool claimed; }
     public class GuildMember { public int id, level, rank; public string name; public bool online; }
 
     public class GuildInfo

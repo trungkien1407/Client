@@ -142,11 +142,13 @@ namespace Assets.Script.UI.Windows
             _view.gameObject.SetActive(!_compose.gameObject.activeSelf);
             if (o == null) { _content.text = "Chọn 1 thư để đọc."; _claim.gameObject.SetActive(false); _delete.gameObject.SetActive(false); return; }
             var sb = new StringBuilder($"<size=19><b>{o.title}</b></size>\n<color=#9aa>Từ: {o.from}</color>\n\n{o.content}\n");
-            bool hasGift = o.yen > 0 || o.items.Count > 0;
+            bool hasGift = o.yen > 0 || o.xu > 0 || o.luong > 0 || o.items.Count > 0;
             if (hasGift)
             {
                 sb.Append("\n<color=#fd5>Quà đính kèm:</color>");
                 if (o.yen > 0) sb.Append($"\n• {o.yen:N0} yên");
+                if (o.xu > 0) sb.Append($"\n• {o.xu:N0} xu");
+                if (o.luong > 0) sb.Append($"\n• {o.luong:N0} lượng");
                 foreach (var it in o.items) sb.Append("\n• ").Append(GameData.ColoredName(it.tpl, it.level)).Append(it.qty > 1 ? $" x{it.qty}" : "");
                 if (o.claimed) sb.Append("\n<color=#6f6>(đã nhận)</color>");
             }
