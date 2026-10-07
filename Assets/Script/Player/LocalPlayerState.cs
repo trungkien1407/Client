@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Assets.Script.UI;
 
 namespace Assets.Script.Player
@@ -14,10 +14,18 @@ namespace Assets.Script.Player
         public static string Name;
         public static int Hp, MaxHp, Mp, MaxMp;
         public static int Level;
+        /// <summary>Khu đang đứng (255 = khu riêng: phó bản / lôi đài). Cập nhật khi đăng nhập / đổi map / đổi khu.</summary>
+        public static int ZoneId;
         public static long Exp;
         public static int Yen;
         public static int BonusDamage;
         public static bool IsDead;
+
+        /// <summary>Đang bị CHOÁNG tới thời điểm này (Time.time) — server gửi EFFECT; không di chuyển/đánh được.</summary>
+        public static float StunnedUntil;
+        public static bool IsStunned => UnityEngine.Time.time < StunnedUntil;
+        /// <summary>Đang bị LÀM CHẬM tới thời điểm này (chỉ để hiển thị; tốc độ thật do server kiểm).</summary>
+        public static float SlowedUntil;
 
         /// <summary>Bắn ra mỗi khi có chỉ số thay đổi (UI khác muốn nghe thì đăng ký).</summary>
         public static event Action OnChanged;
@@ -44,7 +52,7 @@ namespace Assets.Script.Player
 
         public static void Reset()
         {
-            Id = -1; IsDead = false;
+            Id = -1; IsDead = false; StunnedUntil = 0; SlowedUntil = 0;
         }
 
         public static void RefreshHud()

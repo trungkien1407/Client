@@ -117,7 +117,7 @@ public class PlayerMovement : MonoBehaviour
         }
 
         // Chết hoặc đang gõ chat -> không nhận phím di chuyển
-        bool blocked = isDead || Assets.Script.Combat.ChatBox.IsTyping;
+        bool blocked = isDead || Assets.Script.Combat.ChatBox.IsTyping || Assets.Script.Player.LocalPlayerState.IsStunned;
         moveInput = blocked ? Vector2.zero : controls.Player.Move.ReadValue<Vector2>();
 
         if (isOnWaterSurface)

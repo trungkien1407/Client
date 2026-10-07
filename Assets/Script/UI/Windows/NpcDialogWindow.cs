@@ -28,8 +28,23 @@ namespace Assets.Script.UI.Windows
             ((RectTransform)_options.parent).Fill(0, 0, 158, 0);
         }
 
+        private readonly List<string> _optionTexts = new List<string>();
+        public int NpcId => _npcId;
+
+        /// <summary>Chọn lựa chọn đầu tiên có chứa chữ này (dùng cho AutoTest). Trả về false nếu không có.</summary>
+        public bool Choose(string contains)
+        {
+            int i = _optionTexts.FindIndex(o => o.Contains(contains));
+            if (i < 0) return false;
+            Hide();
+            GameActions.NpcSelect(_npcId, i);
+            return true;
+        }
+
         public void ShowMenu(int npcId, string npcName, string text, List<string> options)
         {
+            _optionTexts.Clear();
+            _optionTexts.AddRange(options);
             _npcId = npcId;
             Show();
             SetTitle(npcName);

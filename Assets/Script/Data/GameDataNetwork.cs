@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Assets.Script.Constants;
 using Assets.Script.Network;
 using Assets.Script.Player;
@@ -8,7 +8,8 @@ namespace Assets.Script.Data
 {
     /// <summary>
     /// Nhận các gói DỮ LIỆU (không phải hình ảnh) rồi ghi vào GameData + báo UI vẽ lại:
-    /// GAME_DATA_ITEMS/SKILLS/QUESTS/MOBS/NPCS, CHARACTER_INFO, SKILL_LIST, INVENTORY, EQUIPMENT, QUEST_LIST/UPDATE.
+    /// GAME_DATA_ITEMS/SKILLS/QUESTS/MOBS/NPCS, CHARACTER_INFO, SKILL_LIST, INVENTORY, EQUIPMENT, QUEST_LIST/UPDATE, MONEY_UPDATE.
+    /// (Các gói GĐ2–GĐ4: nâng cấp, rương, giao dịch, xã hội, sự kiện → SocialNetwork.)
     /// Payload từng gói: xem docs/PROTOCOL.md (repo server).
     /// </summary>
     public class GameDataNetwork : NetworkListener
@@ -26,6 +27,7 @@ namespace Assets.Script.Data
             Listen(Cmd.EQUIPMENT, OnEquipment);
             Listen(Cmd.QUEST_LIST, OnQuestList);
             Listen(Cmd.QUEST_UPDATE, OnQuestUpdate);
+            Listen(Cmd.MONEY_UPDATE, OnMoney);
         }
 
         private void OnItems(byte[] data)
@@ -65,7 +67,9 @@ namespace Assets.Script.Data
                     t.levels.Add(new SkillLevel
                     {
                         point = r.ReadShort(), manaUse = r.ReadInt(), coolDown = r.ReadInt(), damage = r.ReadInt(),
-                        range = r.ReadFloat(), aoe = r.ReadFloat(), info = r.ReadUTF()
+                        range = r.ReadFloat(), aoe = r.ReadFloat(), info = r.ReadUTF(),
+                        // GĐ4: hiệu ứng kèm theo (choáng/chậm/bỏng)
+                        effect = r.ReadUTF(), effectChance = r.ReadFloat(), effectMs = r.ReadInt(), effectValue = r.ReadInt()
                     });
                 GameData.Skills[t.id] = t;
             }
@@ -146,13 +150,15 @@ namespace Assets.Script.Data
             GameData.Notify(DataKind.Skills);
         }
 
+        /// <summary>INVENTORY: short capacity, short n, [int tpl, int qty, byte level, byte locked] x n — đúng thứ tự ô.</summary>
         private void OnInventory(byte[] data)
         {
             var r = new MessageReader(data);
-            int n = r.ReadShort();
-            GameData.Inventory.Clear();
-            for (int i = 0; i < n; i++) GameData.Inventory.Add(new KeyValuePair<int, int>(r.ReadInt(), r.ReadInt()));
+            GameData.BagCapacity = r.ReadShort();
+            var list = BagSlot.ReadList(r);
             r.Cleanup();
+            GameData.Inventory.Clear();
+            GameData.Inventory.AddRange(list);
             GameData.Notify(DataKind.Inventory);
         }
 
@@ -161,9 +167,26 @@ namespace Assets.Script.Data
             var r = new MessageReader(data);
             int n = r.ReadShort();
             GameData.Equipment.Clear();
-            for (int i = 0; i < n; i++) GameData.Equipment[r.ReadInt()] = r.ReadInt();
+            GameData.EquipLevel.Clear();
+            for (int i = 0; i < n; i++)
+            {
+                int slot = r.ReadInt();
+                GameData.Equipment[slot] = r.ReadInt();
+                GameData.EquipLevel[slot] = r.ReadByte(); // cấp cường hoá +N
+            }
             r.Cleanup();
             GameData.Notify(DataKind.Equipment);
+        }
+
+        /// <summary>MONEY_UPDATE: int yen, int xu, int luong (sau mua/bán/giao dịch/nạp...).</summary>
+        private void OnMoney(byte[] data)
+        {
+            var r = new MessageReader(data);
+            GameData.Me.yen = r.ReadInt(); GameData.Me.xu = r.ReadInt(); GameData.Me.luong = r.ReadInt();
+            r.Cleanup();
+            LocalPlayerState.Yen = GameData.Me.yen;
+            GameData.Notify(DataKind.Money);
+            GameData.Notify(DataKind.Character);
         }
 
         private void OnQuestList(byte[] data)

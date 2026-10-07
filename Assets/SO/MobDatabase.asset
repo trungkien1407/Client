@@ -63,3 +63,23 @@ MonoBehaviour:
       m_SubObjectName: 
       m_SubObjectType: 
       m_EditorAssetChanged: 0
+  - mobName: "\u1ED0c V\u01B0\u01A1ng (boss ph\xF3 b\u1EA3n)"
+    templateId: 6
+    frameRate: 0.15
+    spriteKey: 3
+    scale: 2
+    mobAtlas:
+      m_AssetGUID: 23a1a42e6de8e734a9881a8dfaddabc9
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_EditorAssetChanged: 0
+  - mobName: "C\u1EEDu V\u0129 \u1ED0c (boss th\u1EBF gi\u1EDBi)"
+    templateId: 7
+    frameRate: 0.15
+    spriteKey: 3
+    scale: 2.6
+    mobAtlas:
+      m_AssetGUID: 23a1a42e6de8e734a9881a8dfaddabc9
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_EditorAssetChanged: 0

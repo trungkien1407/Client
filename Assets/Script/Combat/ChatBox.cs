@@ -1,55 +1,92 @@
 ﻿using System.Collections.Generic;
+using System.Text;
 using Assets.Script.Constants;
 using Assets.Script.Network;
 using Assets.Script.Player;
+using Assets.Script.UI.Kit;
+using Assets.Script.UI.Windows;
+using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 namespace Assets.Script.Combat
 {
     /// <summary>
-    /// Khung chat tối giản (vẽ bằng IMGUI, không cần prefab/Canvas) — để có chat chạy được ngay.
-    /// Sau này làm UI đẹp bằng uGUI thì chỉ cần giữ phần gửi/nhận gói CHAT.
-    ///
-    ///   Enter        : mở ô nhập / gửi tin
-    ///   Esc          : đóng ô nhập
-    ///   "/w Tên nội dung" : chat riêng (kênh 2) | "/a nội dung" : kênh thế giới (0) | mặc định: trong khu (1)
+    /// CHAT — nhận/gửi gói CHAT + hiện 7 dòng mới nhất góc trái màn hình (uGUI, chạy cả PC lẫn điện thoại).
+    ///   - PC: Enter mở cửa sổ chat (ChatWindow) và đặt con trỏ vào ô nhập; Enter gửi; Enter khi ô trống / Esc = đóng.
+    ///   - Điện thoại: nút "Chat" góc trái → cửa sổ chat, bàn phím ảo tự hiện khi chạm ô nhập.
+    ///   - Gõ nhanh: "/a nội dung" thế giới · "/g nội dung" gia tộc · "/w Tên nội dung" riêng · "/..." khác = lệnh GM.
+    /// Kênh: 0 thế giới · 1 khu · 2 riêng · 3 hệ thống (server gửi) · 4 gia tộc.
     /// </summary>
     public class ChatBox : NetworkListener
     {
-        /// <summary>Đang gõ chat -> PlayerMovement/CombatNetwork phải bỏ qua phím di chuyển/đánh.</summary>
-        public static bool IsTyping { get; private set; }
+        /// <summary>Đang gõ vào 1 ô nhập UI (chat, thư, gia tộc...) → di chuyển / đánh / phím tắt phải bỏ qua phím.</summary>
+        public static bool IsTyping => UIKit.IsTypingInUI();
 
-        private const int MaxLines = 8;
-        private readonly List<string> _lines = new List<string>();
-        private string _input = "";
-        private bool _focusNextFrame;
-        private int _openedFrame; // frame vừa mở ô nhập: bỏ qua phím Enter của chính frame đó (không gửi rỗng)
-        private GUIStyle _lineStyle;
+        public struct Line { public int channel; public string text; }
+
+        private const int MaxHistory = 100, OverlayLines = 7;
+        private static readonly List<Line> History = new List<Line>();
+        /// <summary>Có dòng chat mới (ChatWindow nghe để vẽ lại).</summary>
+        public static event System.Action OnNewLine;
+        public static IReadOnlyList<Line> Lines => History;
+
+        private static ChatBox _instance;
+        private GameObject _overlayRoot;
+        private TextMeshProUGUI _overlay;
+
+        private void Awake() => _instance = this;
 
         protected override void RegisterHandlers() => Listen(Cmd.CHAT, OnChat);
 
         protected override void Update()
         {
             base.Update();
-
-            if (LocalPlayerState.Id < 0) { IsTyping = false; return; }
+            bool inGame = LocalPlayerState.Id >= 0;
+            if (inGame && _overlayRoot == null) BuildOverlay();
+            if (_overlayRoot != null && _overlayRoot.activeSelf != inGame) _overlayRoot.SetActive(inGame);
+            if (!inGame) return;
 
             var kb = Keyboard.current;
-            if (kb == null) return;
-            if (!IsTyping && (kb.enterKey.wasPressedThisFrame || kb.numpadEnterKey.wasPressedThisFrame))
-            {
-                IsTyping = true;
-                _focusNextFrame = true;
-                _openedFrame = Time.frameCount;
-            }
+            if (kb != null && !IsTyping && (kb.enterKey.wasPressedThisFrame || kb.numpadEnterKey.wasPressedThisFrame))
+                GameWindow.Get<ChatWindow>().OpenAndFocus();
         }
 
-        protected override void OnDestroy()
+        private void BuildOverlay()
         {
-            base.OnDestroy();
-            IsTyping = false;
+            var hud = UIRoot.Instance.HudLayer;
+            _overlayRoot = UIKit.Rect("ChatOverlay", hud).gameObject;
+            var rt = (RectTransform)_overlayRoot.transform;
+            // Góc trái, PHÍA TRÊN joystick / nút mũi tên (dưới cùng bên trái)
+            rt.Place(new Vector2(0, 0), new Vector2(0, 0), new Vector2(8, 240), new Vector2(470, 170), Vector2.zero);
+            _overlay = UIKit.Text("Lines", rt, "", 15, TextAlignmentOptions.BottomLeft);
+            _overlay.rectTransform.Fill(4, 4, 2, 2);
+            _overlay.outlineWidth = 0.2f;
+            _overlay.outlineColor = new Color32(0, 0, 0, 200);
+            var btn = UIKit.Button("ChatBtn", hud, "Chat", () => GameWindow.Get<ChatWindow>().OpenAndFocus(), 15);
+            ((RectTransform)btn.transform).Place(new Vector2(0, 0), new Vector2(0, 0), new Vector2(8, 200), new Vector2(80, 34), Vector2.zero);
+            btn.transform.SetParent(rt, true); // ẩn/hiện cùng overlay
+            RefreshOverlay();
         }
+
+        private void RefreshOverlay()
+        {
+            if (_overlay == null) return;
+            var sb = new StringBuilder();
+            for (int i = Mathf.Max(0, History.Count - OverlayLines); i < History.Count; i++)
+                sb.Append(Format(History[i])).Append('\n');
+            _overlay.text = sb.ToString().TrimEnd('\n');
+        }
+
+        /// <summary>Tô màu theo kênh.</summary>
+        public static string Format(Line l)
+        {
+            string color = l.channel switch { 0 => "#ffd84a", 2 => "#ff8ad8", 3 => "#ffb060", 4 => "#6cff6c", _ => "#ffffff" };
+            return $"<color={color}>{l.text}</color>";
+        }
+
+        public static string ChannelTag(int channel) =>
+            channel switch { 0 => "[TG]", 2 => "[Riêng]", 3 => "[Hệ thống]", 4 => "[Gia tộc]", _ => "[Khu]" };
 
         /// <summary>CHAT (S→C): byte channel, int fromId, UTF fromName, UTF message</summary>
         private void OnChat(byte[] data)
@@ -62,107 +99,55 @@ namespace Assets.Script.Combat
             r.Cleanup();
 
             if (channel == 3) { AddSystem(msg); return; } // tin hệ thống (trả lời lệnh GM, thông báo lỗi...)
-            string tag = channel == 0 ? "[TG]" : channel == 2 ? "[Riêng]" : "[Khu]";
-            Push($"{tag} {from}: {msg}");
+            Push(channel, $"{ChannelTag(channel)} {from}: {msg}");
         }
 
-        private static ChatBox _instance;
-        private void Awake() => _instance = this;
-
-        private void Push(string line)
+        private static void Push(int channel, string text)
         {
-            foreach (var l in line.Split('\n'))
+            foreach (var l in text.Split('\n'))
             {
-                _lines.Add(l);
-                if (_lines.Count > MaxLines) _lines.RemoveAt(0);
+                // Chặn thẻ rich text người chơi tự gõ (<color>, <size>...) để không phá giao diện
+                History.Add(new Line { channel = channel, text = l.Replace("<", "<​") });
+                if (History.Count > MaxHistory) History.RemoveAt(0);
             }
+            if (_instance != null) _instance.RefreshOverlay();
+            OnNewLine?.Invoke();
         }
 
         /// <summary>Thêm 1 dòng thông báo hệ thống vào khung chat (gọi được từ mọi nơi).</summary>
         public static void AddSystem(string text)
         {
-            if (_instance != null) _instance.Push("[Hệ thống] " + text);
+            Push(3, "[Hệ thống] " + text);
             Debug.Log("[Hệ thống] " + text);
         }
 
-        private void Send(string text)
+        /// <summary>
+        /// Gửi 1 tin. channel/target lấy từ cửa sổ chat; nếu tin bắt đầu bằng /a /g /w thì theo lệnh đó.
+        /// Lệnh GM ("/item 1 5"...) gửi qua kênh khu — server nhận ra và không phát cho ai.
+        /// </summary>
+        public static void Send(int channel, string target, string text)
         {
-            text = text.Trim();
+            text = (text ?? "").Trim();
             if (text.Length == 0) return;
-
-            var w = new MessageWriter();
-            if (text.StartsWith("/w "))
+            if (text.StartsWith("/a ")) { channel = 0; text = text.Substring(3); }
+            else if (text.StartsWith("/g ")) { channel = 4; text = text.Substring(3); }
+            else if (text.StartsWith("/w "))
             {
-                // "/w Tên nội dung"
                 string rest = text.Substring(3).Trim();
                 int space = rest.IndexOf(' ');
-                if (space <= 0) { w.Cleanup(); return; }
-                w.WriteByte((byte)2);
-                w.WriteUTF(rest.Substring(0, space));
-                w.WriteUTF(rest.Substring(space + 1));
+                if (space <= 0) return;
+                channel = 2; target = rest.Substring(0, space); text = rest.Substring(space + 1);
             }
-            else if (text.StartsWith("/a "))
-            {
-                w.WriteByte((byte)0);
-                w.WriteUTF(text.Substring(3));
-            }
-            else
-            {
-                w.WriteByte((byte)1);
-                w.WriteUTF(text);
-            }
+            else if (text.StartsWith("/")) channel = 1;
+
+            if (channel == 2 && string.IsNullOrWhiteSpace(target)) { AddSystem("Nhập tên người nhận để chat riêng."); return; }
+            var w = new MessageWriter();
+            w.WriteByte((byte)channel);
+            if (channel == 2) w.WriteUTF(target.Trim());
+            w.WriteUTF(text);
             NetworkManager.Instance?.Send(Cmd.CHAT, w.ToArray());
             w.Cleanup();
-        }
-
-        private void OnGUI()
-        {
-            if (LocalPlayerState.Id < 0) return;
-            if (_lineStyle == null)
-            {
-                _lineStyle = new GUIStyle(GUI.skin.label) { fontSize = 14, richText = false };
-                _lineStyle.normal.textColor = Color.white;
-            }
-
-            float w = 420f, lineH = 20f;
-            float top = Screen.height - 40f - lineH * _lines.Count;
-            for (int i = 0; i < _lines.Count; i++)
-            {
-                var rect = new Rect(10, top + i * lineH, w, lineH);
-                // bóng đen phía sau cho dễ đọc trên nền sáng
-                var shadow = new GUIStyle(_lineStyle); shadow.normal.textColor = Color.black;
-                GUI.Label(new Rect(rect.x + 1, rect.y + 1, w, lineH), _lines[i], shadow);
-                GUI.Label(rect, _lines[i], _lineStyle);
-            }
-
-            if (!IsTyping) return;
-
-            // Xử lý phím trong IMGUI (vì TextField "nuốt" phím khi đang focus)
-            Event e = Event.current;
-            if (e.type == EventType.KeyDown && (e.keyCode == KeyCode.Return || e.keyCode == KeyCode.KeypadEnter)
-                && Time.frameCount != _openedFrame)
-            {
-                Send(_input);
-                _input = "";
-                IsTyping = false;
-                e.Use();
-                return;
-            }
-            if (e.type == EventType.KeyDown && e.keyCode == KeyCode.Escape)
-            {
-                _input = "";
-                IsTyping = false;
-                e.Use();
-                return;
-            }
-
-            GUI.SetNextControlName("ChatInput");
-            _input = GUI.TextField(new Rect(10, Screen.height - 34f, w, 24f), _input, 200);
-            if (_focusNextFrame)
-            {
-                GUI.FocusControl("ChatInput");
-                _focusNextFrame = false;
-            }
+            // Chat riêng: server gửi lại bản sao "Bạn → Tên: ..." (hoặc báo người đó không online)
         }
     }
 }

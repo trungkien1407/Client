@@ -44,6 +44,8 @@ namespace Assets.Script.UI
                 return;
             }
             Instance = this;
+            // Khung mục tiêu bật sẵn trong scene → ẩn đi, chỉ hiện khi đã chọn quái/người (PlayerTargeting.SetTarget)
+            HideTarget();
         }
 
         // ===============================================

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Assets.Script.Database;
 using Assets.Script.Models;
 using UnityEditor;
@@ -23,6 +23,8 @@ public static class ContentSetupTool
         (3, "Cóc Lục", "3", 1.15f),
         (4, "Ốc Sên Tinh Anh", "3", 1.35f),
         (5, "Cóc Chúa", "3", 1.8f),
+        (6, "Ốc Vương (boss phó bản)", "3", 2.0f),   // GĐ4 — [CẦN ĐIỀN khi có art] đổi spriteKey
+        (7, "Cửu Vĩ Ốc (boss thế giới)", "3", 2.6f), // GĐ4 — [CẦN ĐIỀN khi có art] đổi spriteKey
     };
 
     // templateId (npc_template.id), tên mặc định, sprite đầu, sprite chân

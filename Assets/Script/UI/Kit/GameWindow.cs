@@ -93,6 +93,23 @@ namespace Assets.Script.UI.Kit
 
         public void Hide() => gameObject.SetActive(false);
 
+        /// <summary>
+        /// Xếp 2 cửa sổ cạnh nhau (vd Rương | Hành trang) vừa khít bề ngang màn hình thật (PC 16:9 hay điện thoại 20:9).
+        /// Không đủ chỗ thì cho chồng nhẹ lên nhau — cửa sổ phải nằm trên.
+        /// </summary>
+        public static void SideBySide(GameWindow left, GameWindow right)
+        {
+            float screenW = ((RectTransform)UIRoot.Instance.WindowLayer).rect.width;
+            float lw = left.Size.x, rw = right.Size.x, margin = 8f;
+            float half = screenW / 2f;
+            float lx = -half + margin + lw / 2f, rx = half - margin - rw / 2f;
+            float gap = (rx - rw / 2f) - (lx + lw / 2f);
+            if (gap > 20f) { lx += gap / 2f - 10f; rx -= gap / 2f - 10f; } // màn rộng: dồn vào giữa
+            ((RectTransform)left.transform).anchoredPosition = new Vector2(lx, 0);
+            ((RectTransform)right.transform).anchoredPosition = new Vector2(rx, 0);
+            UIRoot.Instance.BringToFront(right);
+        }
+
         public void SetTitle(string title)
         {
             Title = title;

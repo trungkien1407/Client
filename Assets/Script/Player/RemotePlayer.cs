@@ -53,6 +53,7 @@ public class RemotePlayer : MonoBehaviour, ITargetable, IHasHealth
         }
 
         UpdateUI();
+        Assets.Script.UI.NameTag.Attach(this); // tên + gia tộc trên đầu (màu theo PK)
     }
 
     public void UpdateNetworkData(float serverX, float serverY, byte dir, byte state)

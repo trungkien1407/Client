@@ -93,6 +93,40 @@ namespace Assets.Script.UI.Kit
             return btn;
         }
 
+        /// <summary>
+        /// Ô NHẬP CHỮ (TMP_InputField) dựng bằng code: nền + vùng chữ + chữ mờ gợi ý.
+        /// Đọc giá trị: input.text. Đang gõ ô này thì phím tắt game tự bị bỏ qua (xem UIKit.IsTypingInUI).
+        /// </summary>
+        public static TMP_InputField Input(string name, Transform parent, string placeholder, float fontSize = 17,
+            TMP_InputField.ContentType type = TMP_InputField.ContentType.Standard, int charLimit = 0)
+        {
+            var bg = Panel(name, parent, new Color(0.05f, 0.06f, 0.08f, 1f));
+            var area = Rect("TextArea", bg.transform).Fill(8, 8, 3, 3);
+            area.gameObject.AddComponent<RectMask2D>();
+            var ph = Text("Placeholder", area, placeholder, fontSize, TextAlignmentOptions.MidlineLeft, new Color(1, 1, 1, 0.35f));
+            ph.rectTransform.Fill();
+            ph.enableWordWrapping = false;
+            var txt = Text("Text", area, "", fontSize, TextAlignmentOptions.MidlineLeft);
+            txt.rectTransform.Fill();
+            txt.enableWordWrapping = false;
+            var input = bg.gameObject.AddComponent<TMP_InputField>();
+            input.textViewport = area;
+            input.textComponent = txt;
+            input.placeholder = ph;
+            input.contentType = type;
+            input.characterLimit = charLimit;
+            input.fontAsset = txt.font;
+            input.pointSize = fontSize;
+            return input;
+        }
+
+        /// <summary>Đang gõ vào 1 ô nhập UI (để phím tắt game như I/C/K/F, di chuyển... không chạy).</summary>
+        public static bool IsTypingInUI()
+        {
+            var go = EventSystem.current != null ? EventSystem.current.currentSelectedGameObject : null;
+            return go != null && go.GetComponent<TMP_InputField>() is TMP_InputField f && f.isFocused;
+        }
+
         /// <summary>Đổi chữ trên nút đã tạo bằng Button().</summary>
         public static void SetLabel(this Button b, string label)
         {

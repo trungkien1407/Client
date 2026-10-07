@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using Assets.Script.Combat;
 using Assets.Script.Data;
@@ -53,6 +53,20 @@ namespace Assets.Script.Core
             Debug.Log($"[AutoTest] {(ok ? "PASS" : "FAIL")} {name}");
         }
 
+        /// <summary>
+        /// Chụp màn hình (chỉ khi chạy có tham số "-shots &lt;thư mục&gt;", và KHÔNG dùng -nographics) để xem bố cục UI.
+        /// </summary>
+        private IEnumerator Shot(string name)
+        {
+            string dir = Arg("-shots", null);
+            if (string.IsNullOrEmpty(dir)) yield break;
+            yield return null;
+            yield return new WaitForEndOfFrame();
+            System.IO.Directory.CreateDirectory(dir);
+            ScreenCapture.CaptureScreenshot(System.IO.Path.Combine(dir, name + ".png"));
+            yield return null;
+        }
+
         private static IEnumerator WaitUntil(Func<bool> cond, float timeout)
         {
             float end = Time.realtimeSinceStartup + timeout;
@@ -67,16 +81,26 @@ namespace Assets.Script.Core
             yield return new WaitForSecondsRealtime(2f); // để AppFlowManager kết nối + CHECK_VERSION
             var auth = FindAnyObjectByType<GameAuthManager>();
             Check("Có màn hình đăng nhập", auth != null);
-            if (auth != null) auth.AutoLogin(Arg("-user", "clientbot"), Arg("-pass", "test1234"));
+            if (auth != null)
+            {
+                auth.ShowLoginForm(Arg("-user", "clientbot"));
+                yield return Shot("00_login"); // form đăng nhập + nút "Ghi nhớ đăng nhập"
+                Check("Ghi nhớ đăng nhập mặc định bật", SavedLogin.Remember);
+                auth.AutoLogin(Arg("-user", "clientbot"), Arg("-pass", "test1234"));
+            }
 
             yield return WaitUntil(() => LocalPlayerState.Id >= 0, 15);
             Check("Đăng nhập thành công", LocalPlayerState.Id >= 0);
+            Check("Mật khẩu ghi nhớ đã mã hoá (không lưu chữ thường) và đọc lại đúng",
+                SavedLogin.StoredIsEncrypted(Arg("-pass", "test1234")) && SavedLogin.LoadPassword() == Arg("-pass", "test1234"));
 
             yield return WaitUntil(() => NetworkPlayerManager.Instance != null && NetworkPlayerManager.Instance.localPlayer != null, 20);
             Check("Nhân vật xuất hiện trong map", NetworkPlayerManager.Instance?.localPlayer != null);
 
             // 2. Dữ liệu server
             yield return WaitUntil(() => GameData.Items.Count > 0 && GameData.Skills.Count > 0 && GameData.Me.level > 0, 10);
+            yield return null;
+            GameWindow.Get<TutorialWindow>().Hide(); // hướng dẫn tân thủ tự hiện lần đầu — đóng để test tiếp
             Check($"Nhận dữ liệu game (items={GameData.Items.Count}, skills={GameData.Skills.Count}, quests={GameData.Quests.Count})",
                 GameData.Items.Count > 0 && GameData.Skills.Count > 0);
             Check("Nhận bảng nhân vật", GameData.Me.level > 0 && GameData.Me.expToNext > 0);
@@ -93,12 +117,115 @@ namespace Assets.Script.Core
             GameWindow.Get<CharacterWindow>().Hide(); GameWindow.Get<InventoryWindow>().Hide();
             GameWindow.Get<SkillWindow>().Hide(); GameWindow.Get<QuestWindow>().Hide();
 
+            // 3b. Cửa sổ GĐ2–GĐ4 (mở rỗng cũng không được lỗi)
+            GameWindow.Open<SocialWindow>(); yield return null;
+            GameWindow.Open<MailWindow>(); yield return null;
+            GameWindow.Open<LeaderboardWindow>(); yield return null;
+            GameWindow.Open<SettingsWindow>(); yield return null;
+            GameWindow.Open<UpgradeWindow>(); yield return null;
+            GameWindow.Open<StorageWindow>(); yield return null;
+            GameWindow.Get<PlayerActionWindow>().ShowFor(0, "Test"); yield return null;
+            Check("Mở 7 cửa sổ GĐ2–GĐ4 không lỗi", _exceptions == before);
+            if (!string.IsNullOrEmpty(Arg("-shots", null)))
+            {
+                // Chụp từng cửa sổ riêng (đóng hết rồi mở 1 cái) để kiểm bố cục
+                GameWindow[] all =
+                {
+                    GameWindow.Get<SocialWindow>(), GameWindow.Get<MailWindow>(), GameWindow.Get<LeaderboardWindow>(),
+                    GameWindow.Get<SettingsWindow>(), GameWindow.Get<UpgradeWindow>(), GameWindow.Get<StorageWindow>(),
+                    GameWindow.Get<PlayerActionWindow>(), GameWindow.Get<InventoryWindow>(), GameWindow.Get<TutorialWindow>(),
+                };
+                foreach (var w in all) w.Hide();
+                yield return Shot("00_hud");
+                foreach (var w in all)
+                {
+                    w.Show();
+                    yield return new WaitForSecondsRealtime(0.6f); // chờ dữ liệu server (thư, xếp hạng...)
+                    yield return Shot(w.GetType().Name);
+                    w.Hide();
+                }
+                // Cặp cửa sổ cạnh nhau (giao dịch + túi) — kiểm vừa màn hình
+                GameWindow.Get<TradeWindow>().OpenWithBag();
+                yield return Shot("TradePair");
+                GameWindow.Get<TradeWindow>().Hide(); GameWindow.Get<InventoryWindow>().Hide();
+            }
+            GameWindow.Get<SocialWindow>().Hide(); GameWindow.Get<MailWindow>().Hide(); GameWindow.Get<LeaderboardWindow>().Hide();
+            GameWindow.Get<SettingsWindow>().Hide(); GameWindow.Get<UpgradeWindow>().Hide(); GameWindow.Get<StorageWindow>().Hide();
+            GameWindow.Get<PlayerActionWindow>().Hide(); GameWindow.Get<InventoryWindow>().Hide();
+
+            // 3c. Gói xã hội: xếp hạng + gia tộc + thư phải có phản hồi
+            bool gotTop = false, gotGuild = false, gotMail = false;
+            System.Action<DataKind> onData = k => { if (k == DataKind.Top) gotTop = true; if (k == DataKind.Guild) gotGuild = true; if (k == DataKind.Mails) gotMail = true; };
+            GameData.OnChanged += onData;
+            GameActions.Top(0); GameActions.GuildInfo(); GameActions.MailList();
+            yield return WaitUntil(() => gotTop && gotGuild && gotMail, 5);
+            GameData.OnChanged -= onData;
+            Check("Nhận TOP_LIST / GUILD_INFO / MAIL_LIST", gotTop && gotGuild && gotMail);
+
+            // 3d. Chat uGUI + chọn khu (GĐ5)
+            var zw = GameWindow.Open<ZoneWindow>();
+            yield return WaitUntil(() => zw.ZoneCount > 0, 5);
+            Check($"Mở Chọn khu → nhận ZONE_LIST ({zw.ZoneCount} khu)", zw.ZoneCount > 0);
+            yield return Shot("ZoneWindow");
+            zw.Hide();
+            GameWindow.Get<ChatWindow>().OpenAndFocus();
+            ChatBox.Send(1, "", "xin chao tu autotest");
+            int linesBefore = ChatBox.Lines.Count;
+            yield return WaitUntil(() => ChatBox.Lines.Count > linesBefore, 5);
+            Check("Gửi chat khu → nhận lại tin của mình", ChatBox.Lines.Count > linesBefore);
+            yield return Shot("ChatWindow");
+            GameWindow.Get<ChatWindow>().Hide();
+            // Báo lỗi về server (ErrorReporter chỉ chạy ở bản build): kiểm ở logs/client_errors.log bên server
+            Debug.LogError("[AutoTest] Lỗi thử — ErrorReporter phải gửi dòng này về server");
+            Check("Túi đồ theo ô có sức chứa", GameData.BagCapacity > 0);
+
             // 4. Nói chuyện NPC gần nhất → phải hiện hội thoại
             var dlg = GameWindow.Get<NpcDialogWindow>();
             GameHud.TalkToNearestNpc();
             yield return WaitUntil(() => dlg.IsOpen, 5);
             Check("Nói chuyện NPC → hiện hội thoại", dlg.IsOpen);
             dlg.Hide();
+
+            // 4b. GĐ2–GĐ3 qua UI thật: Thợ Rèn → Nâng cấp / Rương đồ; bật-tắt Đồ sát (tài khoản test là GM)
+            GameActions.Chat(1, "/item 10 1"); GameActions.Chat(1, "/item 40 5"); GameActions.Chat(1, "/yen 100000");
+            float y0 = NetworkPlayerManager.Instance.localPlayer.transform.position.y;
+            GameActions.Chat(1, $"/go -3.6 {y0.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+            yield return new WaitForSecondsRealtime(1.5f);
+            GameHud.TalkToNearestNpc();
+            yield return WaitUntil(() => dlg.IsOpen, 5);
+            bool chose = dlg.Choose("Nâng cấp");
+            var up = GameWindow.Get<UpgradeWindow>();
+            yield return WaitUntil(() => up.IsOpen && GameData.Upgrade != null, 5);
+            Check("Thợ Rèn → mở bảng Nâng cấp", chose && up.IsOpen && GameData.Upgrade != null);
+            int eqIdx = -1;
+            for (int i = 0; i < GameData.Inventory.Count && eqIdx < 0; i++)
+                if (GameData.Items.TryGetValue(GameData.Inventory[i].tpl, out var it) && it.IsEquip && GameData.Inventory[i].level < 5) eqIdx = i;
+            if (GameData.Upgrade != null && eqIdx >= 0)
+            {
+                up.Select(eqIdx);
+                GameActions.Upgrade(GameData.Upgrade.npcId, eqIdx, false);
+                yield return WaitUntil(() => up.LastResult >= 0, 5);
+                yield return Shot("UpgradeResult");
+            }
+            Check("Nâng cấp có kết quả (UPGRADE_RESULT)", up.LastResult >= 0 && up.LastResult != 3);
+            up.Hide();
+
+            GameHud.TalkToNearestNpc();
+            yield return WaitUntil(() => dlg.IsOpen, 5);
+            dlg.Choose("Rương");
+            var st = GameWindow.Get<StorageWindow>();
+            yield return WaitUntil(() => st.IsOpen, 5);
+            Check("Thợ Rèn → mở Rương đồ (STORAGE_DATA)", st.IsOpen);
+            yield return Shot("StorageOpen");
+            st.Hide(); GameWindow.Get<InventoryWindow>().Hide();
+
+            if (GameData.Me.level < 10) { GameActions.Chat(1, "/lv 10"); yield return new WaitForSecondsRealtime(0.5f); } // Đồ sát cần cấp 10
+            GameActions.SetPkMode(1);
+            yield return WaitUntil(() => GameData.MyPkMode == 1, 5);
+            Check("Bật Đồ sát → server xác nhận (PLAYER_PVP_INFO)", GameData.MyPkMode == 1);
+            yield return Shot("PkOn");
+            GameActions.SetPkMode(0);
+            yield return WaitUntil(() => GameData.MyPkMode == 0, 5);
 
             // 5. Đánh quái gần nhất
             int skill = SkillBarManager.Instance != null ? SkillBarManager.Instance.GetSelectedSkillId() : -1;

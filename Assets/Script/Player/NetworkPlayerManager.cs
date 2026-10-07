@@ -378,6 +378,7 @@ namespace Assets.Script.Manager
             try
             {
                 byte newZoneId = reader.ReadByte();
+                LocalPlayerState.ZoneId = newZoneId;
                 PopupAndLoad.Instance?.ShowLoading();
                 if (localPlayer != null) localPlayer.gameObject.SetActive(false);
 
@@ -402,6 +403,7 @@ namespace Assets.Script.Manager
             {
                 short newMapId = reader.ReadShort();
                 byte newZoneId = reader.ReadByte();
+                LocalPlayerState.ZoneId = newZoneId;
                 float newX = reader.ReadFloat();
                 float newY = reader.ReadFloat();
 

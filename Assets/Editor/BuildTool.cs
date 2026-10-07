@@ -83,21 +83,25 @@ public static class BuildTool
             Fail($"{target} thất bại: {s.result}, {s.totalErrors} lỗi");
     }
 
-    /// <summary>Đọc -serverHost / -serverPort từ dòng lệnh, ghi vào Resources/server_config.json.</summary>
+    /// <summary>Đọc -serverHost / -serverPort / -tls / -noTls / -certSha256 từ dòng lệnh, ghi vào Resources/server_config.json.</summary>
     private static void ApplyServerArgs()
     {
-        string host = Arg("-serverHost"), port = Arg("-serverPort");
-        if (host == null && port == null) return;
+        string host = Arg("-serverHost"), port = Arg("-serverPort"), pin = Arg("-certSha256");
+        bool tlsFlag = Array.IndexOf(Environment.GetCommandLineArgs(), "-tls") >= 0, noTls = Array.IndexOf(Environment.GetCommandLineArgs(), "-noTls") >= 0;
+        if (host == null && port == null && pin == null && !tlsFlag && !noTls) return;
         var json = File.Exists(ServerConfigPath) ? File.ReadAllText(ServerConfigPath) : "{\"host\":\"127.0.0.1\",\"port\":14444}";
         var cfg = JsonUtility.FromJson<Cfg>(json);
         if (host != null) cfg.host = host;
         if (port != null) cfg.port = int.Parse(port);
+        if (tlsFlag) cfg.tls = true;
+        if (noTls) cfg.tls = false;
+        if (pin != null) cfg.certSha256 = pin;
         File.WriteAllText(ServerConfigPath, JsonUtility.ToJson(cfg, true));
         AssetDatabase.ImportAsset(ServerConfigPath);
-        Debug.Log($"[Build] server_config = {cfg.host}:{cfg.port}");
+        Debug.Log($"[Build] server_config = {cfg.host}:{cfg.port}{(cfg.tls ? " TLS" : "")}");
     }
 
-    [Serializable] private class Cfg { public string host; public int port; }
+    [Serializable] private class Cfg { public string host; public int port; public bool tls; public string certSha256 = ""; }
 
     private static string Arg(string name)
     {

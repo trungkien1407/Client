@@ -111,6 +111,7 @@ namespace Assets.Script.Combat
         public void TryUseSkill(int skillTemplateId)
         {
             if (skillTemplateId < 0 || LocalPlayerState.IsDead) return;
+            if (LocalPlayerState.IsStunned) { ChatBox.AddSystem("Đang bị choáng!"); return; }
             if (Time.time < _nextAttackTime) return;
 
             var local = NetworkPlayerManager.Instance != null ? NetworkPlayerManager.Instance.localPlayer : null;

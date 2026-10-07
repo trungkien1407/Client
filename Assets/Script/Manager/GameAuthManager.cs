@@ -9,6 +9,8 @@ using Assets.Script.Constants;
 using Assets.Script.Map;
 using Assets.Script.Models;
 using Assets.Script.UI;
+using Assets.Script.Core;
+using Assets.Script.UI.Kit;
 using Newtonsoft.Json;
 
 namespace Assets.Script.Manager
@@ -42,6 +44,8 @@ namespace Assets.Script.Manager
 
         private string _pendingUser;
         private string _pendingPass;
+        private bool _pendingFromSaved; // đang đăng nhập bằng mật khẩu đã lưu (nút "Tiếp tục")
+        private Button _rememberBtn;
 
         void Start()
         {
@@ -52,6 +56,7 @@ namespace Assets.Script.Manager
             if (btnCloseRegister != null) btnCloseRegister.onClick.AddListener(() => SwitchPanel(loginPanel));
             if (btnQuickLogin != null) btnQuickLogin.onClick.AddListener(OnQuickLoginClick);
             if (btnSwitchAccount != null) btnSwitchAccount.onClick.AddListener(OnSwitchAccountClick);
+            BuildRememberToggle();
 
             // Network Listeners
             NetworkEventDispatcher.Instance.AddHandler(Cmd.LOGIN, OnSocketLoginResponse);
@@ -63,15 +68,59 @@ namespace Assets.Script.Manager
 
         private void InitUI()
         {
-            string savedUser = PlayerPrefs.GetString("SavedUser", "");
-            if (!string.IsNullOrEmpty(savedUser))
+            string savedUser = SavedLogin.User;
+            if (SavedLogin.HasSaved)
             {
                 if (txtQuickLogin != null) txtQuickLogin.text = "Tiếp tục: " + savedUser;
                 SwitchPanel(quickLoginPanel);
             }
             else
             {
-                SwitchPanel(loginPanel);
+                ShowLoginForm(savedUser);
+            }
+        }
+
+        /// <summary>Hiện form đăng nhập, điền sẵn tên (nếu có) và xoá ô mật khẩu.</summary>
+        public void ShowLoginForm(string user = "")
+        {
+            if (inputLoginUser != null && !string.IsNullOrEmpty(user)) inputLoginUser.text = user;
+            if (inputLoginPass != null) inputLoginPass.text = "";
+            SwitchPanel(loginPanel);
+        }
+
+        /// <summary>
+        /// Nút "Ghi nhớ đăng nhập" (mặc định BẬT) ngay dưới ô mật khẩu — tạo bằng code, không cần sửa prefab.
+        /// Tắt → không lưu tài khoản trên máy (nên tắt khi chơi ở quán net / máy người khác).
+        /// </summary>
+        private void BuildRememberToggle()
+        {
+            if (inputLoginPass == null || _rememberBtn != null) return;
+            var passRt = (RectTransform)inputLoginPass.transform;
+            _rememberBtn = UIKit.Button("RememberLogin", passRt, "", () =>
+            {
+                SavedLogin.Remember = !SavedLogin.Remember;
+                RefreshRememberToggle();
+            }, 22);
+            var rt = (RectTransform)_rememberBtn.transform;
+            // neo vào mép dưới-trái ô mật khẩu, nằm ngay bên dưới
+            rt.anchorMin = rt.anchorMax = new Vector2(0f, 0f);
+            rt.pivot = new Vector2(0f, 1f);
+            rt.anchoredPosition = new Vector2(0f, -2f);
+            rt.sizeDelta = new Vector2(Mathf.Max(240f, passRt.rect.width), 36f); // đủ to để bấm trên điện thoại
+            var img = _rememberBtn.GetComponent<Image>();
+            if (img != null) img.color = new Color(0, 0, 0, 0); // chỉ chữ, nền trong suốt
+            RefreshRememberToggle();
+        }
+
+        private void RefreshRememberToggle()
+        {
+            if (_rememberBtn == null) return;
+            _rememberBtn.SetLabel(SavedLogin.Remember ? "[X] Ghi nhớ đăng nhập" : "[   ] Ghi nhớ đăng nhập");
+            var label = _rememberBtn.GetComponentInChildren<TextMeshProUGUI>();
+            if (label != null)
+            {
+                label.alignment = TextAlignmentOptions.MidlineLeft;
+                label.color = new Color(0.35f, 0.22f, 0.14f, 1f); // nâu đậm: khung đăng nhập nền sáng
             }
         }
 
@@ -118,7 +167,7 @@ namespace Assets.Script.Manager
         /// <summary>Đăng nhập không qua ô nhập (dùng cho AutoTestRunner / công cụ kiểm thử).</summary>
         public void AutoLogin(string user, string pass) => DoSocketLogin(user, pass);
 
-        private void DoSocketLogin(string user, string pass)
+        private void DoSocketLogin(string user, string pass, bool fromSaved = false)
         {
             if (string.IsNullOrEmpty(user) || string.IsNullOrEmpty(pass))
             {
@@ -130,6 +179,7 @@ namespace Assets.Script.Manager
             {
                 _pendingUser = user;
                 _pendingPass = pass;
+                _pendingFromSaved = fromSaved;
                 PopupAndLoad.Instance.ShowPopup("Đang đăng nhập...");
 
                 MessageWriter writer = new MessageWriter();
@@ -162,19 +212,17 @@ namespace Assets.Script.Manager
 
         private void OnQuickLoginClick()
         {
-            string u = PlayerPrefs.GetString("SavedUser", "");
-            string p = PlayerPrefs.GetString("SavedPass", "");
-            if (!string.IsNullOrEmpty(u)) DoSocketLogin(u, p);
-            else OnSwitchAccountClick();
+            string u = SavedLogin.User;
+            string p = SavedLogin.LoadPassword();
+            if (!string.IsNullOrEmpty(u) && !string.IsNullOrEmpty(p)) DoSocketLogin(u, p, true);
+            else ShowLoginForm(u); // mật khẩu lưu không đọc được (máy khác / hỏng) → gõ lại
         }
 
         private void OnSwitchAccountClick()
         {
           //  if (NetworkManager.Instance != null) NetworkManager.Instance.Disconnect();
-            PlayerPrefs.DeleteKey("SavedUser");
-            PlayerPrefs.DeleteKey("SavedPass");
-            PlayerPrefs.Save();
-            SwitchPanel(loginPanel);
+            SavedLogin.Clear();
+            ShowLoginForm();
         }
 
         // ==========================================
@@ -198,15 +246,38 @@ namespace Assets.Script.Manager
             }
             else
             {
+                // Mã 3, 8, 9, 10 có kèm 1 số int (số lần thử còn lại / số giây phải đợi) — server cũ không gửi thì = -1
+                int extra = reader.Available() >= 4 ? reader.ReadInt() : -1;
                 reader.Cleanup();
                 string errorMsg = status switch
                 {
-                    3 => "Sai tài khoản hoặc mật khẩu",
+                    3 => extra == 0 ? "Sai mật khẩu 5 lần. Tài khoản tạm khoá đăng nhập trên máy này 5 phút."
+                        : extra > 0 ? $"Sai tài khoản hoặc mật khẩu. Còn {extra} lần thử."
+                        : "Sai tài khoản hoặc mật khẩu",
                     4 => "Tài khoản đang đăng nhập ở nơi khác",
+                    6 => "Tài khoản đã bị khoá. Liên hệ quản trị viên.",
+                    7 => "Máy chủ đã đầy. Vui lòng thử lại sau ít phút.",
+                    8 => $"Mạng của bạn đăng nhập quá nhiều lần. Đợi {WaitText(extra)} rồi thử lại.",
+                    9 => $"Sai mật khẩu quá 5 lần. Đợi {WaitText(extra)} rồi thử lại.",
+                    10 => $"Tài khoản vừa đăng nhập. Đợi {WaitText(extra)} rồi thử lại.",
                     _ => "Lỗi máy chủ!"
                 };
+                // Mật khẩu đã lưu không còn đúng (đổi mật khẩu ở máy khác) → quên mật khẩu, điền sẵn tên để gõ lại
+                if (status == 3 && _pendingFromSaved)
+                {
+                    SavedLogin.ForgetPassword();
+                    ShowLoginForm(_pendingUser);
+                }
                 PopupAndLoad.Instance.ShowPopup(errorMsg);
             }
+        }
+
+        /// <summary>Số giây → "45 giây" / "5 phút".</summary>
+        private static string WaitText(int seconds)
+        {
+            if (seconds <= 0) return "ít phút";
+            if (seconds < 60) return seconds + " giây";
+            return ((seconds + 59) / 60) + " phút";
         }
 
         private void OnCreateCharResponse(byte[] data)
@@ -225,9 +296,7 @@ namespace Assets.Script.Manager
 
         private void HandleLoginSuccess(MessageReader reader)
         {
-            PlayerPrefs.SetString("SavedUser", _pendingUser);
-            PlayerPrefs.SetString("SavedPass", _pendingPass);
-            PlayerPrefs.Save();
+            SavedLogin.Save(_pendingUser, _pendingPass); // mã hoá AES theo máy; tắt "Ghi nhớ" thì không lưu
 
             // Đọc dữ liệu binary từ Java Player.writeTo()
             int id = reader.ReadInt();
@@ -249,6 +318,7 @@ namespace Assets.Script.Manager
             int zoneId = reader.ReadInt();
             float x = reader.ReadFloat();
             float y = reader.ReadFloat();
+            Assets.Script.Player.LocalPlayerState.ZoneId = zoneId; // nút "Khu N" trên HUD
 
             string equipmentJson = reader.ReadUTF();
             string skillsJson = reader.ReadUTF();
@@ -293,7 +363,14 @@ namespace Assets.Script.Manager
             reader.Cleanup();
 
             if (status == 0) PopupAndLoad.Instance.ShowPopup("Đăng ký thành công!", () => SwitchPanel(loginPanel));
-            else PopupAndLoad.Instance.ShowPopup("Tài khoản đã tồn tại!");
+            else PopupAndLoad.Instance.ShowPopup(status switch
+            {
+                1 => "Tài khoản và mật khẩu phải từ 3 ký tự.",
+                2 => "Tài khoản hoặc email đã được dùng!",
+                3 => "Email không hợp lệ.",
+                4 => "Mạng của bạn thử quá nhiều lần. Đợi ít phút rồi thử lại.",
+                _ => "Lỗi máy chủ!"
+            });
         }
 
         private void OnDestroy()

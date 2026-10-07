@@ -64,6 +64,7 @@ namespace Assets.Script.Manager
             NetworkEventDispatcher.Instance.AddHandler(Cmd.MOB_MOVE_BATCH, OnMobMoveBatch);
             NetworkEventDispatcher.Instance.AddHandler(Cmd.MOB_ADD, OnMobAdd);
             NetworkEventDispatcher.Instance.AddHandler(Cmd.MOB_DIE, OnMobDie);
+            NetworkEventDispatcher.Instance.AddHandler(Cmd.MOB_REMOVE, OnMobRemove);
         }
 
         private void UnregisterNetworkHandlers()
@@ -75,6 +76,7 @@ namespace Assets.Script.Manager
                 NetworkEventDispatcher.Instance.RemoveHandler(Cmd.MOB_MOVE_BATCH, OnMobMoveBatch);
                 NetworkEventDispatcher.Instance.RemoveHandler(Cmd.MOB_ADD, OnMobAdd);
                 NetworkEventDispatcher.Instance.RemoveHandler(Cmd.MOB_DIE, OnMobDie);
+                NetworkEventDispatcher.Instance.RemoveHandler(Cmd.MOB_REMOVE, OnMobRemove);
             }
         }
 
@@ -134,6 +136,15 @@ namespace Assets.Script.Manager
         }
 
         /// <summary>MOB_DIE: hiện xác 1 giây rồi thu về Pool.</summary>
+        /// <summary>MOB_REMOVE: int mobId — quái không hồi sinh (boss thế giới, quái phó bản) → xoá luôn.</summary>
+        private void OnMobRemove(byte[] data)
+        {
+            var reader = new MessageReader(data);
+            int mobId = reader.ReadInt();
+            reader.Cleanup();
+            RemoveMob(mobId);
+        }
+
         private void OnMobDie(byte[] data)
         {
             MessageReader reader = new MessageReader(data);

@@ -1,6 +1,9 @@
 ﻿using UnityEngine;
 using System;
 using System.Net.Sockets;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
+using Assets.Script.Constants;
 using System.Collections.Generic;
 
 namespace Assets.Script.Network
@@ -10,7 +13,9 @@ namespace Assets.Script.Network
         public static NetworkManager Instance;
 
         private TcpClient client;
-        private NetworkStream stream;
+        // NetworkStream thường, hoặc SslStream (TLS) bọc ngoài khi GameConfig.UseTls — xem OnConnect
+        private System.IO.Stream stream;
+        private string _host;
         private byte[] receiveBuffer = new byte[4096];
         private List<byte> byteList = new List<byte>();
 
@@ -61,6 +66,7 @@ namespace Assets.Script.Network
                 // QUAN TRỌNG: Dọn dẹp sạch sẽ kết nối/luồng cũ trước khi tạo mới
                 CleanUp();
 
+                _host = ip;
                 client = new TcpClient();
                 client.BeginConnect(ip, port, OnConnect, null);
             }
@@ -77,7 +83,16 @@ namespace Assets.Script.Network
                 if (client == null) return;
 
                 client.EndConnect(ar);
-                stream = client.GetStream();
+                System.IO.Stream st = client.GetStream();
+                if (GameConfig.UseTls)
+                {
+                    // TLS: mã hoá toàn bộ gói (kể cả mật khẩu đăng nhập). Bắt tay xong mới gán cho 'stream'
+                    // → luồng chính không thể gửi gói chưa mã hoá. Chạy trên luồng nền của BeginConnect.
+                    var ssl = new SslStream(st, false, ValidateServerCert);
+                    ssl.AuthenticateAsClient(_host);
+                    st = ssl;
+                }
+                stream = st;
 
                 _isConnectionSuccessPending = true;
 
@@ -94,6 +109,24 @@ namespace Assets.Script.Network
         // ==========================================
         // GỬI DỮ LIỆU
         // ==========================================
+        /// <summary>
+        /// Kiểm chứng chỉ server. Có ghim vân tay (server_config.json "certSha256") → CHỈ tin đúng chứng chỉ đó
+        /// (dùng được chứng chỉ tự ký, chống giả mạo server). Không ghim → yêu cầu chứng chỉ hợp lệ chuẩn (CA, đúng tên miền).
+        /// </summary>
+        private static bool ValidateServerCert(object sender, X509Certificate cert, X509Chain chain, SslPolicyErrors errors)
+        {
+            string pin = (GameConfig.TlsCertSha256 ?? "").Replace(":", "").Replace(" ", "").ToUpperInvariant();
+            if (pin.Length == 0) return errors == SslPolicyErrors.None;
+            if (cert == null) return false;
+            using (var sha = System.Security.Cryptography.SHA256.Create())
+            {
+                string fp = BitConverter.ToString(sha.ComputeHash(cert.GetRawCertData())).Replace("-", "");
+                if (fp == pin) return true;
+                Debug.LogError($"[NET] Chứng chỉ server KHÔNG khớp vân tay đã ghim — từ chối kết nối (nhận {fp})");
+                return false;
+            }
+        }
+
         public void Send(short cmd, byte[] data)
         {
             if (client == null || !client.Connected || stream == null) return;
@@ -115,7 +148,7 @@ namespace Assets.Script.Network
         // ==========================================
         private void OnReceive(IAsyncResult ar)
         {
-            NetworkStream s = stream;
+            System.IO.Stream s = stream;
 
             try
             {
