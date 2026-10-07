@@ -16,6 +16,7 @@
         public const short HEARTBEAT = 4;           // C→S giữ kết nối (server kick nếu im > 60s)
         public const short CREATE_CHARACTER = 5;
         public const short CLIENT_ERROR = 6;        // C→S UTF version, UTF platform, UTF message, UTF stack — Core/ErrorReporter gửi khi game gặp lỗi
+        public const short SERVER_NOTICE = 7;       // S→C byte type(1 thông báo/2 đếm ngược bảo trì/3 huỷ bảo trì/4 bị đưa ra vì bảo trì), int secs, UTF text
 
         // ==========================================
         // 2. NHÂN VẬT & DI CHUYỂN (100 - 199)

@@ -17,6 +17,16 @@ namespace Assets.Script.Manager
 
         [SerializeField] private GameObject loaddingPanel;      // Nơi chứa toàn bộ khung UI của Popup
 
+        /// <summary>Câu thông báo hiện gần nhất (AutoTestRunner đọc để kiểm tra).</summary>
+        public string LastMessage { get; private set; }
+
+        /// <summary>Popup đang hiện trên màn hình.</summary>
+        public bool IsShowing => popupPanel != null && popupPanel.activeSelf;
+
+        /// <summary>Đang hiện popup kiểu "đang chờ..." (không có nút Đóng) — loại này mới được tự ẩn khi đổi màn hình.</summary>
+        public bool IsWaitingPopup =>
+            popupPanel != null && popupPanel.activeSelf && (closePopup == null || !closePopup.gameObject.activeSelf);
+
         // Biến lưu trữ hành động (callback) sẽ chạy khi ấn nút Đóng
         private Action currentCloseCallback;
 
@@ -43,6 +53,9 @@ namespace Assets.Script.Manager
                 closePopup.onClick.AddListener(OnCloseButtonClicked);
             }
 
+            // Chữ nâu đậm: khung popup nền sáng (be) — chữ trắng của prefab gần như không đọc được
+            if (txtMessage != null) txtMessage.color = new Color(0.35f, 0.22f, 0.14f, 1f);
+
             // Tắt popup lúc mới khởi tạo
             if (popupPanel != null) popupPanel.SetActive(false);
         }
@@ -62,6 +75,7 @@ namespace Assets.Script.Manager
         public void ShowPopup(string message, Action onClose = null, bool showButton = true)
         {
             // 1. Cập nhật nội dung thông báo
+            LastMessage = message;
             if (txtMessage != null) txtMessage.text = message;
 
             // 2. Lưu lại cái callback này

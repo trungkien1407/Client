@@ -246,8 +246,10 @@ namespace Assets.Script.Manager
             }
             else
             {
-                // Mã 3, 8, 9, 10 có kèm 1 số int (số lần thử còn lại / số giây phải đợi) — server cũ không gửi thì = -1
-                int extra = reader.Available() >= 4 ? reader.ReadInt() : -1;
+                // Mã 12 (bảo trì) kèm 1 chuỗi lời nhắn của GM.
+                // Mã 3, 8, 9, 10 kèm 1 số int (số lần thử còn lại / số giây phải đợi) — server cũ không gửi thì = -1
+                string note = status == 12 && reader.Available() >= 2 ? reader.ReadUTF() : null;
+                int extra = status != 12 && reader.Available() >= 4 ? reader.ReadInt() : -1;
                 reader.Cleanup();
                 string errorMsg = status switch
                 {
@@ -261,6 +263,7 @@ namespace Assets.Script.Manager
                     9 => $"Sai mật khẩu quá 5 lần. Đợi {WaitText(extra)} rồi thử lại.",
                     10 => $"Tài khoản vừa đăng nhập. Đợi {WaitText(extra)} rồi thử lại.",
                     11 => "Bản cài đặt đã cũ. Vui lòng cập nhật game lên phiên bản mới nhất!",
+                    12 => string.IsNullOrEmpty(note) ? "Máy chủ đang bảo trì. Vui lòng quay lại sau." : note,
                     _ => "Lỗi máy chủ!"
                 };
                 // Mật khẩu đã lưu không còn đúng (đổi mật khẩu ở máy khác) → quên mật khẩu, điền sẵn tên để gõ lại
@@ -371,6 +374,7 @@ namespace Assets.Script.Manager
                 3 => "Email không hợp lệ.",
                 4 => "Mạng của bạn thử quá nhiều lần. Đợi ít phút rồi thử lại.",
                 5 => "Bản cài đặt đã cũ. Vui lòng cập nhật game lên phiên bản mới nhất!",
+                6 => "Máy chủ đang bảo trì, tạm chưa đăng ký được. Vui lòng quay lại sau.",
                 _ => "Lỗi máy chủ!"
             });
         }

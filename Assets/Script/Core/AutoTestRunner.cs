@@ -234,6 +234,22 @@ namespace Assets.Script.Core
             yield return new WaitForSecondsRealtime(1.5f);
             Check("Bấm đánh không lỗi", _exceptions == before);
 
+            // 6. (chỉ khi có tham số -maint, đăng nhập bằng người chơi THƯỜNG — GM không bị đưa ra)
+            //    Người kiểm thử hẹn bảo trì trên trang quản trị → thấy đồng hồ đếm ngược → hết giờ bị đưa ra với lý do.
+            if (Array.IndexOf(Environment.GetCommandLineArgs(), "-maint") >= 0)
+            {
+                Debug.Log("[AutoTest] CHỜ BẢO TRÌ — hẹn bảo trì trên trang quản trị trong vòng 90 giây");
+                yield return WaitUntil(() => GameData.MaintEndTime > Time.time, 90);
+                Check("Nhận đồng hồ đếm ngược bảo trì (SERVER_NOTICE loại 2)", GameData.MaintEndTime > Time.time);
+                yield return new WaitForSecondsRealtime(1f);
+                yield return Shot("Maint_countdown");
+                yield return WaitUntil(() => PopupAndLoad.Instance != null && (PopupAndLoad.Instance.LastMessage ?? "").Contains("bảo trì"), 90);
+                yield return new WaitForSecondsRealtime(1f); // để màn đăng nhập mới dựng xong (Start chạy) rồi mới kiểm tra
+                Check("Hết giờ: bị đưa ra, popup ghi lý do bảo trì và VẪN HIỆN trên màn đăng nhập",
+                    (PopupAndLoad.Instance?.LastMessage ?? "").Contains("bảo trì") && PopupAndLoad.Instance.IsShowing);
+                yield return Shot("Maint_kicked");
+            }
+
             Check("Không có Exception trong suốt phiên", _exceptions == 0);
             Debug.Log($"[AutoTest] KẾT QUẢ: {_pass} PASS, {_fail} FAIL");
             yield return new WaitForSecondsRealtime(0.5f);

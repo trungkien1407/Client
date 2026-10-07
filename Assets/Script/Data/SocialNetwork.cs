@@ -49,6 +49,8 @@ namespace Assets.Script.Data
             Listen(Cmd.EVENT_STATE, OnEventState);
             Listen(Cmd.ARENA_SCORE, OnArenaScore);
             Listen(Cmd.ZONE_LIST, OnZoneList);
+            // GĐ6 — trang quản trị: thông báo + bảo trì
+            Listen(Cmd.SERVER_NOTICE, OnServerNotice);
         }
 
         // =====================================================================
@@ -383,6 +385,36 @@ namespace Assets.Script.Data
             if (GameData.EventType == 2 && GameData.EventState != 2) GameData.ArenaScore.Clear();
             GameData.Notify(DataKind.Event);
             UI.GameHud.Banner(GameData.EventText, 4f);
+        }
+
+        /// <summary>
+        /// SERVER_NOTICE: byte type, int secs, UTF text — GM gửi từ trang quản trị (server: MaintenanceService).
+        ///   1 thông báo → chữ lớn giữa màn hình; 2 đếm ngược bảo trì → thêm đồng hồ ở khung sự kiện;
+        ///   3 huỷ bảo trì → tắt đồng hồ; 4 bị đưa ra vì bảo trì → nhớ lý do, server ngắt ngay sau đó.
+        /// (Dòng chat "Hệ thống" server gửi riêng bằng gói CHAT.)
+        /// </summary>
+        private void OnServerNotice(byte[] data)
+        {
+            var r = new MessageReader(data);
+            int type = r.ReadByte();
+            int secs = r.ReadInt();
+            string text = r.ReadUTF();
+            r.Cleanup();
+            switch (type)
+            {
+                case 2:
+                    GameData.MaintEndTime = Time.time + secs;
+                    GameData.Notify(DataKind.Event);
+                    break;
+                case 3:
+                    GameData.MaintEndTime = 0;
+                    GameData.Notify(DataKind.Event);
+                    break;
+                case 4:
+                    GameData.KickReason = text;
+                    return; // không hiện banner — popup lúc ngắt kết nối sẽ hiện lý do
+            }
+            UI.GameHud.Banner(text, type == 3 ? 3f : 6f);
         }
 
         /// <summary>ZONE_LIST: byte currentZone (255 = khu riêng), byte n, [byte zoneId, byte players, byte max] x n</summary>

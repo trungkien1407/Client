@@ -27,8 +27,10 @@ public class AppFlowManager : MonoBehaviour
         // [MỚI] Nếu game đã chạy qua luồng kiểm tra tài nguyên lần đầu rồi
         if (_hasAppBooted)
         {
-            // Chỉ dọn dẹp Popup (nếu có) và KHÔNG chạy luồng StartupFlow nữa
-            if (PopupAndLoad.Instance != null) PopupAndLoad.Instance.HidePopup();
+            // Chỉ dọn popup "đang chờ..." còn sót và KHÔNG chạy luồng StartupFlow nữa.
+            // Popup CÓ nút Đóng (VD "Mất kết nối...", "Máy chủ đang bảo trì...") vừa được GameDisconnectHandler hiện
+            // ngay trước khi màn này được tạo → giữ lại cho người chơi đọc (trước đây bị ẩn mất ngay).
+            if (PopupAndLoad.Instance != null && PopupAndLoad.Instance.IsWaitingPopup) PopupAndLoad.Instance.HidePopup();
 
             // Nếu đang mất kết nối, hệ thống GameDisconnectHandler/NetworkManager 
             // sẽ tự lo việc hiển thị thông báo. Ta chỉ cần dừng script này lại.

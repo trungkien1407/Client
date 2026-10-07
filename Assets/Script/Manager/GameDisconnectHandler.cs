@@ -48,7 +48,10 @@ namespace Assets.Script.Manager
         private void HandleServerDisconnect()
         {
             Debug.Log("[Client] Đã mất kết nối với máy chủ! Bắt đầu dọn dẹp Scene...");
-            DoCleanupAndShowLogin("Mất kết nối với máy chủ. Vui lòng đăng nhập lại!");
+            // Bị đưa ra vì bảo trì (gói SERVER_NOTICE loại 4 tới ngay trước khi ngắt) → hiện lý do bảo trì
+            string reason = Assets.Script.Data.GameData.KickReason;
+            Assets.Script.Data.GameData.KickReason = null;
+            DoCleanupAndShowLogin(string.IsNullOrEmpty(reason) ? "Mất kết nối với máy chủ. Vui lòng đăng nhập lại!" : reason);
         }
 
         // ==========================================
@@ -69,6 +72,7 @@ namespace Assets.Script.Manager
             if (NetworkMobManager.Instance != null) NetworkMobManager.Instance.ClearAllMobs();
             if (NetworkNpcManager.Instance != null) NetworkNpcManager.Instance.ClearAllNpcs();
             if (UISetup.Instance != null) UISetup.Instance.ClearUI();
+            Assets.Script.UI.Kit.UIRoot.CloseAll(); // cửa sổ NPC/túi/... đang mở không được đè lên màn đăng nhập
 
             // 2. XỬ LÝ GIAO DIỆN
             if (inGameUI != null) inGameUI.SetActive(false);

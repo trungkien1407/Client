@@ -148,6 +148,10 @@ namespace Assets.Script.Data
         public static int EventType, EventState; public static float EventEndTime; public static string EventText = "";
         public static readonly List<KeyValuePair<string, int>> ArenaScore = new List<KeyValuePair<string, int>>();
 
+        // ---- Bảo trì (SERVER_NOTICE) ----
+        public static float MaintEndTime;            // > Time.time = đang đếm ngược bảo trì (hiện ở khung sự kiện)
+        public static string KickReason;             // server báo "bị đưa ra vì bảo trì" ngay trước khi ngắt → hiện thay cho "mất kết nối"
+
         /// <summary>Bắn ra khi có thay đổi. Tham số = loại dữ liệu vừa đổi.</summary>
         public static event Action<DataKind> OnChanged;
         public static void Notify(DataKind kind) => OnChanged?.Invoke(kind);
@@ -187,7 +191,7 @@ namespace Assets.Script.Data
             Storage.Clear(); StorageNpc = -1; Upgrade = null; TradeWith = 0;
             MyPkMode = 0; Pvp.Clear(); Party.Clear(); PartyLeader = 0; Friends.Clear(); Mails.Clear(); OpenMail = null; MailUnread = 0;
             Guild.id = 0; Guild.members.Clear(); Tops.Clear();
-            DungeonState = 0; EventState = 0; ArenaScore.Clear();
+            DungeonState = 0; EventState = 0; ArenaScore.Clear(); MaintEndTime = 0;
         }
     }
 

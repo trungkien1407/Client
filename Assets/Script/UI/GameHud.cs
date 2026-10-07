@@ -120,6 +120,9 @@ namespace Assets.Script.UI
             _banner = UIKit.Text("Banner", _root.transform, "", 26, TextAlignmentOptions.Center, new Color(1f, 0.85f, 0.3f));
             _banner.rectTransform.Place(new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -190), new Vector2(900, 80), new Vector2(0.5f, 1));
             _banner.fontStyle = FontStyles.Bold;
+            _banner.enableAutoSizing = true;   // thông báo GM dài tới 200 ký tự → tự thu nhỏ chữ cho vừa khung
+            _banner.fontSizeMin = 16;
+            _banner.fontSizeMax = 26;
             _banner.outlineWidth = 0.25f;
             var evBg = UIKit.Panel("EventPanel", _root.transform, new Color(0, 0, 0, 0.55f));
             // góc phải, dưới dòng tiền (giữa trên đã có khung mục tiêu của scene)
@@ -238,8 +241,13 @@ namespace Assets.Script.UI
         private void UpdateEventPanel()
         {
             var sb = new StringBuilder();
+            if (GameData.MaintEndTime > Time.time)
+                sb.Append($"<color=#f66><b>Bảo trì máy chủ</b></color> sau <color=#fd5>{Clock(GameData.MaintEndTime)}</color>");
             if (GameData.DungeonState == 2)
+            {
+                if (sb.Length > 0) sb.Append('\n');
                 sb.Append($"<b>{GameData.DungeonName}</b>  <color=#fd5>{Clock(GameData.DungeonEndTime)}</color>\nCòn {GameData.DungeonMobsLeft} quái");
+            }
             if (GameData.EventState == 1 || GameData.EventState == 2)
             {
                 if (sb.Length > 0) sb.Append('\n');

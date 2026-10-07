@@ -56,6 +56,18 @@ namespace Assets.Script.UI.Kit
 
         public void Register(GameWindow w) => _windows.Add(w);
 
+        /// <summary>
+        /// Đóng mọi cửa sổ đang mở — gọi khi đăng xuất / mất kết nối / bị đưa ra vì bảo trì,
+        /// để cửa sổ game (NPC, túi...) không nằm đè lên màn đăng nhập và che popup thông báo.
+        /// Chưa từng tạo UIRoot thì thôi (không tạo mới).
+        /// </summary>
+        public static void CloseAll()
+        {
+            if (_instance == null) return;
+            foreach (var w in _instance._windows)
+                if (w != null && w.IsOpen) w.Hide();
+        }
+
         public void BringToFront(GameWindow w) => w.transform.SetAsLastSibling();
 
         private void Update()
