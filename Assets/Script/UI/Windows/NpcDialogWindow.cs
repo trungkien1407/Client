@@ -30,6 +30,8 @@ namespace Assets.Script.UI.Windows
 
         private readonly List<string> _optionTexts = new List<string>();
         public int NpcId => _npcId;
+        /// <summary>Lời thoại đang hiện (AutoTest kiểm hội thoại nhiều trang).</summary>
+        public string Text => _text != null ? _text.text : "";
 
         /// <summary>Chọn lựa chọn đầu tiên có chứa chữ này (dùng cho AutoTest). Trả về false nếu không có.</summary>
         public bool Choose(string contains)

@@ -102,6 +102,13 @@ namespace Assets.Script.Data
     /// <summary>Trạng thái 1 bên trong giao dịch.</summary>
     public class TradeSide { public bool locked, confirmed; public int yen; public List<BagSlot> items = new List<BagSlot>(); }
 
+    /// <summary>GĐ9 — 1 việc trong bảng Hoạt động hằng ngày.</summary>
+    public class ActivityRow { public string name; public int progress, target, pts, maxPts; }
+    /// <summary>GĐ9 — 1 mốc thưởng Hoạt động.</summary>
+    public class ActivityMilestone { public int need; public string reward; }
+    /// <summary>GĐ9 — 1 dòng sổ tay nhiệm vụ: status 0 đang làm / 1 có thể nhận / 2 xong chờ trả; where = nơi đến (server dựng).</summary>
+    public class QuestGuideRow { public int questId, status; public bool daily; public string where; }
+
     /// <summary>Thông tin PvP của 1 người (PLAYER_PVP_INFO): chế độ, điểm PK, gia tộc → màu tên.</summary>
     public class PvpInfo { public int pkMode, pkPoint; public string guild = ""; }
 
@@ -152,6 +159,23 @@ namespace Assets.Script.Data
         public static int EventType, EventState; public static float EventEndTime; public static string EventText = "";
         public static readonly List<KeyValuePair<string, int>> ArenaScore = new List<KeyValuePair<string, int>>();
 
+        // ---- GĐ9: hoạt động hằng ngày + sổ tay nhiệm vụ ----
+        public static int ActivityPoints, ActivityClaimed;   // ActivityClaimed: bit i = đã nhận mốc i
+        public static readonly List<ActivityRow> Activities = new List<ActivityRow>();
+        public static readonly List<ActivityMilestone> Milestones = new List<ActivityMilestone>();
+        public static readonly List<string> EventSchedule = new List<string>();
+        public static readonly List<QuestGuideRow> QuestGuide = new List<QuestGuideRow>();
+        public static bool MilestoneClaimed(int i) => (ActivityClaimed & (1 << i)) != 0;
+        /// <summary>Có mốc đủ điểm mà chưa nhận → nút Hoạt động hiện dấu "!".</summary>
+        public static bool ActivityClaimable
+        {
+            get
+            {
+                for (int i = 0; i < Milestones.Count; i++) if (ActivityPoints >= Milestones[i].need && !MilestoneClaimed(i)) return true;
+                return false;
+            }
+        }
+
         // ---- Bảo trì (SERVER_NOTICE) ----
         public static float MaintEndTime;            // > Time.time = đang đếm ngược bảo trì (hiện ở khung sự kiện)
         public static string KickReason;             // server báo "bị đưa ra vì bảo trì" ngay trước khi ngắt → hiện thay cho "mất kết nối"
@@ -200,12 +224,14 @@ namespace Assets.Script.Data
             MyPkMode = 0; Pvp.Clear(); Party.Clear(); PartyLeader = 0; Friends.Clear(); Mails.Clear(); OpenMail = null; MailUnread = 0;
             Guild.id = 0; Guild.members.Clear(); Tops.Clear();
             DungeonState = 0; EventState = 0; ArenaScore.Clear(); MaintEndTime = 0;
+            ActivityPoints = 0; ActivityClaimed = 0; Activities.Clear(); Milestones.Clear(); EventSchedule.Clear(); QuestGuide.Clear();
         }
     }
 
     public enum DataKind
     {
         Templates, Character, Inventory, Equipment, Skills, Quests,
-        Money, Storage, Upgrade, Trade, Party, Friends, Mails, Guild, Top, Pvp, Event
+        Money, Storage, Upgrade, Trade, Party, Friends, Mails, Guild, Top, Pvp, Event,
+        Activity, QuestGuide
     }
 }

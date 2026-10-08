@@ -38,7 +38,7 @@ namespace Assets.Script.UI
         private GameObject _root;
         private Image _expFill;
         private TextMeshProUGUI _expText, _money, _banner, _eventText, _partyText, _stun, _questText;
-        private Button _pkBtn, _mailBtn, _interactBtn, _zoneBtn;
+        private Button _pkBtn, _mailBtn, _interactBtn, _zoneBtn, _activityBtn;
         private string _shownMap;
         private int _shownZone = -2;
         private float _bannerUntil;
@@ -88,8 +88,8 @@ namespace Assets.Script.UI
             _expText = UIKit.Text("ExpText", _expFill.transform.parent, "", 12, TextAlignmentOptions.Center);
             _expText.rectTransform.Fill();
 
-            // ---- Nút menu: 2 hàng x 5 ----
-            string[] labels = { "Nhân vật", "Túi", "Kỹ năng", "Nhiệm vụ", "Nói (F)", "Xã hội", "Thư", "Xếp hạng", "Cài đặt", "Hoà bình" };
+            // ---- Nút menu: 2 hàng x 6 (GĐ9 thêm Hoạt động + Cẩm nang) ----
+            string[] labels = { "Nhân vật", "Túi", "Kỹ năng", "Nhiệm vụ", "Nói (F)", "Hoạt động", "Xã hội", "Thư", "Xếp hạng", "Cẩm nang", "Cài đặt", "Hoà bình" };
             System.Action[] actions =
             {
                 () => GameWindow.Get<CharacterWindow>().Toggle(),
@@ -97,19 +97,23 @@ namespace Assets.Script.UI
                 () => GameWindow.Get<SkillWindow>().Toggle(),
                 () => GameWindow.Get<QuestWindow>().Toggle(),
                 TalkToNearestNpc,
+                () => GameWindow.Get<ActivityWindow>().Toggle(),
                 () => GameWindow.Get<SocialWindow>().Toggle(),
                 () => GameWindow.Get<MailWindow>().Toggle(),
                 () => GameWindow.Get<LeaderboardWindow>().Toggle(),
+                () => GameWindow.Get<GuideWindow>().Toggle(),
                 () => GameWindow.Get<SettingsWindow>().Toggle(),
                 TogglePk,
             };
             for (int i = 0; i < labels.Length; i++)
             {
-                int row = i / 5, col = i % 5;
-                var b = UIKit.Button("Menu" + i, _root.transform, labels[i], actions[i], 15);
-                ((RectTransform)b.transform).Place(new Vector2(1, 1), new Vector2(1, 1), new Vector2(-MinimapWidth - col * 92, -8 - row * 40), new Vector2(86, 34), new Vector2(1, 1));
-                if (i == 6) _mailBtn = b;
-                if (i == 9) _pkBtn = b;
+                int row = i / 6, col = i % 6;
+                // 6 cột x 78px (rộng bằng 5 cột x 92px cũ) → không lấn khung mục tiêu giữa màn hình ở 1280x720
+                var b = UIKit.Button("Menu" + i, _root.transform, labels[i], actions[i], 14);
+                ((RectTransform)b.transform).Place(new Vector2(1, 1), new Vector2(1, 1), new Vector2(-MinimapWidth - col * 78, -8 - row * 40), new Vector2(74, 34), new Vector2(1, 1));
+                if (i == 5) _activityBtn = b;
+                if (i == 7) _mailBtn = b;
+                if (i == 11) _pkBtn = b;
             }
 
             // ---- Nút đổi khu (ngay dưới minimap) ----
@@ -166,6 +170,8 @@ namespace Assets.Script.UI
             GameWindow.Preload<SocialWindow>();
             GameWindow.Preload<MailWindow>();
             GameWindow.Preload<ChatWindow>();
+            GameWindow.Preload<ActivityWindow>();   // phím H
+            GameWindow.Preload<GuideWindow>();      // phím G
             SettingsWindow.ApplySaved();
 
             GameData.OnChanged += k =>
@@ -175,7 +181,9 @@ namespace Assets.Script.UI
                 if (k == DataKind.Mails) _mailBtn.SetLabel(GameData.MailUnread > 0 ? $"Thư ({GameData.MailUnread})" : "Thư");
                 if (k == DataKind.Party) UpdateParty();
                 if (k == DataKind.Quests || k == DataKind.Inventory || k == DataKind.Templates) UpdateQuests();
+                if (k == DataKind.Activity) _activityBtn.image.color = GameData.ActivityClaimable ? UIKit.ButtonHot : UIKit.ButtonColor; // có rương chưa nhận → nút cam
             };
+            GameActions.ActivityRequest(); // lấy điểm hoạt động ngay khi vào game → nút hiện "!" nếu có rương chưa nhận
             UpdateExp(); UpdateMoney(); UpdatePk(); UpdateParty(); UpdateQuests();
             TutorialWindow.ShowIfFirstTime(); // lần đầu nhân vật này vào game
         }

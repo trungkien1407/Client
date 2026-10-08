@@ -44,6 +44,9 @@ public static class ContentSetupTool
         (22, "Yêu Hồ", "3", 1.5f, "#FFA020"),
         (23, "Băng Long", "3", 2.3f, "#60B0FF"),
         (24, "Xà Vương", "3", 2.2f, "#A07030"),
+        // ---- GĐ9: boss thế giới 3 mốc cấp (repo server tools/gen_story.py) — [CẦN ĐIỀN khi có art] ----
+        (25, "Thạch Ma Vương (boss thế giới)", "0", 2.6f, "#8A7A6A"),
+        (26, "Băng Hồ Vương (boss thế giới)", "3", 2.8f, "#9FE8FF"),
     };
 
     // templateId (npc_template.id), tên mặc định, sprite đầu, sprite chân

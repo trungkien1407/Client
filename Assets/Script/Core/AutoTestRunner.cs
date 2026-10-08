@@ -253,6 +253,63 @@ namespace Assets.Script.Core
             GameActions.Chat(1, "/tele 1");
             yield return WaitUntil(() => GameData.MapName == "Làng Lá", 8);
 
+            // 5c. GĐ9 — hoạt động hằng ngày, sổ tay nhiệm vụ, cẩm nang, mẹo theo cấp, hội thoại nhiều trang
+            GameActions.Chat(1, "/daily");
+            yield return new WaitForSecondsRealtime(0.5f);
+            var act = GameWindow.Open<ActivityWindow>();
+            yield return WaitUntil(() => GameData.Activities.Count > 0 && GameData.EventSchedule.Count > 0, 5);
+            Check($"Hoạt động: {GameData.Activities.Count} việc, {GameData.Milestones.Count} mốc, lịch {GameData.EventSchedule.Count} dòng",
+                GameData.Activities.Count == 7 && GameData.Milestones.Count == 5 && GameData.EventSchedule.Count >= 3);
+            GameActions.Chat(1, "/act dungeon 2");
+            yield return WaitUntil(() => GameData.ActivityPoints >= 20, 5);
+            Check("Đủ 20 điểm → nút Hoạt động báo có rương", GameData.ActivityClaimable);
+            yield return Shot("Activity");
+            GameActions.ActivityClaim(0);
+            yield return WaitUntil(() => GameData.MilestoneClaimed(0), 5);
+            Check("Nhận mốc 20 điểm", GameData.MilestoneClaimed(0));
+            act.Hide();
+
+            var qw = GameWindow.Open<QuestWindow>();
+            yield return WaitUntil(() => GameData.QuestGuide.Count > 0, 5);
+            Check($"Sổ tay nhiệm vụ: {GameData.QuestGuide.Count} dòng có nơi đến", GameData.QuestGuide.Count > 0 && !string.IsNullOrEmpty(GameData.QuestGuide[0].where));
+            yield return Shot("QuestGuide");
+            qw.Hide();
+
+            var gw = GameWindow.Get<GuideWindow>();
+            gw.ShowTopic(7);
+            yield return new WaitForSecondsRealtime(0.3f);
+            Check("Mở Cẩm nang tới chủ đề Boss thế giới", gw.IsOpen);
+            yield return Shot("Guide");
+            gw.Hide();
+
+            var tip = GameWindow.Get<TipWindow>();
+            GameActions.Chat(1, "/exp 200000");   // vượt cấp 12 → server gửi GUIDE_TIP
+            yield return WaitUntil(() => tip.IsOpen, 5);
+            Check("Lên cấp mở tính năng → hiện khung Mẹo", tip.IsOpen);
+            yield return Shot("Tip");
+            tip.Hide();
+
+            var hok = NetworkNpcManager.Instance != null ? NetworkNpcManager.Instance.FindByTemplate(1) : null;
+            if (hok != null)
+            {
+                var hkPos = hok.transform.position;
+                GameActions.Chat(1, $"/go {(hkPos.x + 0.6f).ToString(inv)} {(hkPos.y + 0.05f).ToString(inv)}");
+                yield return new WaitForSecondsRealtime(1.5f);
+            }
+            GameHud.TalkToNearestNpc();
+            yield return WaitUntil(() => dlg.IsOpen, 5);
+            dlg.Choose("Nhiệm vụ");
+            yield return WaitUntil(() => dlg.IsOpen, 5);
+            dlg.Choose("[Mới]");
+            yield return WaitUntil(() => dlg.IsOpen && dlg.Text.Contains("(1/"), 5);
+            Check("Nhận nhiệm vụ → hội thoại nhiều trang (1/N + Tiếp theo)", dlg.IsOpen && dlg.Text.Contains("(1/"));
+            yield return Shot("DialogPage1");
+            dlg.Choose("Tiếp");
+            yield return WaitUntil(() => dlg.IsOpen && dlg.Text.Contains("Bạn:"), 5);
+            Check("Trang 2: lời của người chơi", dlg.Text.Contains("Bạn:"));
+            yield return Shot("DialogPage2");
+            dlg.Hide();
+
             // 6. (chỉ khi có tham số -maint, đăng nhập bằng người chơi THƯỜNG — GM không bị đưa ra)
             //    Người kiểm thử hẹn bảo trì trên trang quản trị → thấy đồng hồ đếm ngược → hết giờ bị đưa ra với lý do.
             if (Array.IndexOf(Environment.GetCommandLineArgs(), "-maint") >= 0)

@@ -28,7 +28,7 @@ namespace Assets.Script.UI.Windows
                 "<b>2. Đánh quái</b>\n\nChạm vào quái để <b>chọn mục tiêu</b>, rồi bấm nút <b>Đánh</b>.\nChưa chọn ai thì tự đánh quái gần nhất.\nBấm các ô kỹ năng ở dưới để đổi chiêu.",
                 "<b>3. Nhận nhiệm vụ</b>\n\nĐến gần <b>Hokage</b> và bấm nút <b>Nói</b>.\nLàm theo bảng <b>Nhiệm vụ</b> bên trái màn hình — làm xong quay lại trả để nhận EXP, yên, đồ.",
                 "<b>4. Mạnh lên</b>\n\nLên cấp được <b>điểm tiềm năng</b> (nút <b>Nhân vật</b>) và <b>điểm kỹ năng</b> (nút <b>Kỹ năng</b>).\nMặc đồ trong <b>Túi</b>. Gặp <b>Thợ Rèn</b> để <b>nâng cấp</b> trang bị lên +16.",
-                "<b>5. Chơi cùng mọi người</b>\n\nNút <b>Chat</b> góc trái để trò chuyện.\nChạm 1 người chơi → <b>Tương tác</b>: mời nhóm, giao dịch, kết bạn, tỉ thí.\n<b>Xã hội</b>: nhóm, bạn bè, gia tộc. Hằng ngày: <b>điểm danh</b>, phó bản, boss thế giới, lôi đài.",
+                "<b>5. Chơi cùng mọi người</b>\n\nNút <b>Chat</b> góc trái để trò chuyện.\nChạm 1 người chơi → <b>Tương tác</b>: mời nhóm, giao dịch, kết bạn, tỉ thí.\n<b>Xã hội</b>: nhóm, bạn bè, gia tộc.\nMỗi ngày mở <b>Hoạt động</b> để xem việc nên làm + lịch boss; quên cách chơi thì mở <b>Cẩm nang</b>.",
             }
             : new[]
             {
@@ -36,7 +36,7 @@ namespace Assets.Script.UI.Windows
                 "<b>2. Đánh quái</b>\n\n<b>Click</b> vào quái hoặc <b>Tab</b> để chọn mục tiêu, <b>J</b> để đánh.\nPhím <b>1–5</b> đổi kỹ năng. <b>Q / E</b> uống bình máu / chakra. <b>R</b> hồi sinh khi chết.",
                 "<b>3. Nhận nhiệm vụ</b>\n\nĐến gần <b>Hokage</b> và bấm <b>F</b> để nói chuyện.\nLàm theo bảng <b>Nhiệm vụ</b> bên trái màn hình (phím <b>L</b> xem chi tiết) — xong quay lại trả để nhận thưởng.",
                 "<b>4. Mạnh lên</b>\n\n<b>C</b> nhân vật (cộng điểm tiềm năng) · <b>K</b> kỹ năng · <b>I</b> túi đồ (mặc trang bị).\nGặp <b>Thợ Rèn</b> để <b>nâng cấp</b> trang bị lên +16 và cất đồ vào <b>rương</b>.",
-                "<b>5. Chơi cùng mọi người</b>\n\n<b>Enter</b> để chat (/a thế giới, /g gia tộc, /w Tên nhắn riêng).\nClick 1 người chơi → <b>Tương tác</b>: mời nhóm, giao dịch, kết bạn, tỉ thí.\n<b>O</b> xã hội · <b>M</b> thư. Hằng ngày: điểm danh, phó bản, boss thế giới, lôi đài.",
+                "<b>5. Chơi cùng mọi người</b>\n\n<b>Enter</b> để chat (/a thế giới, /g gia tộc, /w Tên nhắn riêng).\nClick 1 người chơi → <b>Tương tác</b>: mời nhóm, giao dịch, kết bạn, tỉ thí.\n<b>O</b> xã hội · <b>M</b> thư.\n<b>H</b> hoạt động hằng ngày (việc nên làm + lịch boss) · <b>G</b> cẩm nang (tra cứu mọi tính năng).",
             };
 
         protected override void Build()

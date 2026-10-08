@@ -277,3 +277,25 @@ MonoBehaviour:
       m_SubObjectName: 
       m_SubObjectType: 
       m_EditorAssetChanged: 0
+  - mobName: "Th\u1EA1ch Ma V\u01B0\u01A1ng (boss th\u1EBF gi\u1EDBi)"
+    templateId: 25
+    frameRate: 0.15
+    spriteKey: 0
+    scale: 2.6
+    tint: {r: 0.5411765, g: 0.47843137, b: 0.41568628, a: 1}
+    mobAtlas:
+      m_AssetGUID: 23a1a42e6de8e734a9881a8dfaddabc9
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_EditorAssetChanged: 0
+  - mobName: "B\u0103ng H\u1ED3 V\u01B0\u01A1ng (boss th\u1EBF gi\u1EDBi)"
+    templateId: 26
+    frameRate: 0.15
+    spriteKey: 3
+    scale: 2.8
+    tint: {r: 0.62352943, g: 0.9098039, b: 1, a: 1}
+    mobAtlas:
+      m_AssetGUID: 23a1a42e6de8e734a9881a8dfaddabc9
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_EditorAssetChanged: 0

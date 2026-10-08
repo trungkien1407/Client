@@ -168,7 +168,14 @@
         // ---- GĐ4: phó bản / sự kiện ----
         public const short DUNGEON_STATE = 850;     // S→C byte state(2 đang chơi/3 thắng/4 thua/0 rời), int secs, short mobsLeft, UTF name
         public const short EVENT_STATE = 851;       // S→C byte type(1 boss/2 lôi đài), byte state(0 hết/1 báo trước/2 đang diễn ra), int secs, UTF text
-        public const short ARENA_SCORE = 852;       // S→C short n, [UTF name, short kills]
+        public const short ARENA_SCORE = 852;
+        // GĐ9 — hoạt động hằng ngày, sổ tay nhiệm vụ, mẹo theo cấp
+        public const short QUEST_GUIDE_REQ = 724;   // C→S rỗng
+        public const short QUEST_GUIDE = 725;       // S→C short n, [int questId, byte status(0 đang làm/1 có thể nhận/2 chờ trả), byte daily, UTF nơi đến]
+        public const short ACTIVITY_REQ = 860;      // C→S rỗng
+        public const short ACTIVITY_INFO = 861;     // S→C short điểm, byte bit mốc đã nhận, byte n,[UTF tên, short tiến độ, short đích, byte điểm có, byte điểm tối đa], byte m,[short cần, UTF thưởng], byte k,[UTF dòng lịch]
+        public const short ACTIVITY_CLAIM = 862;    // C→S byte chỉ số mốc
+        public const short GUIDE_TIP = 863;         // S→C UTF tiêu đề, UTF nội dung, byte mục cẩm nang       // S→C short n, [UTF name, short kills]
 
         public const short PLAYER_HEAL = 901;       // S→C int id, int hpHeal, int mpHeal, int hp, int maxHp, int mp, int maxMp
     }

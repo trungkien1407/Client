@@ -91,6 +91,11 @@ namespace Assets.Script.Data
         public static void UpgradeSkill(int skillId) => Send(Cmd.SKILL_UPGRADE, w => w.WriteInt(skillId));
         public static void SetShortcut(int slot, int skillId) => Send(Cmd.SET_SKILL_SHORTCUT, w => { w.WriteByte((byte)slot); w.WriteInt(skillId); });
 
+        // ---- GĐ9: hoạt động hằng ngày, sổ tay nhiệm vụ ----
+        public static void ActivityRequest() => Send(Cmd.ACTIVITY_REQ, null);
+        public static void ActivityClaim(int milestoneIndex) => Send(Cmd.ACTIVITY_CLAIM, w => w.WriteByte((byte)milestoneIndex));
+        public static void QuestGuide() => Send(Cmd.QUEST_GUIDE_REQ, null);
+
         // ---- NPC ----
         public static void NpcTalk(int npcId) => Send(Cmd.NPC_TALK, w => w.WriteInt(npcId));
         public static void NpcSelect(int npcId, int index) => Send(Cmd.NPC_SELECT, w => { w.WriteInt(npcId); w.WriteByte((byte)index); });
