@@ -66,7 +66,9 @@ namespace Assets.Script.UI.Windows
             ("Giao dịch & tiền tệ",
              "<b>Yên</b>: tiền thường, kiếm từ quái/nhiệm vụ, giao dịch được.\n<b>Xu</b>: kiếm trong game (điểm danh, boss...), mua đồ ở cửa hàng xu.\n" +
              "<b>Lượng</b>: nạp, mua ở cửa hàng lượng.\n\n" +
-             "<b>Giao dịch an toàn</b>: hai bên bỏ đồ → cùng bấm <b>Khoá</b> → cùng bấm <b>Xác nhận</b>. Sau khi khoá không ai đổi được đồ — kiểm tra kỹ trước khi xác nhận."),
+             "<b>Giao dịch an toàn</b>: hai bên bỏ đồ → cùng bấm <b>Khoá</b> → cùng bấm <b>Xác nhận</b>. Sau khi khoá không ai đổi được đồ — kiểm tra kỹ trước khi xác nhận.\n\n" +
+             "<b>Chợ</b> (Chủ Chợ ở mọi làng): treo bán đồ với giá tự đặt — người khác mua được cả khi ngươi offline, tiền về <b>hòm thư</b>. " +
+             "Phí treo 1% giá (tối thiểu 100 yên), thuế 5% khi bán được, tối đa 8 món, mỗi món 48 giờ — hết hạn đồ tự về hòm thư."),
             ("PK & tỉ thí",
              "Nút <b>Hoà bình / Đồ sát</b>: bật đồ sát mới đánh được người khác (ngoài khu an toàn). Giết người tăng <b>điểm PK</b> — tên đổi màu, chết mất nhiều EXP hơn.\n\n" +
              "<b>Tỉ thí</b>: mời 1 người đấu tay đôi, không ai chết thật, không mất gì."),

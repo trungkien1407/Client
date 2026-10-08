@@ -41,3 +41,7 @@ MonoBehaviour:
     defaultName: "Hi\u1EC7u Tr\u01B0\u1EDFng \u1EA2nh S\xE1t \u0110\u01B0\u1EDDng"
     headSpriteName: TsunadeBody
     legSpriteName: tsunadeLeg
+  - templateId: 10
+    defaultName: "Ch\u1EE7 Ch\u1EE3"
+    headSpriteName: TsunadeBody
+    legSpriteName: tsunadeLeg

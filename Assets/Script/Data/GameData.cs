@@ -62,15 +62,18 @@ namespace Assets.Script.Data
         public bool locked;
         public string Name => GameData.ItemName(tpl) + (level > 0 ? $" +{level}" : "");
 
-        /// <summary>Đọc 1 danh sách ô đồ: short n, [int tpl, int qty, byte level, byte locked] x n.</summary>
+        /// <summary>Đọc 1 danh sách ô đồ: short n, [ô đồ] x n.</summary>
         public static List<BagSlot> ReadList(Network.MessageReader r)
         {
             int n = r.ReadShort();
             var list = new List<BagSlot>(n);
-            for (int i = 0; i < n; i++)
-                list.Add(new BagSlot { tpl = r.ReadInt(), qty = r.ReadInt(), level = r.ReadByte(), locked = r.ReadByte() != 0 });
+            for (int i = 0; i < n; i++) list.Add(Read(r));
             return list;
         }
+
+        /// <summary>Đọc 1 "ô đồ" (khớp server ItemService.writeSlot): int tpl, int qty, byte level, byte locked. Đổi định dạng → chỉ sửa ở đây.</summary>
+        public static BagSlot Read(Network.MessageReader r) =>
+            new BagSlot { tpl = r.ReadInt(), qty = r.ReadInt(), level = r.ReadByte(), locked = r.ReadByte() != 0 };
     }
 
     public class PartyMember { public int id, hp, maxHp, level; public string name; }
@@ -101,6 +104,9 @@ namespace Assets.Script.Data
 
     /// <summary>Trạng thái 1 bên trong giao dịch.</summary>
     public class TradeSide { public bool locked, confirmed; public int yen; public List<BagSlot> items = new List<BagSlot>(); }
+
+    /// <summary>GĐ9 — 1 món ở chợ (MARKET_LIST / MARKET_MINE). status: 0 đang bán · 1 đã bán.</summary>
+    public class MarketRow { public long id; public BagSlot slot; public int price, secondsLeft, status; public string seller = ""; }
 
     /// <summary>GĐ9 — 1 việc trong bảng Hoạt động hằng ngày.</summary>
     public class ActivityRow { public string name; public int progress, target, pts, maxPts; }
@@ -165,6 +171,14 @@ namespace Assets.Script.Data
         public static readonly List<ActivityMilestone> Milestones = new List<ActivityMilestone>();
         public static readonly List<string> EventSchedule = new List<string>();
         public static readonly List<QuestGuideRow> QuestGuide = new List<QuestGuideRow>();
+        // Chợ (MARKET_*)
+        public static int MarketNpc = -1, MarketMax = 8, MarketFeePermil = 10, MarketTaxPercent = 5, MarketHours = 48;
+        public static int MarketTotal, MarketPage;
+        public static readonly List<MarketRow> MarketRows = new List<MarketRow>();
+        public static readonly List<MarketRow> MarketMine = new List<MarketRow>();
+        public static string MarketMessage = "";
+        /// <summary>Phí treo bán (khớp server MarketService.listingFee): 1% giá, tối thiểu 100 yên.</summary>
+        public static long MarketFee(long price) => System.Math.Max(100, price * MarketFeePermil / 1000);
         public static bool MilestoneClaimed(int i) => (ActivityClaimed & (1 << i)) != 0;
         /// <summary>Có mốc đủ điểm mà chưa nhận → nút Hoạt động hiện dấu "!".</summary>
         public static bool ActivityClaimable
@@ -225,6 +239,7 @@ namespace Assets.Script.Data
             Guild.id = 0; Guild.members.Clear(); Tops.Clear();
             DungeonState = 0; EventState = 0; ArenaScore.Clear(); MaintEndTime = 0;
             ActivityPoints = 0; ActivityClaimed = 0; Activities.Clear(); Milestones.Clear(); EventSchedule.Clear(); QuestGuide.Clear();
+            MarketNpc = -1; MarketRows.Clear(); MarketMine.Clear(); MarketMessage = "";
         }
     }
 
@@ -232,6 +247,6 @@ namespace Assets.Script.Data
     {
         Templates, Character, Inventory, Equipment, Skills, Quests,
         Money, Storage, Upgrade, Trade, Party, Friends, Mails, Guild, Top, Pvp, Event,
-        Activity, QuestGuide
+        Activity, QuestGuide, Market
     }
 }

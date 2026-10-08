@@ -310,6 +310,42 @@ namespace Assets.Script.Core
             yield return Shot("DialogPage2");
             dlg.Hide();
 
+            // 5d. GĐ9 — Chợ: tới Chủ Chợ → mở chợ (Hành trang tự mở cạnh) → treo bán 1 bình máu → thấy ở "Hàng của tôi" → huỷ
+            GameActions.Chat(1, "/item 1 3");
+            var seller = NetworkNpcManager.Instance != null ? NetworkNpcManager.Instance.FindByTemplate(10) : null;
+            Check("Có NPC Chủ Chợ ở Làng Lá", seller != null);
+            if (seller != null)
+            {
+                var sp2 = seller.transform.position;
+                GameActions.Chat(1, $"/go {(sp2.x + 0.6f).ToString(inv)} {(sp2.y + 0.05f).ToString(inv)}");
+                yield return new WaitForSecondsRealtime(1.5f);
+            }
+            var mk = GameWindow.Get<MarketWindow>();
+            GameHud.TalkToNearestNpc();
+            yield return WaitUntil(() => dlg.IsOpen, 5);
+            dlg.Choose("Chợ");
+            yield return WaitUntil(() => mk.IsOpen, 5);
+            Check("Chủ Chợ → mở cửa sổ Chợ + Hành trang", mk.IsOpen && GameWindow.Get<InventoryWindow>().IsOpen);
+            yield return Shot("Market");
+            int potIdx = GameData.Inventory.FindIndex(x => x.tpl == 1 && !x.locked);
+            if (potIdx >= 0)
+            {
+                GameActions.MarketSell(potIdx, 1, 777);
+                yield return WaitUntil(() => GameData.MarketMine.Exists(x => x.status == 0 && x.price == 777), 5);
+            }
+            var mine = GameData.MarketMine.Find(x => x.status == 0 && x.price == 777);
+            Check("Treo bán bình máu 777 yên → hiện trong Hàng của tôi", mine != null);
+            GameActions.MarketSearch(0, 0, 0, "");
+            yield return WaitUntil(() => GameData.MarketRows.Exists(x => x.price == 777), 5);
+            yield return Shot("MarketList");
+            if (mine != null)
+            {
+                GameActions.MarketCancel(mine.id);
+                yield return WaitUntil(() => !GameData.MarketMine.Exists(x => x.id == mine.id && x.status == 0), 5);
+                Check("Huỷ bán → món biến khỏi danh sách", !GameData.MarketMine.Exists(x => x.id == mine.id && x.status == 0));
+            }
+            mk.Hide(); GameWindow.Get<InventoryWindow>().Hide();
+
             // 6. (chỉ khi có tham số -maint, đăng nhập bằng người chơi THƯỜNG — GM không bị đưa ra)
             //    Người kiểm thử hẹn bảo trì trên trang quản trị → thấy đồng hồ đếm ngược → hết giờ bị đưa ra với lý do.
             if (Array.IndexOf(Environment.GetCommandLineArgs(), "-maint") >= 0)

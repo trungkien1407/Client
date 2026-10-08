@@ -19,6 +19,58 @@ namespace Assets.Script.Data
             Listen(Cmd.ACTIVITY_INFO, OnActivityInfo);
             Listen(Cmd.QUEST_GUIDE, OnQuestGuide);
             Listen(Cmd.GUIDE_TIP, OnGuideTip);
+            Listen(Cmd.MARKET_OPEN, OnMarketOpen);
+            Listen(Cmd.MARKET_LIST, OnMarketList);
+            Listen(Cmd.MARKET_MINE, OnMarketMine);
+            Listen(Cmd.MARKET_RESULT, OnMarketResult);
+        }
+
+        // ---- CHỢ ----
+        private void OnMarketOpen(byte[] data)
+        {
+            var r = new MessageReader(data);
+            GameData.MarketNpc = r.ReadInt();
+            GameData.MarketMax = r.ReadByte();
+            GameData.MarketFeePermil = r.ReadShort();
+            GameData.MarketTaxPercent = r.ReadByte();
+            GameData.MarketHours = r.ReadShort();
+            r.Cleanup();
+            GameData.MarketMessage = "";
+            GameWindow.Get<MarketWindow>().OpenWithBag();
+        }
+
+        private void OnMarketList(byte[] data)
+        {
+            var r = new MessageReader(data);
+            GameData.MarketTotal = r.ReadShort();
+            GameData.MarketPage = r.ReadShort();
+            int n = r.ReadShort();
+            GameData.MarketRows.Clear();
+            for (int i = 0; i < n; i++)
+                GameData.MarketRows.Add(new MarketRow { id = r.ReadLong(), slot = BagSlot.Read(r), price = r.ReadInt(), seller = r.ReadUTF(), secondsLeft = r.ReadInt() });
+            r.Cleanup();
+            GameData.Notify(DataKind.Market);
+        }
+
+        private void OnMarketMine(byte[] data)
+        {
+            var r = new MessageReader(data);
+            int n = r.ReadShort();
+            GameData.MarketMine.Clear();
+            for (int i = 0; i < n; i++)
+                GameData.MarketMine.Add(new MarketRow { id = r.ReadLong(), slot = BagSlot.Read(r), price = r.ReadInt(), secondsLeft = r.ReadInt(), status = r.ReadByte() });
+            r.Cleanup();
+            GameData.Notify(DataKind.Market);
+        }
+
+        private void OnMarketResult(byte[] data)
+        {
+            var r = new MessageReader(data);
+            bool ok = r.ReadByte() != 0;
+            string msg = r.ReadUTF();
+            r.Cleanup();
+            GameData.MarketMessage = (ok ? "<color=#7f7>" : "<color=#f77>") + msg + "</color>";
+            GameData.Notify(DataKind.Market);
         }
 
         private void OnActivityInfo(byte[] data)

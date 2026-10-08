@@ -60,6 +60,7 @@ public static class ContentSetupTool
         (7, "Hiệu Trưởng Đấu Sĩ Đường", "TsunadeBody", "tsunadeLeg"),
         (8, "Hiệu Trưởng Y Thuật Đường", "TsunadeBody", "tsunadeLeg"),
         (9, "Hiệu Trưởng Ảnh Sát Đường", "TsunadeBody", "tsunadeLeg"),
+        (10, "Chủ Chợ", "TsunadeBody", "tsunadeLeg"),   // GĐ9 — chợ ở 3 làng
     };
 
     [MenuItem("Tools/Naruto/5. Cấu hình hình ảnh quái & NPC (GĐ1)", priority = 5)]

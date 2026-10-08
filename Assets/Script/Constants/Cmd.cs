@@ -169,6 +169,16 @@
         public const short DUNGEON_STATE = 850;     // S→C byte state(2 đang chơi/3 thắng/4 thua/0 rời), int secs, short mobsLeft, UTF name
         public const short EVENT_STATE = 851;       // S→C byte type(1 boss/2 lôi đài), byte state(0 hết/1 báo trước/2 đang diễn ra), int secs, UTF text
         public const short ARENA_SCORE = 852;
+        // GĐ9 — CHỢ ("ô đồ" = BagSlot.Read)
+        public const short MARKET_SEARCH = 340;     // C→S byte loại(0 tất cả/1 vũ khí/2 trang phục/3 bình/4 nguyên liệu), byte sắp xếp(0 mới/1 rẻ), short trang, UTF từ khoá
+        public const short MARKET_LIST = 341;       // S→C short tổng, short trang, short n, [long id, ô đồ, int giá, UTF người bán, int giây còn lại]
+        public const short MARKET_SELL = 342;       // C→S int bagIndex, int qty, int giá
+        public const short MARKET_BUY = 343;        // C→S long id
+        public const short MARKET_CANCEL = 344;     // C→S long id
+        public const short MARKET_MINE_REQ = 345;   // C→S rỗng
+        public const short MARKET_MINE = 346;       // S→C short n, [long id, ô đồ, int giá, int giây còn lại, byte trạng thái]
+        public const short MARKET_RESULT = 347;     // S→C byte ok, UTF lời báo
+        public const short MARKET_OPEN = 348;       // S→C int npcId, byte tối đa món, short phí ‰, byte thuế %, short giờ treo
         // GĐ9 — hoạt động hằng ngày, sổ tay nhiệm vụ, mẹo theo cấp
         public const short QUEST_GUIDE_REQ = 724;   // C→S rỗng
         public const short QUEST_GUIDE = 725;       // S→C short n, [int questId, byte status(0 đang làm/1 có thể nhận/2 chờ trả), byte daily, UTF nơi đến]

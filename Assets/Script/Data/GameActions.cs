@@ -96,6 +96,16 @@ namespace Assets.Script.Data
         public static void ActivityClaim(int milestoneIndex) => Send(Cmd.ACTIVITY_CLAIM, w => w.WriteByte((byte)milestoneIndex));
         public static void QuestGuide() => Send(Cmd.QUEST_GUIDE_REQ, null);
 
+        // ---- GĐ9: chợ ----
+        /// <param name="category">0 tất cả · 1 vũ khí · 2 trang phục · 3 bình · 4 nguyên liệu</param>
+        /// <param name="sort">0 mới nhất · 1 rẻ nhất (theo giá 1 cái)</param>
+        public static void MarketSearch(int category, int sort, int page, string keyword) =>
+            Send(Cmd.MARKET_SEARCH, w => { w.WriteByte((byte)category); w.WriteByte((byte)sort); w.WriteShort((short)page); w.WriteUTF(keyword ?? ""); });
+        public static void MarketSell(int bagIndex, int qty, int price) => Send(Cmd.MARKET_SELL, w => { w.WriteInt(bagIndex); w.WriteInt(qty); w.WriteInt(price); });
+        public static void MarketBuy(long id) => Send(Cmd.MARKET_BUY, w => w.WriteLong(id));
+        public static void MarketCancel(long id) => Send(Cmd.MARKET_CANCEL, w => w.WriteLong(id));
+        public static void MarketMine() => Send(Cmd.MARKET_MINE_REQ, null);
+
         // ---- NPC ----
         public static void NpcTalk(int npcId) => Send(Cmd.NPC_TALK, w => w.WriteInt(npcId));
         public static void NpcSelect(int npcId, int index) => Send(Cmd.NPC_SELECT, w => { w.WriteInt(npcId); w.WriteByte((byte)index); });

@@ -21,7 +21,7 @@ namespace Assets.Script.UI.Windows
     {
         private RectTransform _equipGrid, _bagGrid;
         private TextMeshProUGUI _detail, _bagTitle, _money;
-        private Button _btnUse, _btnEquip, _btnSell, _btnPut, _btnTrade;
+        private Button _btnUse, _btnEquip, _btnSell, _btnPut, _btnTrade, _btnMarket;
         private int _selectedEquipSlot = -1;
 
         /// <summary>Ô túi đang chọn (bagIndex) — cửa sổ Thư dùng để đính kèm.</summary>
@@ -73,11 +73,12 @@ namespace Assets.Script.UI.Windows
             _btnSell = Btn(detailBg.transform, "Sell", "Bán", OnSell, 200, 44);
             _btnPut = Btn(detailBg.transform, "Put", "Cất rương", OnPut, 8, 6);
             _btnTrade = Btn(detailBg.transform, "Trade", "Đưa vào GD", OnTrade, 104, 6);
+            _btnMarket = Btn(detailBg.transform, "Market", "Treo bán", OnMarket, 200, 6);   // GĐ9: đang mở Chợ
 
             GameData.OnChanged += k =>
             {
                 if (k == DataKind.Inventory || k == DataKind.Equipment || k == DataKind.Templates || k == DataKind.Money
-                    || k == DataKind.Character || k == DataKind.Storage || k == DataKind.Trade) RefreshIfOpen();
+                    || k == DataKind.Character || k == DataKind.Storage || k == DataKind.Trade || k == DataKind.Market) RefreshIfOpen();
             };
         }
 
@@ -131,6 +132,7 @@ namespace Assets.Script.UI.Windows
             _btnSell.gameObject.SetActive(false);
             _btnPut.gameObject.SetActive(false);
             _btnTrade.gameObject.SetActive(false);
+            _btnMarket.gameObject.SetActive(false);
 
             if (_selectedEquipSlot > 0)
             {
@@ -152,6 +154,7 @@ namespace Assets.Script.UI.Windows
                 _btnSell.gameObject.SetActive(OpenShopNpc >= 0 && t.price > 0);
                 _btnPut.gameObject.SetActive(GameWindow.Get<StorageWindow>().IsOpen);
                 _btnTrade.gameObject.SetActive(GameData.TradeWith > 0 && !s.locked && t.tradeable);
+                _btnMarket.gameObject.SetActive(GameWindow.Get<MarketWindow>().IsOpen && !s.locked && t.tradeable);
             }
         }
 
@@ -196,6 +199,12 @@ namespace Assets.Script.UI.Windows
         {
             var s = GameData.BagAt(SelectedIndex);
             if (s != null) { GameActions.StoragePut(SelectedIndex, s.qty); SelectedIndex = -1; }
+        }
+
+        private void OnMarket()
+        {
+            var s = GameData.BagAt(SelectedIndex);
+            if (s != null) GameWindow.Get<MarketSellDialog>().Ask(SelectedIndex, s);
         }
 
         private void OnTrade()
