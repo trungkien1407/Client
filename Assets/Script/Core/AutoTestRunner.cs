@@ -189,8 +189,11 @@ namespace Assets.Script.Core
 
             // 4b. GĐ2–GĐ3 qua UI thật: Thợ Rèn → Nâng cấp / Rương đồ; bật-tắt Đồ sát (tài khoản test là GM)
             GameActions.Chat(1, "/item 10 1"); GameActions.Chat(1, "/item 40 5"); GameActions.Chat(1, "/yen 100000");
-            float y0 = NetworkPlayerManager.Instance.localPlayer.transform.position.y;
-            GameActions.Chat(1, $"/go -3.6 {y0.ToString(System.Globalization.CultureInfo.InvariantCulture)}");
+            // GĐ8: tới cạnh Thợ Rèn theo vị trí thật trong map (không ghi cứng toạ độ làng)
+            var smith = NetworkNpcManager.Instance != null ? NetworkNpcManager.Instance.FindByTemplate(2) : null;
+            var sp = smith != null ? smith.transform.position : NetworkPlayerManager.Instance.localPlayer.transform.position;
+            var inv = System.Globalization.CultureInfo.InvariantCulture;
+            GameActions.Chat(1, $"/go {(sp.x + 0.6f).ToString(inv)} {(sp.y + 0.05f).ToString(inv)}");
             yield return new WaitForSecondsRealtime(1.5f);
             GameHud.TalkToNearestNpc();
             yield return WaitUntil(() => dlg.IsOpen, 5);
@@ -234,6 +237,21 @@ namespace Assets.Script.Core
             CombatNetwork.Instance?.TryUseSkill(skill);
             yield return new WaitForSecondsRealtime(1.5f);
             Check("Bấm đánh không lỗi", _exceptions == before);
+
+            // 5b. GĐ8 — thế giới mới (map dựng từ tools/map_design.py): tên map (MAP_INFO), chữ chỉ đường ở cổng,
+            //     dịch chuyển qua vài map để chụp ảnh kiểm tra bằng mắt.
+            Check($"Nhận MAP_INFO → biết tên map đang đứng ({GameData.MapName})", !string.IsNullOrEmpty(GameData.MapName));
+            Check("Có chữ chỉ đường ở cổng (PortalMarker)", GameObject.Find("PortalMarker") != null);
+            foreach (var (mapId, mapName) in new[] { (7, "Thung Lũng Đá"), (13, "Y Thuật Đường"), (8, "Đầm Lầy Sương Mù"), (11, "Núi Tuyết") })
+            {
+                GameActions.Chat(1, "/tele " + mapId);
+                yield return WaitUntil(() => GameData.MapName == mapName, 8);
+                yield return new WaitForSecondsRealtime(1.5f); // chờ quái / NPC hiện + chữ tên map
+                Check($"Sang map {mapId} ({mapName}) — nhận đúng tên map", GameData.MapName == mapName);
+                yield return Shot("Map_" + mapId);
+            }
+            GameActions.Chat(1, "/tele 1");
+            yield return WaitUntil(() => GameData.MapName == "Làng Lá", 8);
 
             // 6. (chỉ khi có tham số -maint, đăng nhập bằng người chơi THƯỜNG — GM không bị đưa ra)
             //    Người kiểm thử hẹn bảo trì trên trang quản trị → thấy đồng hồ đếm ngược → hết giờ bị đưa ra với lý do.

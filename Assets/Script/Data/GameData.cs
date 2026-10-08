@@ -22,6 +22,8 @@ namespace Assets.Script.Data
         // Hiệu ứng (GĐ4): "stun" / "slow" / "burn" hoặc rỗng
         public string effect; public float effectChance; public int effectMs, effectValue;
         public int levelRequire; // GĐ7: cấp nhân vật tối thiểu để học / nâng lên cấp này (0 = không giới hạn)
+        // GĐ8 — chiêu hỗ trợ (type 3) + đòn kết liễu
+        public int healBase, buffDef, buffMs; public float healPct, buffDmgPct, buffCrit, executeHpPct, executeBonus;
     }
 
     public class SkillTpl
@@ -153,6 +155,10 @@ namespace Assets.Script.Data
         // ---- Bảo trì (SERVER_NOTICE) ----
         public static float MaintEndTime;            // > Time.time = đang đếm ngược bảo trì (hiện ở khung sự kiện)
         public static string KickReason;             // server báo "bị đưa ra vì bảo trì" ngay trước khi ngắt → hiện thay cho "mất kết nối"
+
+        // ---- Map hiện tại (MAP_INFO, GĐ8) ----
+        public static string MapName = "";
+        public static int MapLevelMin, MapLevelMax;  // 0 = map không có quái (làng, trường)
 
         /// <summary>Bắn ra khi có thay đổi. Tham số = loại dữ liệu vừa đổi.</summary>
         public static event Action<DataKind> OnChanged;

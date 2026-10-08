@@ -39,6 +39,7 @@ namespace Assets.Script.UI
         private Image _expFill;
         private TextMeshProUGUI _expText, _money, _banner, _eventText, _partyText, _stun, _questText;
         private Button _pkBtn, _mailBtn, _interactBtn, _zoneBtn;
+        private string _shownMap;
         private int _shownZone = -2;
         private float _bannerUntil;
         private PlayerTargeting _targeting;
@@ -67,10 +68,12 @@ namespace Assets.Script.UI
             UpdateEventPanel();
             UpdateInteract();
             _stun.gameObject.SetActive(LocalPlayerState.IsStunned);
-            if (_shownZone != LocalPlayerState.ZoneId)
+            if (_shownZone != LocalPlayerState.ZoneId || _shownMap != GameData.MapName)
             {
                 _shownZone = LocalPlayerState.ZoneId;
-                _zoneBtn.SetLabel(_shownZone == 255 ? "Khu riêng" : $"Khu {_shownZone + 1} (đổi)");
+                _shownMap = GameData.MapName;
+                string zone = _shownZone == 255 ? "Khu riêng" : $"Khu {_shownZone + 1}";
+                _zoneBtn.SetLabel(string.IsNullOrEmpty(_shownMap) ? zone + " (đổi)" : $"{_shownMap} · {zone}"); // GĐ8: tên map
             }
         }
 

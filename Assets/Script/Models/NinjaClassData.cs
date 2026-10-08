@@ -4,10 +4,10 @@ using UnityEngine.AddressableAssets;
 [CreateAssetMenu(fileName = "NewNinjaClass", menuName = "Game Data/Ninja Class")]
 public class NinjaClassData : ScriptableObject
 {
-    public int classId;          // 1: Kiếm, 2: Tiêu, 3: Kunai
-    public string className;     // "Phái Kiếm"
-    public string element;       // "Hỏa"
-    public string academy;       // "Làng Lá"
+    public int classId;          // 1: Đấu sĩ (Naruto), 2: Hỗ trợ (Sakura), 3: Sát thủ (Sasuke) — khớp class_type server
+    public string className;     // "Đấu Sĩ"
+    public string element;       // vai trò, hiện sau chữ "Hệ:" ở màn tạo nhân vật
+    public string academy;       // trường của hệ (Đấu Sĩ Đường...)
 
     [TextArea(3, 5)]
     public string description;

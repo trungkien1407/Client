@@ -117,6 +117,20 @@ namespace Assets.Script.Combat
             var local = NetworkPlayerManager.Instance != null ? NetworkPlayerManager.Instance.localPlayer : null;
             if (local == null) return;
 
+            // GĐ8 — chiêu hỗ trợ (hồi máu / tăng sức mạnh): dùng lên bản thân + đồng đội gần, KHÔNG cần mục tiêu
+            if (Data.GameData.Skills.TryGetValue(skillTemplateId, out var stpl) && stpl.type == 3)
+            {
+                _nextAttackTime = Time.time + LocalAttackGap;
+                var sw = new MessageWriter();
+                sw.WriteInt(skillTemplateId);
+                sw.WriteByte(2);                       // 2 = bản thân / nhóm
+                sw.WriteInt(LocalPlayerState.Id);
+                NetworkManager.Instance.Send(Cmd.USE_SKILL, sw.ToArray());
+                sw.Cleanup();
+                if (local.TryGetComponent(out PlayerVisualController svc)) svc.PlayActionOnce("Punch_Combo"); // [CẦN ĐIỀN khi có art] anim niệm chú
+                return;
+            }
+
             if (_targeting == null) _targeting = FindAnyObjectByType<PlayerTargeting>();
             ITargetable target = _targeting != null ? _targeting.currentTarget : null;
 
@@ -146,7 +160,7 @@ namespace Assets.Script.Combat
                 default: return; // Item không đánh được
             }
 
-            // Tầm chiêu (GĐ7: Kiếm cận chiến 1,8 · Tiêu 6 · Hoả 5 — dữ liệu từ GAME_DATA_SKILLS). Xa quá thì báo, không gửi
+            // Tầm chiêu (GĐ8: Đấu sĩ 1,8 · Hỗ trợ 5 · Sát thủ 2 — dữ liệu từ GAME_DATA_SKILLS). Xa quá thì báo, không gửi
             // (server cũng chặn — trước đây nhân vật diễn đòn suông mà người chơi không biết vì sao không trúng).
             float range = SkillRange(skillTemplateId);
             var tt = target.GetTransform();

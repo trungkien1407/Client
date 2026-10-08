@@ -26,6 +26,8 @@ namespace Assets.Script.Player
         public static bool IsStunned => UnityEngine.Time.time < StunnedUntil;
         /// <summary>Đang bị LÀM CHẬM tới thời điểm này (chỉ để hiển thị; tốc độ thật do server kiểm).</summary>
         public static float SlowedUntil;
+        public static float BuffedUntil;   // GĐ8: đang được tăng sức mạnh (Cổ Vũ / Thiết Thể / Ảnh Bộ)
+        public static bool IsBuffed => UnityEngine.Time.time < BuffedUntil;
 
         /// <summary>Bắn ra mỗi khi có chỉ số thay đổi (UI khác muốn nghe thì đăng ký).</summary>
         public static event Action OnChanged;
@@ -52,7 +54,7 @@ namespace Assets.Script.Player
 
         public static void Reset()
         {
-            Id = -1; IsDead = false; StunnedUntil = 0; SlowedUntil = 0;
+            Id = -1; IsDead = false; StunnedUntil = 0; SlowedUntil = 0; BuffedUntil = 0;
         }
 
         public static void RefreshHud()

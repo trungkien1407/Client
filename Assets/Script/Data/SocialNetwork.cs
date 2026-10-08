@@ -51,6 +51,36 @@ namespace Assets.Script.Data
             Listen(Cmd.ZONE_LIST, OnZoneList);
             // GĐ6 — trang quản trị: thông báo + bảo trì
             Listen(Cmd.SERVER_NOTICE, OnServerNotice);
+            // GĐ8 — tên map + cổng
+            Listen(Cmd.MAP_INFO, OnMapInfo);
+        }
+
+        /// <summary>
+        /// MAP_INFO (GĐ8, mỗi lần vào khu): UTF tên map, short cấp quái thấp, short cao (0 = không có quái), byte n,
+        /// [float x, float y, short mapId đích, UTF tên map đích, byte kiểu 0 mép trái / 1 mép phải / 2 cổng giữa] x n.
+        /// Vào map mới → hiện tên map giữa màn hình; cổng nào cũng có chữ chỉ đường (PortalMarkers).
+        /// </summary>
+        private void OnMapInfo(byte[] data)
+        {
+            var r = new MessageReader(data);
+            string name = r.ReadUTF();
+            int lo = r.ReadShort(), hi = r.ReadShort();
+            int n = r.ReadByte();
+            var portals = new List<Map.PortalMarkers.Info>(n);
+            for (int i = 0; i < n; i++)
+            {
+                float x = r.ReadFloat(), y = r.ReadFloat();
+                r.ReadShort(); // mapId đích (chưa dùng)
+                string target = r.ReadUTF();
+                int side = r.Available() > 0 ? r.ReadByte() : 2;
+                portals.Add(new Map.PortalMarkers.Info { pos = new Vector2(x, y), target = target, side = side });
+            }
+            r.Cleanup();
+            bool newMap = GameData.MapName != name;
+            GameData.MapName = name; GameData.MapLevelMin = lo; GameData.MapLevelMax = hi;
+            if (newMap && !string.IsNullOrEmpty(name))
+                UI.GameHud.Banner(lo > 0 ? name + "\n<size=18><color=#ddd>Quái cấp " + lo + "–" + hi + "</color></size>" : name, 2.5f);
+            Map.PortalMarkers.Show(portals);
         }
 
         // =====================================================================
@@ -322,16 +352,16 @@ namespace Assets.Script.Data
         // GĐ4 — HIỆU ỨNG / PHÓ BẢN / SỰ KIỆN
         // =====================================================================
 
-        private static readonly string[] EffectNames = { "", "Choáng", "Chậm", "Bỏng" };
-        private static readonly Color[] EffectColors = { Color.white, new Color(1f, 0.9f, 0.2f), new Color(0.4f, 0.8f, 1f), new Color(1f, 0.45f, 0.1f) };
+        private static readonly string[] EffectNames = { "", "Choáng", "Chậm", "Bỏng", "Tăng sức mạnh" };
+        private static readonly Color[] EffectColors = { Color.white, new Color(1f, 0.9f, 0.2f), new Color(0.4f, 0.8f, 1f), new Color(1f, 0.45f, 0.1f), new Color(0.5f, 1f, 0.5f) };
 
-        /// <summary>EFFECT: byte targetType(0 quái/1 người), int targetId, byte effect(1 choáng/2 chậm/3 bỏng), int durationMs</summary>
+        /// <summary>EFFECT: byte targetType(0 quái/1 người), int targetId, byte effect(1 choáng/2 chậm/3 bỏng/4 tăng sức mạnh — GĐ8), int durationMs</summary>
         private void OnEffect(byte[] data)
         {
             var r = new MessageReader(data);
             int type = r.ReadByte(), id = r.ReadInt(), effect = r.ReadByte(), ms = r.ReadInt();
             r.Cleanup();
-            if (effect < 1 || effect > 3) return;
+            if (effect < 1 || effect >= EffectNames.Length) return;
 
             Transform t = null;
             if (type == 1)
@@ -342,6 +372,7 @@ namespace Assets.Script.Data
                         ? NetworkPlayerManager.Instance.localPlayer.transform : null;
                     if (effect == 1) LocalPlayerState.StunnedUntil = Time.time + ms / 1000f;
                     if (effect == 2) LocalPlayerState.SlowedUntil = Time.time + ms / 1000f;
+                    if (effect == 4) LocalPlayerState.BuffedUntil = Time.time + ms / 1000f;
                 }
                 else
                 {

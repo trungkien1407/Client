@@ -13,10 +13,10 @@ MonoBehaviour:
   m_Name: Satthu
   m_EditorClassIdentifier: 
   classId: 3
-  className: satthu
-  element: Hoa
-  academy: aaa
-  description: satthu
+  className: "S\u00e1t Th\u1ee7"
+  element: "S\u00e1t th\u1ee7 (ch\u00ed m\u1ea1ng, n\u00e9)"
+  academy: "\u1ea2nh S\u00e1t \u0110\u01b0\u1eddng"
+  description: "Ra \u0111\u00f2n nhanh trong b\u00f3ng t\u1ed1i. \u0110\u00e1nh g\u1ea7n b\u1eb1ng kunai, ch\u00ed m\u1ea1ng v\u00e0 n\u00e9 cao nh\u1ea5t, k\u1ebb \u0111\u1ecbch c\u00e0ng \u00edt m\u00e1u c\u00e0ng \u0103n \u0111\u00f2n \u0111au. M\u00e1u th\u1ea5p."
   spinePrefab:
     m_AssetGUID: 9e518a976322df04abb5a1e4c497db7f
     m_SubObjectName: 

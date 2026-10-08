@@ -167,6 +167,14 @@ namespace Assets.Script.Manager
             return entity;
         }
 
+        /// <summary>NPC đầu tiên thuộc loại templateId trong map hiện tại (null nếu không có) — VD tìm Thợ Rèn ở làng đang đứng.</summary>
+        public NpcEntity FindByTemplate(int templateId)
+        {
+            foreach (var e in activeNpcs.Values)
+                if (e != null && e.TemplateId == templateId) return e;
+            return null;
+        }
+
         void OnDestroy()
         {
             if (NetworkEventDispatcher.Instance != null)

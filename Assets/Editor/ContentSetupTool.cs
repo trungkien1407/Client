@@ -15,16 +15,35 @@ using UnityEngine.AddressableAssets;
 /// </summary>
 public static class ContentSetupTool
 {
-    // templateId (khớp monster_template.id server), tên, spriteKey, scale
-    private static readonly (short id, string name, string key, float scale)[] MOBS =
+    // templateId (khớp monster_template.id server), tên, spriteKey, scale, màu nhuộm (GĐ8: phân biệt quái mượn chung hình)
+    // GĐ8: dòng 8–24 sinh từ repo server: python tools/gen_content.py (in ra bảng CLIENT_MOBS) — sửa ở đó rồi dán lại.
+    private static readonly (short id, string name, string key, float scale, string tint)[] MOBS =
     {
-        (1, "Mộc Nhân", "0", 1f),
-        (2, "Ốc Sên", "3", 1f),
-        (3, "Cóc Lục", "3", 1.15f),
-        (4, "Ốc Sên Tinh Anh", "3", 1.35f),
-        (5, "Cóc Chúa", "3", 1.8f),
-        (6, "Ốc Vương (boss phó bản)", "3", 2.0f),   // GĐ4 — [CẦN ĐIỀN khi có art] đổi spriteKey
-        (7, "Cửu Vĩ Ốc (boss thế giới)", "3", 2.6f), // GĐ4 — [CẦN ĐIỀN khi có art] đổi spriteKey
+        (1, "Mộc Nhân", "0", 1f, "#FFFFFF"),
+        (2, "Ốc Sên", "3", 1f, "#FFFFFF"),
+        (3, "Cóc Lục", "3", 1.15f, "#C8F0A0"),
+        (4, "Ốc Sên Tinh Anh", "3", 1.35f, "#FFE08A"),
+        (5, "Cóc Chúa", "3", 1.8f, "#9FD07A"),
+        (6, "Ốc Vương (boss phó bản)", "3", 2.0f, "#FFB0B0"),   // GĐ4 — [CẦN ĐIỀN khi có art] đổi spriteKey
+        (7, "Cửu Vĩ Ốc (boss thế giới)", "3", 2.6f, "#FF9050"), // GĐ4 — [CẦN ĐIỀN khi có art] đổi spriteKey
+        // ---- GĐ8: nội dung cấp 5 → 30 — [CẦN ĐIỀN khi có art] mỗi loại 1 bộ hình riêng ----
+        (8, "Cóc Độc", "3", 1.2f, "#7CFC5A"),
+        (9, "Sói Rừng", "3", 1.2f, "#A0A0A0"),
+        (10, "Khỉ Đá", "0", 1.1f, "#C08850"),
+        (11, "Sói Đầu Đàn", "3", 1.45f, "#707070"),
+        (12, "Rắn Đá", "3", 1.15f, "#B0B060"),
+        (13, "Dơi Hang", "3", 1.0f, "#8060C0"),
+        (14, "Nhện Độc", "3", 1.45f, "#50C050"),
+        (15, "Nhện Chúa", "3", 2.0f, "#308030"),
+        (16, "Ếch Độc", "3", 1.2f, "#40D0B0"),
+        (17, "Cá Sấu Đầm", "3", 1.3f, "#608040"),
+        (18, "Bọ Cạp", "3", 1.2f, "#FF8040"),
+        (19, "Thuỷ Quái", "3", 1.5f, "#4080FF"),
+        (20, "Sói Tuyết", "3", 1.25f, "#A0C8FF"),
+        (21, "Gấu Tuyết", "0", 1.3f, "#B8D0FF"),
+        (22, "Yêu Hồ", "3", 1.5f, "#FFA020"),
+        (23, "Băng Long", "3", 2.3f, "#60B0FF"),
+        (24, "Xà Vương", "3", 2.2f, "#A07030"),
     };
 
     // templateId (npc_template.id), tên mặc định, sprite đầu, sprite chân
@@ -32,6 +51,12 @@ public static class ContentSetupTool
     {
         (1, "Hokage", "TsunadeBody", "tsunadeLeg"),
         (2, "Thợ Rèn", "TsunadeBody", "tsunadeLeg"),
+        // GĐ8 — [CẦN ĐIỀN khi có art] hình riêng cho từng NPC
+        (5, "Trưởng Làng Đá", "TsunadeBody", "tsunadeLeg"),
+        (6, "Trưởng Làng Tuyết", "TsunadeBody", "tsunadeLeg"),
+        (7, "Hiệu Trưởng Đấu Sĩ Đường", "TsunadeBody", "tsunadeLeg"),
+        (8, "Hiệu Trưởng Y Thuật Đường", "TsunadeBody", "tsunadeLeg"),
+        (9, "Hiệu Trưởng Ảnh Sát Đường", "TsunadeBody", "tsunadeLeg"),
     };
 
     [MenuItem("Tools/Naruto/5. Cấu hình hình ảnh quái & NPC (GĐ1)", priority = 5)]
@@ -50,6 +75,8 @@ public static class ContentSetupTool
             e.mobName = m.name;
             if (string.IsNullOrEmpty(e.spriteKey)) e.spriteKey = m.key;
             if (e.scale <= 0 || Mathf.Approximately(e.scale, 1f)) e.scale = m.scale;
+            // Màu nhuộm chỉ đặt khi quái còn mượn hình (spriteKey = bảng) — có art riêng rồi thì giữ màu bạn chỉnh tay
+            if (e.spriteKey == m.key && ColorUtility.TryParseHtmlString(m.tint, out var tint)) e.tint = tint;
         }
         EditorUtility.SetDirty(mobDb);
 

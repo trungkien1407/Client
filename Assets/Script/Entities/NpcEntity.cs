@@ -18,6 +18,8 @@ namespace Assets.Script.Entities
 
         [Header("Targeting UI")]
         private int npcId;
+        /// <summary>Loại NPC (npc_template.id): 1 Hokage, 2 Thợ Rèn... — cùng 1 loại có thể đứng ở nhiều làng (GĐ8).</summary>
+        public int TemplateId { get; private set; }
         [SerializeField] private GameObject targetArrow;
         [SerializeField] private TextMeshPro npcNameText;
         [SerializeField] private float namePushUpDistance = 0.2f;
@@ -39,6 +41,7 @@ namespace Assets.Script.Entities
         public void Setup(NpcDatabaseSO.NpcConfig config, int npcId, SpriteAtlas globalAtlas)
         {
             gameObject.name = $"NPC_{config.defaultName}_{config.templateId}";
+            TemplateId = config.templateId;
             npcNameText.text = config.defaultName;
             this.npcId = npcId;
 

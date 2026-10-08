@@ -13,10 +13,10 @@ MonoBehaviour:
   m_Name: Dausi
   m_EditorClassIdentifier: 
   classId: 1
-  className: Dausi
-  element: Hoa
-  academy: aaa
-  description: 'Dau si '
+  className: "\u0110\u1ea5u S\u0129"
+  element: "\u0110\u1ea5u s\u0129 (tr\u00e2u, c\u1eadn chi\u1ebfn)"
+  academy: "\u0110\u1ea5u S\u0129 \u0110\u01b0\u1eddng"
+  description: "\u0110\u1ee9ng \u0111\u1ea7u \u0111\u1ed9i h\u00ecnh. M\u00e1u v\u00e0 ph\u00f2ng th\u1ee7 cao nh\u1ea5t, \u0111\u00e1nh g\u1ea7n b\u1eb1ng ki\u1ebfm, chi\u00eau ch\u00e9m di\u1ec7n r\u1ed9ng g\u00e2y cho\u00e1ng."
   spinePrefab:
     m_AssetGUID: e5a21db0fcb04d14b94dfd0fe13f713f
     m_SubObjectName: 

@@ -55,7 +55,7 @@ namespace Assets.Script.Entities
             _currentState = MobState.Idle;
             _currentFrameIndex = 0;
             _attackAnimUntil = 0f;
-            if (_spriteRenderer != null) _spriteRenderer.color = Color.white;
+            if (_spriteRenderer != null) _spriteRenderer.color = BaseColor;
             UpdateUI();
         }
 
@@ -80,8 +80,11 @@ namespace Assets.Script.Entities
             UpdateUI();
             OnHpChanged?.Invoke(currentHp, maxHp);
             ChangeState(MobState.Dead);
-            if (_spriteRenderer != null) _spriteRenderer.color = new Color(1f, 1f, 1f, 0.6f);
+            if (_spriteRenderer != null) { var c = BaseColor; c.a = 0.6f; _spriteRenderer.color = c; }
         }
+
+        /// <summary>Màu nhuộm của loại quái này (MobVisualData.tint, GĐ8); chưa đặt → trắng.</summary>
+        private Color BaseColor => _visualData != null && _visualData.tint.a > 0f ? _visualData.tint : Color.white;
 
         private string SpriteKey => _visualData != null && !string.IsNullOrEmpty(_visualData.spriteKey) ? _visualData.spriteKey : templateId.ToString();
 
@@ -139,6 +142,7 @@ namespace Assets.Script.Entities
         {
             this._visualData = visualData;
             _isReady = false;
+            if (_spriteRenderer != null) _spriteRenderer.color = BaseColor;
             float s = visualData != null && visualData.scale > 0 ? visualData.scale : 1f;
             transform.localScale = new Vector3(s, s, 1f);
 

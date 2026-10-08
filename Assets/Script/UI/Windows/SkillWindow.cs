@@ -49,10 +49,12 @@ namespace Assets.Script.UI.Windows
                 var next = s.Level(cur + 1);
                 string info = $"<b>{s.name}</b>  <color=#fd5>Cấp {cur}/{s.maxLevel}</color>\n<size=13><color=#bbb>{s.description}</color></size>\n";
                 bool passive = s.type == 2; // Nội Công Tâm Pháp: bị động, không đánh
+                bool support = s.type == 3; // GĐ8: hồi máu / tăng sức mạnh — hiện mô tả + MP + hồi chiêu
                 bool locked = next != null && next.levelRequire > GameData.Me.level; // GĐ7: chưa đủ cấp nhân vật
                 if (curLv != null) info += passive ? $"<size=14>Hiện tại: {curLv.info}</size>\n"
-                    : $"<size=14>Hiện tại: {curLv.damage} sát thương · {curLv.manaUse} MP · hồi {curLv.coolDown / 1000f:0.#}s{(curLv.aoe > 0 ? " · diện rộng" : "")}</size>\n";
-                if (next != null) info += passive ? $"<size=14><color=#7cf>Cấp kế: {next.info}</color></size>"
+                    : support ? $"<size=14>Hiện tại: {curLv.info} · {curLv.manaUse} MP · hồi {curLv.coolDown / 1000f:0.#}s</size>\n"
+                    : $"<size=14>Hiện tại: {curLv.damage} sát thương · {curLv.manaUse} MP · hồi {curLv.coolDown / 1000f:0.#}s{(curLv.aoe > 0 ? " · diện rộng" : "")}{(curLv.executeHpPct > 0 ? $" · địch dưới {curLv.executeHpPct * 100:0}% máu +{curLv.executeBonus * 100:0}%" : "")}</size>\n";
+                if (next != null) info += passive || support ? $"<size=14><color=#7cf>Cấp kế: {next.info}</color></size>"
                     : $"<size=14><color=#7cf>Cấp kế: {next.damage} sát thương · {next.manaUse} MP</color></size>";
                 if (locked) info += $"  <size=14><color=#f77>(cần cấp {next.levelRequire})</color></size>";
                 var text = UIKit.Text("Info", row.transform, info, 16, TextAlignmentOptions.TopLeft);
@@ -65,7 +67,7 @@ namespace Assets.Script.UI.Windows
                     ((RectTransform)up.transform).Place(new Vector2(1, 1), new Vector2(1, 1), new Vector2(-8, -6), new Vector2(190, 34), new Vector2(1, 1));
                     up.interactable = GameData.Me.skillPoints > 0 && !locked;
                 }
-                if (cur > 0 && s.type == 1) // chỉ chiêu chủ động mới gán phím
+                if (cur > 0 && (s.type == 1 || s.type == 3)) // chiêu chủ động + chiêu hỗ trợ mới gán phím (bị động thì không)
                 {
                     for (int k = 0; k < 5; k++)
                     {

@@ -21,3 +21,23 @@ MonoBehaviour:
     defaultName: "Th\u1EE3 R\xE8n"
     headSpriteName: TsunadeBody
     legSpriteName: tsunadeLeg
+  - templateId: 5
+    defaultName: "Tr\u01B0\u1EDFng L\xE0ng \u0110\xE1"
+    headSpriteName: TsunadeBody
+    legSpriteName: tsunadeLeg
+  - templateId: 6
+    defaultName: "Tr\u01B0\u1EDFng L\xE0ng Tuy\u1EBFt"
+    headSpriteName: TsunadeBody
+    legSpriteName: tsunadeLeg
+  - templateId: 7
+    defaultName: "Hi\u1EC7u Tr\u01B0\u1EDFng \u0110\u1EA5u S\u0129 \u0110\u01B0\u1EDDng"
+    headSpriteName: TsunadeBody
+    legSpriteName: tsunadeLeg
+  - templateId: 8
+    defaultName: "Hi\u1EC7u Tr\u01B0\u1EDFng Y Thu\u1EADt \u0110\u01B0\u1EDDng"
+    headSpriteName: TsunadeBody
+    legSpriteName: tsunadeLeg
+  - templateId: 9
+    defaultName: "Hi\u1EC7u Tr\u01B0\u1EDFng \u1EA2nh S\xE1t \u0110\u01B0\u1EDDng"
+    headSpriteName: TsunadeBody
+    legSpriteName: tsunadeLeg

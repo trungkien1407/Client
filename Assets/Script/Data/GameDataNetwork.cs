@@ -86,6 +86,22 @@ namespace Assets.Script.Data
                         if (j < t.levels.Count) t.levels[j].levelRequire = req;
                     }
                 }
+            // GĐ8 — thêm cuối gói lần 2: hồi máu / tăng sức mạnh / kết liễu từng cấp chiêu
+            if (r.Available() > 0)
+                foreach (var t in order)
+                {
+                    int cnt = r.ReadByte();
+                    for (int j = 0; j < cnt; j++)
+                    {
+                        int healBase = r.ReadInt(); float healPct = r.ReadFloat(), buffDmg = r.ReadFloat();
+                        int buffDef = r.ReadInt(); float buffCrit = r.ReadFloat(); int buffMs = r.ReadInt();
+                        float exHp = r.ReadFloat(), exBonus = r.ReadFloat();
+                        if (j >= t.levels.Count) continue;
+                        var l = t.levels[j];
+                        l.healBase = healBase; l.healPct = healPct; l.buffDmgPct = buffDmg; l.buffDef = buffDef;
+                        l.buffCrit = buffCrit; l.buffMs = buffMs; l.executeHpPct = exHp; l.executeBonus = exBonus;
+                    }
+                }
             r.Cleanup();
             GameData.Notify(DataKind.Templates);
         }

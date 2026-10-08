@@ -163,6 +163,7 @@
         public const short NPC_TALK = 801;          // C→S int npcId
         public const short NPC_MENU = 802;          // S→C int npcId, UTF tên, UTF lời thoại, byte n, [UTF lựa chọn]
         public const short NPC_SELECT = 803;        // C→S int npcId, byte index
+        public const short MAP_INFO = 804;          // S→C (GĐ8) UTF tên map, short cấp quái thấp, short cao, byte n, [float x, float y, short mapId đích, UTF tên đích, byte kiểu 0 trái/1 phải/2 giữa]
 
         // ---- GĐ4: phó bản / sự kiện ----
         public const short DUNGEON_STATE = 850;     // S→C byte state(2 đang chơi/3 thắng/4 thua/0 rời), int secs, short mobsLeft, UTF name
