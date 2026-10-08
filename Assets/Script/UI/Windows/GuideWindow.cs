@@ -48,7 +48,11 @@ namespace Assets.Script.UI.Windows
              "Mặc đồ trong <b>Túi (I)</b>: 9 ô trang bị. Đồ rơi từ quái, mua ở cửa hàng, hoặc thưởng nhiệm vụ.\n\n" +
              "<b>Thợ Rèn</b> (có ở mọi làng) nâng cấp đồ +1 → +16 bằng đá cường hoá + yên. Cấp càng cao càng dễ thất bại, thất bại có thể <b>tụt cấp</b> — " +
              "dùng <b>Bùa bảo hộ</b> để giữ cấp. Tên đồ đổi màu theo cấp. Thợ Rèn còn giữ <b>Rương đồ</b> cho ngươi.\n\n" +
-             "<b>Đồ khoá</b> (thưởng nhiệm vụ, mua bằng xu/lượng) không giao dịch được."),
+             "<b>Đồ khoá</b> (thưởng nhiệm vụ, mua bằng xu/lượng) không giao dịch được.\n\n" +
+             "<b>Phẩm chất</b>: trang bị nhặt từ quái được tăng ngẫu nhiên <b>0–10%</b> mọi chỉ số gốc (chữ xanh \"+N%\" dưới tên; 8% trở lên màu cam, rất hiếm).\n" +
+             "<b>Khảm ngọc</b> (Thợ Rèn → Khảm ngọc): Xích Ngọc +sát thương · Lục Ngọc +HP · Lam Ngọc +MP · Hoàng Ngọc +phòng thủ, mỗi loại 3 cấp. " +
+             "Đồ dưới cấp 15 có 1 lỗ, từ cấp 15 có 2 lỗ. 3 viên cùng cấp <b>ghép</b> thành 1 viên cấp cao hơn. Tháo ngọc ra vẫn giữ lại ngọc. " +
+             "Ngọc khoá khảm vào đồ thường thì đồ thành đồ khoá."),
             ("Phó bản & hoạt động ngày",
              "<b>Phó bản</b>: khu riêng cho nhóm, hạ hết quái trước khi hết giờ. 2 lượt/ngày. Hang Ốc Sên (cấp 5, Hokage), Động Xà Vương (cấp 18, Trưởng Làng Đá).\n\n" +
              "<b>Hoạt động (H)</b>: điểm danh, nhiệm vụ ngày, phó bản, boss, lôi đài, diệt quái, nâng cấp... mỗi việc cho điểm. " +

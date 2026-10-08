@@ -23,6 +23,31 @@ namespace Assets.Script.Data
             Listen(Cmd.MARKET_LIST, OnMarketList);
             Listen(Cmd.MARKET_MINE, OnMarketMine);
             Listen(Cmd.MARKET_RESULT, OnMarketResult);
+            Listen(Cmd.GEM_OPEN, OnGemOpen);
+            Listen(Cmd.GEM_RESULT, OnGemResult);
+        }
+
+        // ---- KHẢM NGỌC ----
+        private void OnGemOpen(byte[] data)
+        {
+            var r = new MessageReader(data);
+            GameData.GemNpc = r.ReadInt();
+            GameData.GemSocketCost = r.ReadShort();
+            GameData.GemRemoveCost = r.ReadShort();
+            GameData.GemCombineCost = r.ReadShort();
+            r.Cleanup();
+            GameData.GemMessage = "";
+            GameWindow.Open<GemWindow>();
+        }
+
+        private void OnGemResult(byte[] data)
+        {
+            var r = new MessageReader(data);
+            bool ok = r.ReadByte() != 0;
+            string msg = r.ReadUTF();
+            r.Cleanup();
+            GameData.GemMessage = (ok ? "<color=#7f7>" : "<color=#f77>") + msg + "</color>";
+            GameData.Notify(DataKind.Gem);
         }
 
         // ---- CHỢ ----

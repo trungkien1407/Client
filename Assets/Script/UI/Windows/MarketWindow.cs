@@ -116,7 +116,8 @@ namespace Assets.Script.UI.Windows
                 string qty = m.slot.qty > 1 ? $" <color=#fd5>x{m.slot.qty}</color>" : "";
                 string each = m.slot.qty > 1 ? $" <color=#9aa>({m.price / m.slot.qty:N0}/cái)</color>" : "";
                 // 3 dòng: tên · giá · người bán + thời gian (cửa sổ hẹp để đặt cạnh Hành trang)
-                UIKit.Text("T", row.transform, $"{GameData.ColoredName(m.slot.tpl, m.slot.level)}{qty}\n" +
+                string extra = (m.slot.bonus > 0 ? $" <color=#6fd0ff>+{m.slot.bonus}%</color>" : "") + (m.slot.gems.Count > 0 ? $" <color=#e080ff>{m.slot.gems.Count} ngọc</color>" : "");
+                UIKit.Text("T", row.transform, $"{GameData.ColoredName(m.slot.tpl, m.slot.level)}{extra}{qty}\n" +
                     $"<color={(afford ? "#fd5" : "#f77")}>{m.price:N0} yên</color><size=13>{each}</size>\n" +
                     $"<size=12><color=#9aa>{m.seller} · còn {Left(m.secondsLeft)}</color></size>", 14, TextAlignmentOptions.TopLeft)
                     .rectTransform.Fill(8, 92, 3, 2);

@@ -346,6 +346,41 @@ namespace Assets.Script.Core
             }
             mk.Hide(); GameWindow.Get<InventoryWindow>().Hide();
 
+            // 5e. GĐ9 — Phẩm chất + khảm ngọc: Găng Tinh Thiết 10% → Thợ Rèn → Khảm ngọc → khảm Xích Ngọc → mô tả có phẩm chất + ngọc
+            GameActions.Chat(1, "/lv 20");
+            GameActions.Chat(1, "/item 56 1");
+            GameActions.Chat(1, "/item 90 2");
+            yield return WaitUntil(() => GameData.Inventory.Exists(x => x.tpl == 56) && GameData.Inventory.Exists(x => x.tpl == 90), 5);
+            GameActions.Chat(1, "/bonus " + GameData.Inventory.FindIndex(x => x.tpl == 56) + " 9");
+            yield return WaitUntil(() => GameData.Inventory.Exists(x => x.tpl == 56 && x.bonus == 9), 5);
+            Check("Ô đồ nhận phẩm chất 9% (định dạng ô đồ mới)", GameData.Inventory.Exists(x => x.tpl == 56 && x.bonus == 9));
+            var smith2 = NetworkNpcManager.Instance != null ? NetworkNpcManager.Instance.FindByTemplate(2) : null;
+            if (smith2 != null)
+            {
+                var sp3 = smith2.transform.position;
+                GameActions.Chat(1, $"/go {(sp3.x + 0.6f).ToString(inv)} {(sp3.y + 0.05f).ToString(inv)}");
+                yield return new WaitForSecondsRealtime(1.5f);
+            }
+            GameHud.TalkToNearestNpc();
+            yield return WaitUntil(() => dlg.IsOpen, 5);
+            dlg.Choose("Khảm ngọc");
+            var gw2 = GameWindow.Get<GemWindow>();
+            yield return WaitUntil(() => gw2.IsOpen, 5);
+            Check("Thợ Rèn → mở cửa sổ Khảm ngọc", gw2.IsOpen);
+            int eqI = GameData.Inventory.FindIndex(x => x.tpl == 56), gemI = GameData.Inventory.FindIndex(x => x.tpl == 90);
+            if (eqI >= 0 && gemI >= 0) GameActions.GemSocket(eqI, gemI);
+            yield return WaitUntil(() => GameData.Inventory.Exists(x => x.tpl == 56 && x.gems.Count == 1), 5);
+            Check("Khảm Xích Ngọc vào Găng → ô đồ có 1 ngọc", GameData.Inventory.Exists(x => x.tpl == 56 && x.gems.Count == 1));
+            yield return Shot("Gem");
+            gw2.Hide();
+            var gl = GameData.Inventory.Find(x => x.tpl == 56);
+            string desc = gl != null ? InventoryWindow.Describe(gl) : "";
+            Check("Mô tả trang bị có 'Phẩm chất' + 'Lỗ khảm 1/2'", desc.Contains("Phẩm chất") && desc.Contains("Lỗ khảm: 1/2"));
+            var invw = GameWindow.Open<InventoryWindow>();
+            yield return new WaitForSecondsRealtime(0.4f);
+            yield return Shot("BagQuality");
+            invw.Hide();
+
             // 6. (chỉ khi có tham số -maint, đăng nhập bằng người chơi THƯỜNG — GM không bị đưa ra)
             //    Người kiểm thử hẹn bảo trì trên trang quản trị → thấy đồng hồ đếm ngược → hết giờ bị đưa ra với lý do.
             if (Array.IndexOf(Environment.GetCommandLineArgs(), "-maint") >= 0)

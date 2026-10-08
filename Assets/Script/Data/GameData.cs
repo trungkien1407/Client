@@ -9,10 +9,15 @@ namespace Assets.Script.Data
     public class ItemTpl
     {
         public int id, type, slot, iconId, levelRequire, classRequire, price, maxStack;
-        public int bonusHp, bonusMp, bonusDamage, hpRestore, mpRestore;
+        public int bonusHp, bonusMp, bonusDamage, bonusDef, hpRestore, mpRestore;
         public bool tradeable;
         public string name, description;
         public bool IsEquip => slot > 0;
+        public bool IsGem => type == 6;                                   // GĐ9 ngọc
+        /// <summary>Số lỗ khảm (khớp server GemRules.socketsFor): dưới cấp 15 = 1, từ 15 = 2.</summary>
+        public int Sockets => levelRequire >= 15 ? 2 : 1;
+        /// <summary>Cấp ngọc 1..3 (khớp GemRules: id = 90 + loại·3 + cấp − 1).</summary>
+        public int GemTier => IsGem ? (id - 90) % 3 + 1 : 0;
         public bool IsUsable => type >= 0 && type <= 3;
     }
 
@@ -60,6 +65,8 @@ namespace Assets.Script.Data
     {
         public int tpl, qty, level;
         public bool locked;
+        public int bonus;                                   // GĐ9 phẩm chất 0..10 (% chỉ số gốc)
+        public List<int> gems = new List<int>();            // GĐ9 ngọc đã khảm (templateId)
         public string Name => GameData.ItemName(tpl) + (level > 0 ? $" +{level}" : "");
 
         /// <summary>Đọc 1 danh sách ô đồ: short n, [ô đồ] x n.</summary>
@@ -72,8 +79,20 @@ namespace Assets.Script.Data
         }
 
         /// <summary>Đọc 1 "ô đồ" (khớp server ItemService.writeSlot): int tpl, int qty, byte level, byte locked. Đổi định dạng → chỉ sửa ở đây.</summary>
-        public static BagSlot Read(Network.MessageReader r) =>
-            new BagSlot { tpl = r.ReadInt(), qty = r.ReadInt(), level = r.ReadByte(), locked = r.ReadByte() != 0 };
+        public static BagSlot Read(Network.MessageReader r)
+        {
+            var s = new BagSlot { tpl = r.ReadInt(), qty = r.ReadInt(), level = r.ReadByte(), locked = r.ReadByte() != 0 };
+            ReadExtras(r, s);
+            return s;
+        }
+
+        /// <summary>Đuôi GĐ9 (ô túi + ô trang bị): byte bonus, byte n, [int gemId] × n.</summary>
+        public static void ReadExtras(Network.MessageReader r, BagSlot s)
+        {
+            s.bonus = r.ReadByte();
+            int n = r.ReadByte();
+            for (int i = 0; i < n; i++) s.gems.Add(r.ReadInt());
+        }
     }
 
     public class PartyMember { public int id, hp, maxHp, level; public string name; }
@@ -137,6 +156,10 @@ namespace Assets.Script.Data
         public static int BagCapacity = 40;
         public static readonly Dictionary<int, int> Equipment = new Dictionary<int, int>();   // slot → templateId
         public static readonly Dictionary<int, int> EquipLevel = new Dictionary<int, int>();  // slot → cấp +N
+        public static readonly Dictionary<int, BagSlot> EquipSlots = new Dictionary<int, BagSlot>(); // GĐ9: slot → đủ thuộc tính (phẩm chất, ngọc)
+        // GĐ9 khảm ngọc (GEM_OPEN)
+        public static int GemNpc = -1, GemSocketCost = 500, GemRemoveCost = 2000, GemCombineCost = 1000;
+        public static string GemMessage = "";
         public static readonly Dictionary<int, int> MySkills = new Dictionary<int, int>();    // skillId → cấp
         public static readonly Dictionary<int, int[]> MyQuests = new Dictionary<int, int[]>(); // questId → [progress, done]
         public static int ClassType;
@@ -233,7 +256,7 @@ namespace Assets.Script.Data
 
         public static void ClearSession()
         {
-            Inventory.Clear(); Equipment.Clear(); EquipLevel.Clear(); MySkills.Clear(); MyQuests.Clear();
+            Inventory.Clear(); Equipment.Clear(); EquipLevel.Clear(); EquipSlots.Clear(); GemNpc = -1; MySkills.Clear(); MyQuests.Clear();
             Storage.Clear(); StorageNpc = -1; Upgrade = null; TradeWith = 0;
             MyPkMode = 0; Pvp.Clear(); Party.Clear(); PartyLeader = 0; Friends.Clear(); Mails.Clear(); OpenMail = null; MailUnread = 0;
             Guild.id = 0; Guild.members.Clear(); Tops.Clear();
@@ -247,6 +270,6 @@ namespace Assets.Script.Data
     {
         Templates, Character, Inventory, Equipment, Skills, Quests,
         Money, Storage, Upgrade, Trade, Party, Friends, Mails, Guild, Top, Pvp, Event,
-        Activity, QuestGuide, Market
+        Activity, QuestGuide, Market, Gem
     }
 }

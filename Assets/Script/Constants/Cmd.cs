@@ -179,6 +179,12 @@
         public const short MARKET_MINE = 346;       // S→C short n, [long id, ô đồ, int giá, int giây còn lại, byte trạng thái]
         public const short MARKET_RESULT = 347;     // S→C byte ok, UTF lời báo
         public const short MARKET_OPEN = 348;       // S→C int npcId, byte tối đa món, short phí ‰, byte thuế %, short giờ treo
+        // GĐ9 — KHẢM NGỌC (ở Thợ Rèn)
+        public const short GEM_OPEN = 350;          // S→C int npcId, short phí khảm/cấp, short phí tháo/cấp, short phí ghép/cấp
+        public const short GEM_SOCKET = 351;        // C→S int bagIndex trang bị, int bagIndex ngọc
+        public const short GEM_REMOVE = 352;        // C→S int bagIndex trang bị, byte vị trí lỗ
+        public const short GEM_COMBINE = 353;       // C→S int templateId ngọc (3 → 1 cấp kế)
+        public const short GEM_RESULT = 354;        // S→C byte ok, UTF lời báo
         // GĐ9 — hoạt động hằng ngày, sổ tay nhiệm vụ, mẹo theo cấp
         public const short QUEST_GUIDE_REQ = 724;   // C→S rỗng
         public const short QUEST_GUIDE = 725;       // S→C short n, [int questId, byte status(0 đang làm/1 có thể nhận/2 chờ trả), byte daily, UTF nơi đến]

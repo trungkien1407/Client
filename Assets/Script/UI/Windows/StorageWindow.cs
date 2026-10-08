@@ -66,14 +66,14 @@ namespace Assets.Script.UI.Windows
                 int idx = i;
                 var s = GameData.Storage[i];
                 string qty = s.qty > 1 ? $"\n<color=#fd5>x{s.qty}</color>" : "";
-                var b = UIKit.Button("S" + i, _grid, GameData.ColoredName(s.tpl, s.level) + qty, () => { _sel = idx; Refresh(); }, 13);
+                var b = UIKit.Button("S" + i, _grid, GameData.ColoredName(s.tpl, s.level) + InventoryWindow.Extras(s) + qty, () => { _sel = idx; Refresh(); }, 13);
                 b.image.color = idx == _sel ? UIKit.ButtonHot : UIKit.SlotColor;
             }
             if (GameData.Storage.Count == 0) UIKit.Text("Empty", _grid, "(trống)", 14);
 
             var sel = _sel >= 0 && _sel < GameData.Storage.Count ? GameData.Storage[_sel] : null;
             _take1.interactable = _takeAll.interactable = sel != null;
-            if (sel != null) _detail.text = InventoryWindow.Describe(sel.tpl, sel.level, sel.locked) + (sel.qty > 1 ? $"\nSố lượng: {sel.qty}" : "");
+            if (sel != null) _detail.text = InventoryWindow.Describe(sel) + (sel.qty > 1 ? $"\nSố lượng: {sel.qty}" : "");
             // Cửa sổ túi đổi nút theo việc rương đang mở → vẽ lại nó
             Get<InventoryWindow>().RefreshIfOpen();
         }

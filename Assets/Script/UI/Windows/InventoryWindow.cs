@@ -98,7 +98,8 @@ namespace Assets.Script.UI.Windows
                 int s = slot;
                 GameData.Equipment.TryGetValue(slot, out int tpl);
                 GameData.EquipLevel.TryGetValue(slot, out int lv);
-                string label = tpl > 0 ? $"<size=12><color=#9aa>{GameData.SlotNames[slot]}</color></size>\n{GameData.ColoredName(tpl, lv)}"
+                GameData.EquipSlots.TryGetValue(slot, out var es);
+                string label = tpl > 0 ? $"<size=12><color=#9aa>{GameData.SlotNames[slot]}</color></size>\n{GameData.ColoredName(tpl, lv)}{Extras(es)}"
                                        : $"<color=#666>{GameData.SlotNames[slot]}</color>";
                 var b = UIKit.Button("Slot" + slot, _equipGrid, label, () => SelectEquip(s), 13);
                 b.image.color = slot == _selectedEquipSlot ? UIKit.ButtonHot : tpl > 0 ? UIKit.SlotColor : new Color(0.1f, 0.12f, 0.15f, 1f);
@@ -112,7 +113,7 @@ namespace Assets.Script.UI.Windows
                 var s = GameData.Inventory[i];
                 string qty = s.qty > 1 ? $"\n<color=#fd5>x{s.qty}</color>" : "";
                 string lockMark = s.locked ? "<size=11><color=#aaa>[Khoá] </color></size>" : "";
-                var b = UIKit.Button("Item", _bagGrid, lockMark + GameData.ColoredName(s.tpl, s.level) + qty, () => SelectBag(idx), 13);
+                var b = UIKit.Button("Item", _bagGrid, lockMark + GameData.ColoredName(s.tpl, s.level) + Extras(s) + qty, () => SelectBag(idx), 13);
                 b.image.color = idx == SelectedIndex ? UIKit.ButtonHot : UIKit.SlotColor;
             }
             if (GameData.Inventory.Count == 0) UIKit.Text("Empty", _bagGrid, "(túi trống)", 14);
@@ -120,6 +121,15 @@ namespace Assets.Script.UI.Windows
             _money.text = $"Yên {GameData.Me.yen:N0}   <color=#7cf>Xu {GameData.Me.xu:N0}</color>   <color=#f8c>Lượng {GameData.Me.luong:N0}</color>";
 
             UpdateDetail();
+        }
+
+        /// <summary>Chữ nhỏ dưới tên ô: phẩm chất "+7%" (xanh, 8% trở lên màu cam) + số ngọc "2 ngọc".</summary>
+        public static string Extras(BagSlot s)
+        {
+            if (s == null || (s.bonus == 0 && s.gems.Count == 0)) return "";
+            string q = s.bonus > 0 ? $"<color={(s.bonus >= 8 ? "#ffa040" : "#6fd0ff")}>+{s.bonus}%</color>" : "";
+            string g = s.gems.Count > 0 ? $"<color=#e080ff>{s.gems.Count} ngọc</color>" : "";
+            return $"\n<size=11>{q}{(q != "" && g != "" ? " " : "")}{g}</size>";
         }
 
         private void SelectBag(int index) { SelectedIndex = index; _selectedEquipSlot = -1; Refresh(); }
@@ -138,7 +148,8 @@ namespace Assets.Script.UI.Windows
             {
                 if (!GameData.Equipment.TryGetValue(_selectedEquipSlot, out int eq)) { _detail.text = "Ô trống"; return; }
                 GameData.EquipLevel.TryGetValue(_selectedEquipSlot, out int lv);
-                _detail.text = Describe(eq, lv);
+                GameData.EquipSlots.TryGetValue(_selectedEquipSlot, out var es);
+                _detail.text = es != null ? Describe(es) : Describe(eq, lv);
                 _btnEquip.gameObject.SetActive(true);
                 _btnEquip.SetLabel("Tháo");
                 return;
@@ -146,7 +157,7 @@ namespace Assets.Script.UI.Windows
             var s = GameData.BagAt(SelectedIndex);
             if (s == null) { _detail.text = "Chọn 1 vật phẩm"; return; }
 
-            _detail.text = Describe(s.tpl, s.level, s.locked) + (s.qty > 1 ? $"\nSố lượng: {s.qty}" : "");
+            _detail.text = Describe(s) + (s.qty > 1 ? $"\nSố lượng: {s.qty}" : "");
             if (GameData.Items.TryGetValue(s.tpl, out var t))
             {
                 _btnUse.gameObject.SetActive(t.IsUsable);
@@ -158,8 +169,11 @@ namespace Assets.Script.UI.Windows
             }
         }
 
-        /// <summary>Mô tả vật phẩm: tên (+N), yêu cầu, chỉ số (đã tính % cường hoá), giá.</summary>
-        public static string Describe(int tplId, int level = 0, bool locked = false)
+        /// <summary>Mô tả 1 ô đồ đầy đủ: phẩm chất + ngọc đã khảm (GĐ9).</summary>
+        public static string Describe(BagSlot s) => Describe(s.tpl, s.level, s.locked, s.bonus, s.gems);
+
+        /// <summary>Mô tả vật phẩm: tên (+N), yêu cầu, chỉ số (gốc × phẩm chất × cường hoá), ngọc, giá.</summary>
+        public static string Describe(int tplId, int level = 0, bool locked = false, int bonus = 0, System.Collections.Generic.List<int> gems = null)
         {
             if (!GameData.Items.TryGetValue(tplId, out var t)) return $"Vật phẩm {tplId}";
             var sb = new StringBuilder($"<b>{GameData.ColoredName(tplId, level)}</b>");
@@ -175,14 +189,36 @@ namespace Assets.Script.UI.Windows
             int pct = 0;
             var up = GameData.Upgrade;
             if (level > 0 && up != null && level < up.statPercent.Length) pct = up.statPercent[level];
-            string Plus(int v) => pct > 0 ? $"{v + v * pct / 100} <color=#7f7>(+{pct}%)</color>" : v.ToString();
-            if (t.bonusDamage > 0) sb.Append($"+{Plus(t.bonusDamage)} sát thương\n");
+            // Khớp server ItemService.applyEquipmentStats: gốc → + phẩm chất % → × cường hoá; ngọc cộng riêng
+            if (bonus > 0) sb.Append($"<color=#6fd0ff>Phẩm chất: +{bonus}% chỉ số gốc</color>\n");
+            string Plus(int v)
+            {
+                int q = v + v * bonus / 100;
+                int u = q + q * pct / 100;
+                return pct > 0 ? $"{u} <color=#7f7>(+{pct}%)</color>" : u.ToString();
+            }
+            if (t.bonusDamage > 0) sb.Append($"+{Plus(t.bonusDamage)} {(t.IsGem ? "sát thương (khi khảm)" : "sát thương")}\n");
             if (t.bonusHp > 0) sb.Append($"+{Plus(t.bonusHp)} HP tối đa\n");
             if (t.bonusMp > 0) sb.Append($"+{Plus(t.bonusMp)} MP tối đa\n");
+            if (t.bonusDef > 0) sb.Append($"+{Plus(t.bonusDef)} phòng thủ\n");
+            if (t.IsEquip)
+            {
+                int n = gems?.Count ?? 0;
+                sb.Append($"<color=#e080ff>Lỗ khảm: {n}/{t.Sockets}</color>\n");
+                for (int i = 0; i < n; i++) sb.Append($"<color=#e080ff>  • {GemLine(gems[i])}</color>\n");
+            }
             if (t.hpRestore > 0) sb.Append($"Hồi {t.hpRestore} HP\n");
             if (t.mpRestore > 0) sb.Append($"Hồi {t.mpRestore} MP\n");
             if (t.price > 0 && !locked) sb.Append($"<color=#fd5>Giá bán lại: {t.price / 2} yên</color>");
             return sb.ToString();
+        }
+
+        /// <summary>"Xích Ngọc cấp 2 (+7 sát thương)".</summary>
+        public static string GemLine(int gemId)
+        {
+            if (!GameData.Items.TryGetValue(gemId, out var g)) return $"Ngọc {gemId}";
+            string v = g.bonusDamage > 0 ? $"+{g.bonusDamage} sát thương" : g.bonusHp > 0 ? $"+{g.bonusHp} HP" : g.bonusMp > 0 ? $"+{g.bonusMp} MP" : $"+{g.bonusDef} phòng thủ";
+            return $"{g.name} ({v})";
         }
 
         private void OnUse() { var s = GameData.BagAt(SelectedIndex); if (s != null) GameActions.UseItem(s.tpl); }

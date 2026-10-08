@@ -96,6 +96,11 @@ namespace Assets.Script.Data
         public static void ActivityClaim(int milestoneIndex) => Send(Cmd.ACTIVITY_CLAIM, w => w.WriteByte((byte)milestoneIndex));
         public static void QuestGuide() => Send(Cmd.QUEST_GUIDE_REQ, null);
 
+        // ---- GĐ9: khảm ngọc ----
+        public static void GemSocket(int equipBagIndex, int gemBagIndex) => Send(Cmd.GEM_SOCKET, w => { w.WriteInt(equipBagIndex); w.WriteInt(gemBagIndex); });
+        public static void GemRemove(int equipBagIndex, int pos) => Send(Cmd.GEM_REMOVE, w => { w.WriteInt(equipBagIndex); w.WriteByte((byte)pos); });
+        public static void GemCombine(int gemTemplateId) => Send(Cmd.GEM_COMBINE, w => w.WriteInt(gemTemplateId));
+
         // ---- GĐ9: chợ ----
         /// <param name="category">0 tất cả · 1 vũ khí · 2 trang phục · 3 bình · 4 nguyên liệu</param>
         /// <param name="sort">0 mới nhất · 1 rẻ nhất (theo giá 1 cái)</param>

@@ -42,7 +42,8 @@ namespace Assets.Script.Data
                     id = r.ReadInt(), name = r.ReadUTF(), type = r.ReadSByte(), slot = r.ReadSByte(), iconId = r.ReadInt(),
                     levelRequire = r.ReadShort(), classRequire = r.ReadSByte(), price = r.ReadInt(), maxStack = r.ReadShort(),
                     bonusHp = r.ReadInt(), bonusMp = r.ReadInt(), bonusDamage = r.ReadInt(),
-                    hpRestore = r.ReadInt(), mpRestore = r.ReadInt(), tradeable = r.ReadByte() != 0, description = r.ReadUTF()
+                    hpRestore = r.ReadInt(), mpRestore = r.ReadInt(), tradeable = r.ReadByte() != 0, description = r.ReadUTF(),
+                    bonusDef = r.ReadInt()   // GĐ9
                 };
                 GameData.Items[t.id] = t;
             }
@@ -198,11 +199,15 @@ namespace Assets.Script.Data
             int n = r.ReadShort();
             GameData.Equipment.Clear();
             GameData.EquipLevel.Clear();
+            GameData.EquipSlots.Clear();
             for (int i = 0; i < n; i++)
             {
                 int slot = r.ReadInt();
-                GameData.Equipment[slot] = r.ReadInt();
-                GameData.EquipLevel[slot] = r.ReadByte(); // cấp cường hoá +N
+                var s = new BagSlot { tpl = r.ReadInt(), qty = 1, level = r.ReadByte() };
+                BagSlot.ReadExtras(r, s);                 // GĐ9: phẩm chất + ngọc
+                GameData.Equipment[slot] = s.tpl;
+                GameData.EquipLevel[slot] = s.level;     // cấp cường hoá +N
+                GameData.EquipSlots[slot] = s;
             }
             r.Cleanup();
             GameData.Notify(DataKind.Equipment);
