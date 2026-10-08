@@ -191,7 +191,10 @@
         public const short ACTIVITY_REQ = 860;      // C→S rỗng
         public const short ACTIVITY_INFO = 861;     // S→C short điểm, byte bit mốc đã nhận, byte n,[UTF tên, short tiến độ, short đích, byte điểm có, byte điểm tối đa], byte m,[short cần, UTF thưởng], byte k,[UTF dòng lịch]
         public const short ACTIVITY_CLAIM = 862;    // C→S byte chỉ số mốc
-        public const short GUIDE_TIP = 863;         // S→C UTF tiêu đề, UTF nội dung, byte mục cẩm nang       // S→C short n, [UTF name, short kills]
+        public const short GUIDE_TIP = 863;
+        public const short ONLINE_CLAIM = 864;      // C→S byte chỉ số mốc quà online
+        public const short GIFTCODE_USE = 865;      // C→S UTF mã
+        public const short GIFTCODE_RESULT = 866;   // S→C byte ok, UTF lời báo         // S→C UTF tiêu đề, UTF nội dung, byte mục cẩm nang       // S→C short n, [UTF name, short kills]
 
         public const short PLAYER_HEAL = 901;       // S→C int id, int hpHeal, int mpHeal, int hp, int maxHp, int mp, int maxMp
     }

@@ -19,6 +19,8 @@ namespace Assets.Script.UI.Windows
         private Image _bar;
         private TextMeshProUGUI _points;
         private RectTransform _miles, _list;
+        private TMP_InputField _code;
+        private TextMeshProUGUI _codeMsg;
 
         protected override void Build()
         {
@@ -38,7 +40,15 @@ namespace Assets.Script.UI.Windows
             h.spacing = 6; h.childForceExpandWidth = true; h.childControlWidth = true; h.childControlHeight = true;
 
             _list = UIKit.ScrollList("List", body, 4);
-            ((RectTransform)_list.parent).Fill(0, 0, 116, 0);
+            ((RectTransform)_list.parent).Fill(0, 0, 116, 48);
+
+            // Giftcode (dưới cùng): ô nhập + nút Nhận; kết quả hiện bên phải
+            _code = UIKit.Input("Code", body, "Nhập giftcode...", 16, TMP_InputField.ContentType.Standard, 32);
+            ((RectTransform)_code.transform).Place(new Vector2(0, 0), new Vector2(0, 0), new Vector2(0, 4), new Vector2(230, 38), Vector2.zero);
+            var use = UIKit.Button("UseCode", body, "Nhận quà", () => { GameActions.GiftcodeUse(_code.text); _code.text = ""; }, 15);
+            ((RectTransform)use.transform).Place(new Vector2(0, 0), new Vector2(0, 0), new Vector2(236, 4), new Vector2(110, 38), Vector2.zero);
+            _codeMsg = UIKit.Text("CodeMsg", body, "", 13, TextAlignmentOptions.MidlineLeft);
+            _codeMsg.rectTransform.Place(new Vector2(0, 0), new Vector2(1, 0), new Vector2(352, 4), new Vector2(-352, 38), Vector2.zero);
 
             GameData.OnChanged += k => { if (k == DataKind.Activity || k == DataKind.Templates) RefreshIfOpen(); };
         }
@@ -71,7 +81,28 @@ namespace Assets.Script.UI.Windows
                 // Di chuột / giữ ngón tay để xem quà: hiện luôn dưới dạng chú thích ở danh sách bên dưới
             }
 
+            _codeMsg.text = GameData.GiftcodeMessage;
             UIKit.Clear(_list);
+
+            // ---- Quà online (GĐ9 phần 4) ----
+            if (GameData.OnlineGifts.Count > 0)
+            {
+                int mins = GameData.OnlineMinutesNow;
+                UIKit.Text("HO", _list, $"<b><color=#fd5>Quà online hôm nay</color></b>  <size=13><color=#9aa>đã online {mins} phút</color></size>", 16).Height(26);
+                var row = UIKit.Rect("OnlineRow", _list).Height(54);
+                var h2 = row.gameObject.AddComponent<HorizontalLayoutGroup>();
+                h2.spacing = 6; h2.childForceExpandWidth = true; h2.childControlWidth = true; h2.childControlHeight = true;
+                for (int i = 0; i < GameData.OnlineGifts.Count; i++)
+                {
+                    int idx = i;
+                    var g = GameData.OnlineGifts[i];
+                    bool got = GameData.OnlineClaimedAt(i), ready = mins >= g.need;
+                    var b = UIKit.Button("O" + i, row, $"<b>{g.need} phút</b>\n<size=11>{(got ? "đã nhận" : g.reward)}</size>", () => GameActions.OnlineClaim(idx), 13);
+                    b.image.color = got ? new Color(0.2f, 0.35f, 0.2f) : ready ? UIKit.ButtonHot : UIKit.ButtonColor;
+                    b.interactable = ready && !got;
+                }
+            }
+
             UIKit.Text("H1", _list, "<b><color=#fd5>Việc nên làm hôm nay</color></b>", 16).Height(24);
             foreach (var a in GameData.Activities)
             {

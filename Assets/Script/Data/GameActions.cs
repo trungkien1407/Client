@@ -95,6 +95,8 @@ namespace Assets.Script.Data
         public static void ActivityRequest() => Send(Cmd.ACTIVITY_REQ, null);
         public static void ActivityClaim(int milestoneIndex) => Send(Cmd.ACTIVITY_CLAIM, w => w.WriteByte((byte)milestoneIndex));
         public static void QuestGuide() => Send(Cmd.QUEST_GUIDE_REQ, null);
+        public static void OnlineClaim(int index) => Send(Cmd.ONLINE_CLAIM, w => w.WriteByte((byte)index));
+        public static void GiftcodeUse(string code) => Send(Cmd.GIFTCODE_USE, w => w.WriteUTF(code ?? ""));
 
         // ---- GĐ9: khảm ngọc ----
         public static void GemSocket(int equipBagIndex, int gemBagIndex) => Send(Cmd.GEM_SOCKET, w => { w.WriteInt(equipBagIndex); w.WriteInt(gemBagIndex); });

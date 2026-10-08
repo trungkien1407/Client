@@ -25,6 +25,18 @@ namespace Assets.Script.Data
             Listen(Cmd.MARKET_RESULT, OnMarketResult);
             Listen(Cmd.GEM_OPEN, OnGemOpen);
             Listen(Cmd.GEM_RESULT, OnGemResult);
+            Listen(Cmd.GIFTCODE_RESULT, OnGiftcodeResult);
+        }
+
+        private void OnGiftcodeResult(byte[] data)
+        {
+            var r = new MessageReader(data);
+            bool ok = r.ReadByte() != 0;
+            string msg = r.ReadUTF();
+            r.Cleanup();
+            GameData.GiftcodeMessage = (ok ? "<color=#7f7>" : "<color=#f77>") + msg + "</color>";
+            GameData.Notify(DataKind.Activity);
+            if (ok) UI.GameHud.Banner(msg, 3f);
         }
 
         // ---- KHẢM NGỌC ----
@@ -113,6 +125,15 @@ namespace Assets.Script.Data
             GameData.EventSchedule.Clear();
             int k = r.ReadByte();
             for (int i = 0; i < k; i++) GameData.EventSchedule.Add(r.ReadUTF());
+            if (r.Available() > 0)   // GĐ9 phần 4: quà online
+            {
+                GameData.OnlineSeconds = r.ReadInt();
+                GameData.OnlineSyncTime = UnityEngine.Time.time;
+                GameData.OnlineClaimed = r.ReadByte();
+                GameData.OnlineGifts.Clear();
+                int g = r.ReadByte();
+                for (int i = 0; i < g; i++) GameData.OnlineGifts.Add(new ActivityMilestone { need = r.ReadShort(), reward = r.ReadUTF() });
+            }
             r.Cleanup();
             GameData.Notify(DataKind.Activity);
         }

@@ -193,6 +193,12 @@ namespace Assets.Script.Data
         public static readonly List<ActivityRow> Activities = new List<ActivityRow>();
         public static readonly List<ActivityMilestone> Milestones = new List<ActivityMilestone>();
         public static readonly List<string> EventSchedule = new List<string>();
+        // Quà online (đuôi ACTIVITY_INFO) + giftcode
+        public static int OnlineSeconds, OnlineClaimed;
+        public static float OnlineSyncTime;                              // Time.time lúc nhận OnlineSeconds → đồng hồ chạy tiếp ở client
+        public static readonly List<ActivityMilestone> OnlineGifts = new List<ActivityMilestone>();   // need = số phút
+        public static string GiftcodeMessage = "";
+        public static bool OnlineClaimedAt(int i) => (OnlineClaimed & (1 << i)) != 0;
         public static readonly List<QuestGuideRow> QuestGuide = new List<QuestGuideRow>();
         // Chợ (MARKET_*)
         public static int MarketNpc = -1, MarketMax = 8, MarketFeePermil = 10, MarketTaxPercent = 5, MarketHours = 48;
@@ -203,12 +209,16 @@ namespace Assets.Script.Data
         /// <summary>Phí treo bán (khớp server MarketService.listingFee): 1% giá, tối thiểu 100 yên.</summary>
         public static long MarketFee(long price) => System.Math.Max(100, price * MarketFeePermil / 1000);
         public static bool MilestoneClaimed(int i) => (ActivityClaimed & (1 << i)) != 0;
+        /// <summary>Số phút online hôm nay (số server gửi + thời gian từ lúc nhận — chỉ để hiển thị, nhận quà server tự tính lại).</summary>
+        public static int OnlineMinutesNow => (OnlineSeconds + (int)(UnityEngine.Time.time - OnlineSyncTime)) / 60;
         /// <summary>Có mốc đủ điểm mà chưa nhận → nút Hoạt động hiện dấu "!".</summary>
         public static bool ActivityClaimable
         {
             get
             {
                 for (int i = 0; i < Milestones.Count; i++) if (ActivityPoints >= Milestones[i].need && !MilestoneClaimed(i)) return true;
+                int mins = OnlineMinutesNow;
+                for (int i = 0; i < OnlineGifts.Count; i++) if (mins >= OnlineGifts[i].need && !OnlineClaimedAt(i)) return true;
                 return false;
             }
         }
@@ -262,6 +272,7 @@ namespace Assets.Script.Data
             Guild.id = 0; Guild.members.Clear(); Tops.Clear();
             DungeonState = 0; EventState = 0; ArenaScore.Clear(); MaintEndTime = 0;
             ActivityPoints = 0; ActivityClaimed = 0; Activities.Clear(); Milestones.Clear(); EventSchedule.Clear(); QuestGuide.Clear();
+            OnlineSeconds = 0; OnlineClaimed = 0; OnlineGifts.Clear(); GiftcodeMessage = "";
             MarketNpc = -1; MarketRows.Clear(); MarketMine.Clear(); MarketMessage = "";
         }
     }

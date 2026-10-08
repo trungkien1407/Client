@@ -381,6 +381,25 @@ namespace Assets.Script.Core
             yield return Shot("BagQuality");
             invw.Hide();
 
+            // 5f. GĐ9 — Quà online + giftcode (mã tạo bằng GM, mỗi lần chạy 1 mã mới)
+            GameActions.Chat(1, "/daily");
+            GameActions.Chat(1, "/onlinemin 12");
+            var aw = GameWindow.Open<ActivityWindow>();
+            yield return WaitUntil(() => GameData.OnlineGifts.Count == 4 && GameData.OnlineMinutesNow >= 10, 5);
+            Check($"Hoạt động có 4 mốc quà online, đã online {GameData.OnlineMinutesNow} phút", GameData.OnlineGifts.Count == 4 && GameData.OnlineMinutesNow >= 10);
+            GameActions.OnlineClaim(0);
+            yield return WaitUntil(() => GameData.OnlineClaimedAt(0), 5);
+            Check("Nhận quà online 10 phút", GameData.OnlineClaimedAt(0));
+            string code = "AUTO" + (DateTime.Now.Ticks % 1000000);
+            GameActions.Chat(1, $"/giftcode {code} 5 1");
+            yield return new WaitForSecondsRealtime(0.8f);
+            GameData.GiftcodeMessage = "";
+            GameActions.GiftcodeUse(code.ToLower());
+            yield return WaitUntil(() => GameData.GiftcodeMessage.Length > 0, 5);
+            Check("Nhập giftcode → thành công", GameData.GiftcodeMessage.Contains("thành công"));
+            yield return Shot("ActivityOnline");
+            aw.Hide();
+
             // 6. (chỉ khi có tham số -maint, đăng nhập bằng người chơi THƯỜNG — GM không bị đưa ra)
             //    Người kiểm thử hẹn bảo trì trên trang quản trị → thấy đồng hồ đếm ngược → hết giờ bị đưa ra với lý do.
             if (Array.IndexOf(Environment.GetCommandLineArgs(), "-maint") >= 0)

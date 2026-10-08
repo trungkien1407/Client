@@ -56,7 +56,9 @@ namespace Assets.Script.UI.Windows
             ("Phó bản & hoạt động ngày",
              "<b>Phó bản</b>: khu riêng cho nhóm, hạ hết quái trước khi hết giờ. 2 lượt/ngày. Hang Ốc Sên (cấp 5, Hokage), Động Xà Vương (cấp 18, Trưởng Làng Đá).\n\n" +
              "<b>Hoạt động (H)</b>: điểm danh, nhiệm vụ ngày, phó bản, boss, lôi đài, diệt quái, nâng cấp... mỗi việc cho điểm. " +
-             "Đủ 20 / 40 / 60 / 80 / 100 điểm thì bấm nhận rương (yên, xu, đá, Bùa bảo hộ). Reset 0h mỗi ngày."),
+             "Đủ 20 / 40 / 60 / 80 / 100 điểm thì bấm nhận rương (yên, xu, đá, Bùa bảo hộ). Reset 0h mỗi ngày.\n\n" +
+             "<b>Quà online</b>: online đủ 10 / 30 / 60 / 120 phút trong ngày → nhận quà ngay trong cửa sổ Hoạt động.\n" +
+             "<b>Giftcode</b>: mã quà Ban quản trị phát trên fanpage / sự kiện — gõ vào ô dưới cùng cửa sổ Hoạt động, quà về Hòm thư. Mỗi mã dùng 1 lần."),
             ("Boss thế giới & sự kiện",
              "<b>Boss thế giới</b> xuất hiện mỗi ngày (mặc định 12h và 20h), báo trước 5 phút:\n" +
              "• Cửu Vĩ Ốc (cấp 15) – Đồi Hoa Cúc\n• Thạch Ma Vương (cấp 25) – Thung Lũng Đá\n• Băng Hồ Vương (cấp 34) – Núi Tuyết\n" +
