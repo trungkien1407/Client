@@ -4,8 +4,9 @@ using Assets.Script.Network;
 namespace Assets.Script.Data
 {
     /// <summary>
-    /// MỌI THAO TÁC NGƯỜI CHƠI GỬI LÊN SERVER (C→S) ở 1 chỗ. UI chỉ gọi các hàm này,
-    /// không tự viết MessageWriter. Server kiểm tra hợp lệ rồi trả kết quả (INVENTORY, CHARACTER_INFO...).
+    /// NƠI DUY NHẤT GỬI GÓI LÊN SERVER (C→S). Mọi lớp khác chỉ gọi các hàm này, không tự viết MessageWriter
+    /// hay gọi NetworkManager.Send → muốn biết client gửi gì, định dạng ra sao: đọc file này (khớp docs/PROTOCOL.md).
+    /// Server kiểm tra hợp lệ rồi trả kết quả (INVENTORY, CHARACTER_INFO...).
     /// </summary>
     public static class GameActions
     {
@@ -16,6 +17,30 @@ namespace Assets.Script.Data
             NetworkManager.Instance?.Send(cmd, w.ToArray());
             w.Cleanup();
         }
+
+        // ---- Kết nối / tài khoản ----
+        public static void CheckVersion(string version) => Send(Cmd.CHECK_VERSION, w => w.WriteUTF(version));
+        public static void Login(string user, string pass) => Send(Cmd.LOGIN, w => { w.WriteUTF(user); w.WriteUTF(pass); });
+        public static void Register(string user, string pass, string email) => Send(Cmd.REGISTER, w => { w.WriteUTF(user); w.WriteUTF(pass); w.WriteUTF(email); });
+        /// <param name="classId">1 Đấu sĩ · 2 Hỗ trợ · 3 Sát thủ</param>
+        public static void CreateCharacter(string name, int classId) => Send(Cmd.CREATE_CHARACTER, w => { w.WriteUTF(name); w.WriteByte((byte)classId); });
+        /// <summary>Đã tải xong map / đổi khu xong → server cho vào khu và gửi người, quái, NPC.</summary>
+        public static void ClientReady() => Send(Cmd.CLIENT_READY, null);
+        /// <summary>Giữ kết nối (server ngắt nếu 60 giây không nhận gói nào).</summary>
+        public static void Heartbeat() => Send(Cmd.HEARTBEAT, null);
+        public static void ReportError(string version, string platform, string message, string stack) =>
+            Send(Cmd.CLIENT_ERROR, w => { w.WriteUTF(version); w.WriteUTF(platform); w.WriteUTF(message); w.WriteUTF(stack); });
+
+        // ---- Di chuyển / khu / chiến đấu ----
+        /// <param name="dir">1 quay trái · 0 quay phải</param>
+        /// <param name="state">0 đứng · 1 chạy · 2 nhảy lên · 3 rơi</param>
+        public static void Move(float x, float y, byte dir, byte state) => Send(Cmd.PLAYER_MOVE, w => { w.WriteFloat(x); w.WriteFloat(y); w.WriteByte(dir); w.WriteByte(state); });
+        public static void ZoneListRequest() => Send(Cmd.ZONE_LIST_REQ, null);
+        public static void ChangeZone(int zoneId) => Send(Cmd.CHANGE_ZONE, w => w.WriteByte((byte)zoneId));
+        /// <param name="targetType">0 quái · 1 người · 2 bản thân / nhóm (chiêu hỗ trợ)</param>
+        public static void UseSkill(int skillId, byte targetType, int targetId) => Send(Cmd.USE_SKILL, w => { w.WriteInt(skillId); w.WriteByte(targetType); w.WriteInt(targetId); });
+        public static void Revive() => Send(Cmd.REVIVE, null);
+        public static void PickItem(int groundItemId) => Send(Cmd.PICK_ITEM, w => w.WriteInt(groundItemId));
 
         // ---- Vật phẩm ----
         public static void UseItem(int templateId) => Send(Cmd.USE_ITEM, w => w.WriteInt(templateId));
@@ -82,8 +107,10 @@ namespace Assets.Script.Data
         public static void Top(int type) => Send(Cmd.TOP_REQUEST, w => w.WriteByte((byte)type));
 
         // ---- Chat ----
-        /// <param name="channel">0 thế giới · 1 khu · 4 gia tộc</param>
+        /// <param name="channel">0 thế giới · 1 khu (cũng là kênh lệnh GM "/...") · 4 gia tộc</param>
         public static void Chat(int channel, string msg) => Send(Cmd.CHAT, w => { w.WriteByte((byte)channel); w.WriteUTF(msg); });
+        /// <summary>Chat riêng (kênh 2) tới 1 người theo tên.</summary>
+        public static void Whisper(string toName, string msg) => Send(Cmd.CHAT, w => { w.WriteByte(2); w.WriteUTF(toName); w.WriteUTF(msg); });
 
         // ---- Nhân vật / kỹ năng ----
         /// <param name="stat">0 Sức mạnh · 1 Thân pháp · 2 Chakra · 3 Thể lực</param>

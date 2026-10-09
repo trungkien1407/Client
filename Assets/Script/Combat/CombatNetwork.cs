@@ -57,7 +57,7 @@ namespace Assets.Script.Combat
             if (Time.unscaledTime - _lastHeartbeat > HeartbeatInterval)
             {
                 _lastHeartbeat = Time.unscaledTime;
-                NetworkManager.Instance.Send(Cmd.HEARTBEAT, null);
+                Data.GameActions.Heartbeat();
             }
 
             if (!_attackButtonHooked && Time.unscaledTime >= _nextHookTry) HookAttackButton();
@@ -97,7 +97,6 @@ namespace Assets.Script.Combat
             Listen(Cmd.PLAYER_STATS, OnPlayerStats);
             Listen(Cmd.PLAYER_DIE, OnPlayerDie);
             Listen(Cmd.REVIVE, OnRevive);
-            Listen(Cmd.LOGOUT, _ => { });
         }
 
         // ==========================================
@@ -121,12 +120,7 @@ namespace Assets.Script.Combat
             if (Data.GameData.Skills.TryGetValue(skillTemplateId, out var stpl) && stpl.type == 3)
             {
                 _nextAttackTime = Time.time + LocalAttackGap;
-                var sw = new MessageWriter();
-                sw.WriteInt(skillTemplateId);
-                sw.WriteByte(2);                       // 2 = bản thân / nhóm
-                sw.WriteInt(LocalPlayerState.Id);
-                NetworkManager.Instance.Send(Cmd.USE_SKILL, sw.ToArray());
-                sw.Cleanup();
+                Data.GameActions.UseSkill(skillTemplateId, 2, LocalPlayerState.Id);   // 2 = bản thân / nhóm
                 PlayLocal(local, skillTemplateId);
                 return;
             }
@@ -177,12 +171,7 @@ namespace Assets.Script.Combat
 
             _nextAttackTime = Time.time + LocalAttackGap;
 
-            var w = new MessageWriter();
-            w.WriteInt(skillTemplateId);
-            w.WriteByte(targetType);
-            w.WriteInt(target.GetId());
-            NetworkManager.Instance.Send(Cmd.USE_SKILL, w.ToArray());
-            w.Cleanup();
+            Data.GameActions.UseSkill(skillTemplateId, targetType, target.GetId());
 
             // Diễn anim ngay, không đợi server (server từ chối do cooldown / hết mana thì chỉ là anim suông)
             PlayLocal(local, skillTemplateId);
@@ -213,7 +202,7 @@ namespace Assets.Script.Combat
 
         public void SendRevive()
         {
-            NetworkManager.Instance?.Send(Cmd.REVIVE, null);
+            Data.GameActions.Revive();
         }
 
         // ==========================================

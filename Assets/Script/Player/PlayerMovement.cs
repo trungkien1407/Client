@@ -343,19 +343,9 @@ public class PlayerMovement : MonoBehaviour
 
     void SendMovePacket(byte state, byte dir)
     {
-        MessageWriter writer = new MessageWriter();
-
-        float sendX = transform.position.x;
         float sendY = transform.position.y;
-        if (isGrounded || isOnWaterSurface) sendY += 0.05f;
-
-        writer.WriteFloat(sendX);
-        writer.WriteFloat(sendY);
-        writer.WriteByte(dir);
-        writer.WriteByte(state);
-
-        NetworkManager.Instance.Send(Cmd.PLAYER_MOVE, writer.ToArray());
-        writer.Cleanup();
+        if (isGrounded || isOnWaterSurface) sendY += 0.05f;   // nhấc nhẹ khỏi mặt đất để server không coi là lún
+        Assets.Script.Data.GameActions.Move(transform.position.x, sendY, dir, state);
 
         lastSentState = state;
         lastSentDir = dir;

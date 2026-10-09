@@ -152,12 +152,8 @@ namespace Assets.Script.Combat
             else if (text.StartsWith("/")) channel = 1;
 
             if (channel == 2 && string.IsNullOrWhiteSpace(target)) { AddSystem("Nhập tên người nhận để chat riêng."); return; }
-            var w = new MessageWriter();
-            w.WriteByte((byte)channel);
-            if (channel == 2) w.WriteUTF(target.Trim());
-            w.WriteUTF(text);
-            NetworkManager.Instance?.Send(Cmd.CHAT, w.ToArray());
-            w.Cleanup();
+            if (channel == 2) Data.GameActions.Whisper(target.Trim(), text);
+            else Data.GameActions.Chat(channel, text);
             // Chat riêng: server gửi lại bản sao "Bạn → Tên: ..." (hoặc báo người đó không online)
         }
     }

@@ -173,10 +173,7 @@ public class AppFlowManager : MonoBehaviour
         PopupAndLoad.Instance.ShowPopup("Đang đồng bộ dữ liệu...", null, false);
         NetworkEventDispatcher.Instance.AddHandler(Cmd.CHECK_VERSION, OnReceiveVersionFromServer);
 
-        MessageWriter writer = new MessageWriter();
-        writer.WriteUTF(GameConfig.ClientVersion);
-        NetworkManager.Instance.Send(Cmd.CHECK_VERSION, writer.ToArray());
-        writer.Cleanup();
+        Assets.Script.Data.GameActions.CheckVersion(GameConfig.ClientVersion);
     }
 
     private void HandleServerConnected()

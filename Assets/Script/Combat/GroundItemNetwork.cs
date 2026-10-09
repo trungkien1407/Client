@@ -68,20 +68,14 @@ namespace Assets.Script.Combat
                 if (((Vector2)(it.go.transform.position - playerPos)).sqrMagnitude > PickRadius * PickRadius) continue;
 
                 it.lastPickTry = Time.time;
-                var w = new MessageWriter();
-                w.WriteInt(it.id);
-                NetworkManager.Instance?.Send(Cmd.PICK_ITEM, w.ToArray());
-                w.Cleanup();
+                Data.GameActions.PickItem(it.id);
             }
         }
 
         private void UseItem(int templateId)
         {
-            if (Assets.Script.Data.GameData.CountItem(templateId) <= 0) return;
-            var w = new MessageWriter();
-            w.WriteInt(templateId);
-            NetworkManager.Instance?.Send(Cmd.USE_ITEM, w.ToArray());
-            w.Cleanup();
+            if (Data.GameData.CountItem(templateId) <= 0) return;
+            Data.GameActions.UseItem(templateId);
         }
 
         /// <summary>ITEM_DROP: int groundId, int templateId, int qty, float x, float y</summary>

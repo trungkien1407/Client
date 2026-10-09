@@ -50,13 +50,7 @@ namespace Assets.Script.Core
             if (net == null || !net.IsConnected) return; // chưa kết nối thì giữ lại, kết nối xong gửi
             while (_sent < MaxPerSession && Pending.TryDequeue(out var e))
             {
-                var w = new MessageWriter();
-                w.WriteUTF(Application.version);
-                w.WriteUTF(_platform);
-                w.WriteUTF(Cut(e[0], 500));
-                w.WriteUTF(Cut(e[1], 2000));
-                net.Send(Cmd.CLIENT_ERROR, w.ToArray());
-                w.Cleanup();
+                Data.GameActions.ReportError(Application.version, _platform, Cut(e[0], 500), Cut(e[1], 2000));
                 _sent++;
             }
         }

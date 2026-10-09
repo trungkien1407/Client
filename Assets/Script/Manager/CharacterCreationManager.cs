@@ -197,20 +197,7 @@ public class CharacterCreationManager : MonoBehaviour
 
         PopupAndLoad.Instance.ShowPopup("Đang tạo nhân vật...", null, false);
 
-        // ==========================================
-        // GỬI GÓI TIN TẠO NHÂN VẬT (THUẦN BINARY)
-        // ==========================================
-        MessageWriter writer = new MessageWriter();
-
-        // Cực kỳ quan trọng: Ghi theo ĐÚNG THỨ TỰ mà Server Java đang đọc (Tên -> Hệ phái)
-        writer.WriteUTF(charName);
-        writer.WriteByte((byte)currentClassId);
-
-        // Gửi mảng byte xuống Netty Server
-        NetworkManager.Instance.Send(Cmd.CREATE_CHARACTER, writer.ToArray());
-
-        // Giải phóng RAM
-        writer.Cleanup();
+        Assets.Script.Data.GameActions.CreateCharacter(charName, currentClassId);
     }
 
     void OnDestroy()

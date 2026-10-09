@@ -44,7 +44,7 @@ namespace Assets.Script.UI.Windows
 
         private void OnEnable()
         {
-            if (LocalPlayerState.Id >= 0) NetworkManager.Instance?.Send(Cmd.ZONE_LIST_REQ, new byte[0]);
+            if (LocalPlayerState.Id >= 0) Data.GameActions.ZoneListRequest();
         }
 
         /// <summary>ZONE_LIST: byte currentZone (255 = khu riêng), byte n, [byte zoneId, byte players, byte max] x n</summary>
@@ -69,10 +69,7 @@ namespace Assets.Script.UI.Windows
                 var b = UIKit.Button("Z" + id, _grid, $"Khu {id + 1}\n<size=13><color={col}>{n}/{max}</color></size>", () =>
                 {
                     if (id == _current) return;
-                    var w = new MessageWriter();
-                    w.WriteByte((byte)id);
-                    NetworkManager.Instance?.Send(Cmd.CHANGE_ZONE, w.ToArray());
-                    w.Cleanup();
+                    Data.GameActions.ChangeZone(id);
                     Hide();
                 }, 16);
                 b.image.color = id == _current ? UIKit.ButtonHot : UIKit.SlotColor;

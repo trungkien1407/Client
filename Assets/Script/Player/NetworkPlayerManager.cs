@@ -370,9 +370,7 @@ namespace Assets.Script.Manager
 
                 ClearAllRemotePlayers();
 
-                MessageWriter writer = new MessageWriter();
-                NetworkManager.Instance.Send(Cmd.CLIENT_READY, writer.ToArray());
-                writer.Cleanup();
+                Data.GameActions.ClientReady();
 
                 // Chuyển khu vực không phải load lại Map
                 // Bật người chơi và tắt UI loading ngay

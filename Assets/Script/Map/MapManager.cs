@@ -64,10 +64,7 @@ namespace Assets.Script.Map
 
         private void SendClientReady()
         {
-            MessageWriter writer = new MessageWriter();
-            // Gửi Cmd báo Server đã load map xong
-            NetworkManager.Instance.Send(Cmd.CLIENT_READY, writer.ToArray());
-            writer.Cleanup();
+            Data.GameActions.ClientReady();
         }
 
         public void ClearMap()

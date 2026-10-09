@@ -185,11 +185,7 @@ namespace Assets.Script.Manager
                 _pendingFromSaved = fromSaved;
                 PopupAndLoad.Instance.ShowPopup("Đang đăng nhập...");
 
-                MessageWriter writer = new MessageWriter();
-                writer.WriteUTF(user);
-                writer.WriteUTF(pass);
-                NetworkManager.Instance.Send(Cmd.LOGIN, writer.ToArray());
-                writer.Cleanup();
+                Data.GameActions.Login(user, pass);
             }));
         }
 
@@ -204,12 +200,7 @@ namespace Assets.Script.Manager
             StartCoroutine(EnsureConnected(() =>
             {
                 PopupAndLoad.Instance.ShowPopup("Đang tạo tài khoản...");
-                MessageWriter writer = new MessageWriter();
-                writer.WriteUTF(user);
-                writer.WriteUTF(pass);
-                writer.WriteUTF(email);
-                NetworkManager.Instance.Send(Cmd.REGISTER, writer.ToArray());
-                writer.Cleanup();
+                Data.GameActions.Register(user, pass, email);
             }));
         }
 
