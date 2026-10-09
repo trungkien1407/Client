@@ -101,8 +101,8 @@ public class SkillBarManager : MonoBehaviour
         currentSelectedIndex = index;
         UpdateHighlight();
 
-        // 2. Tung chiêu (CombatNetwork tự kiểm tra có mục tiêu / hồi chiêu chưa)
-        Assets.Script.Combat.CombatNetwork.Instance?.TryUseSkill(skillSlots[index].assignedSkillId);
+        // 2. Tung chiêu (SkillCaster tự chọn mục tiêu / kiểm tầm)
+        Assets.Script.Combat.SkillCaster.TryCast(skillSlots[index].assignedSkillId);
     }
 
     /// <summary>Id skill (templateId) đang được chọn trên thanh phím tắt, -1 nếu ô trống.</summary>

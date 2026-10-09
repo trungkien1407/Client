@@ -12,7 +12,7 @@ namespace Assets.Script.UI
     /// ĐIỀU KHIỂN CẢM ỨNG cho Android/iOS (dựng bằng code).
     ///  - Joystick ảo trái  → giả lập "&lt;Gamepad&gt;/leftStick"   (action Move đã gắn binding này)
     ///  - Nút Nhảy           → giả lập "&lt;Gamepad&gt;/buttonSouth" (action Jump)
-    ///  - Nút Đánh / Nói     → gọi thẳng CombatNetwork / GameHud
+    ///  - Nút Đánh / Nói     → CombatInput.CastSelected / NpcNetwork.TalkToNearest
     /// Nhờ "giả lập tay cầm" nên PlayerMovement KHÔNG cần sửa: nó vẫn đọc action Move/Jump như bàn phím.
     ///
     /// Chỉ hiện khi máy có màn hình cảm ứng (điện thoại, hoặc Device Simulator trong Editor).
@@ -55,10 +55,7 @@ namespace Assets.Script.UI
 
             // ---- Nút phải ----
             MakeOnScreenButton("Nhảy", "<Gamepad>/buttonSouth", new Vector2(-70, 150));
-            MakeActionButton("Đánh", new Vector2(-190, 90), () =>
-            {
-                if (SkillBarManager.Instance != null) CombatNetwork.Instance?.TryUseSkill(SkillBarManager.Instance.GetSelectedSkillId());
-            });
+            MakeActionButton("Đánh", new Vector2(-190, 90), CombatInput.CastSelected);
             MakeActionButton("Nói", new Vector2(-190, 210), Assets.Script.Data.NpcNetwork.TalkToNearest);
         }
 

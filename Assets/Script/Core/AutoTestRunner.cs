@@ -235,7 +235,7 @@ namespace Assets.Script.Core
             // 5. Đánh quái gần nhất
             int skill = SkillBarManager.Instance != null ? SkillBarManager.Instance.GetSelectedSkillId() : -1;
             if (skill < 0 && GameData.MySkills.Count > 0) foreach (var k in GameData.MySkills.Keys) { skill = k; break; }
-            CombatNetwork.Instance?.TryUseSkill(skill);
+            SkillCaster.TryCast(skill);
             yield return new WaitForSecondsRealtime(1.5f);
             Check("Bấm đánh không lỗi", _exceptions == before);
 

@@ -313,6 +313,14 @@ namespace Assets.Script.Manager
             remotePlayers.Add(pData.id, rp);
         }
 
+        /// <summary>Transform của người chơi {id} (mình hoặc người khác), null nếu không có trong map.</summary>
+        public Transform GetPlayerTransform(int id)
+        {
+            if (id == myPlayerId) return localPlayer != null ? localPlayer.transform : null;
+            var rp = GetRemotePlayer(id);
+            return rp != null ? rp.transform : null;
+        }
+
         public RemotePlayer GetRemotePlayer(int id)
         {
             if (remotePlayers.TryGetValue(id, out RemotePlayer rp))

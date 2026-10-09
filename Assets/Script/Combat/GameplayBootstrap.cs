@@ -3,7 +3,7 @@
 namespace Assets.Script.Combat
 {
     /// <summary>
-    /// Tự tạo các manager gameplay mới (CombatNetwork, GroundItemNetwork, ChatBox) khi game chạy,
+    /// Tự tạo các manager gameplay mới (CombatNetwork, CombatInput, GroundItemNetwork, ChatBox...) khi game chạy,
     /// để KHÔNG phải sửa scene bằng tay. [RuntimeInitializeOnLoadMethod] = Unity tự gọi hàm này
     /// 1 lần sau khi scene đầu tiên load xong (giống "main" của game).
     /// Muốn đặt vào scene thủ công thì cứ đặt — hàm này thấy đã có sẽ không tạo thêm.
@@ -17,6 +17,8 @@ namespace Assets.Script.Combat
 
             var go = new GameObject("[GameplayNetwork]");
             go.AddComponent<CombatNetwork>();      // Awake() tự DontDestroyOnLoad
+            go.AddComponent<CombatInput>();        // phím J / R, nút AttackBtn
+            go.AddComponent<Assets.Script.Network.Heartbeat>();
             go.AddComponent<GroundItemNetwork>();
             go.AddComponent<ChatBox>();
             go.AddComponent<Assets.Script.Data.GameDataNetwork>(); // dữ liệu tĩnh, túi đồ, chỉ số, nhiệm vụ
