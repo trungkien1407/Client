@@ -4,6 +4,7 @@ using Assets.Script.Interfaces;
 using Assets.Script.Manager;
 using Assets.Script.Player;
 using UnityEngine;
+using Assets.Script.Skill;
 
 namespace Assets.Script.Combat
 {

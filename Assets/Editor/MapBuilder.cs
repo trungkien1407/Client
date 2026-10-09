@@ -7,6 +7,7 @@ using UnityEditor.AddressableAssets;
 using UnityEditor.AddressableAssets.Settings;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using Assets.Script.Player;
 
 /// <summary>
 /// DỰNG MAP TỪ THIẾT KẾ — menu Tools/Naruto/6. Đọc Assets/MapLayouts/map_N.json (do tools/map_design.py ở repo server sinh)

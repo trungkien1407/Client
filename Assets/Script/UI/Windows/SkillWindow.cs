@@ -4,6 +4,7 @@ using Assets.Script.UI.Kit;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Assets.Script.Skill;
 
 namespace Assets.Script.UI.Windows
 {

@@ -1,4 +1,5 @@
-﻿namespace Assets.Script.Core
+﻿using Assets.Script.Models;
+namespace Assets.Script.Core
 {
     /// <summary>
     /// TẤT CẢ key Addressables mà CODE gọi bằng chuỗi nằm ở đây (1 chỗ duy nhất).

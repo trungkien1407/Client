@@ -6,6 +6,7 @@ using Assets.Script.UI.Kit;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Assets.Script.Player;
 
 namespace Assets.Script.UI
 {

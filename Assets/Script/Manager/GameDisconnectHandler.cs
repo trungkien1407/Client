@@ -3,6 +3,7 @@ using Assets.Script.Map;
 using Assets.Script.Network;
 using Assets.Script.UI;
 using UnityEngine;
+using Assets.Script.Skill;
 
 namespace Assets.Script.Manager
 {

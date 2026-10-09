@@ -9,6 +9,7 @@ using Assets.Script.UI;
 using Assets.Script.UI.Kit;
 using Assets.Script.UI.Windows;
 using UnityEngine;
+using Assets.Script.Skill;
 
 namespace Assets.Script.Core
 {

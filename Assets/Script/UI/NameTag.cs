@@ -1,6 +1,7 @@
 ﻿using Assets.Script.Data;
 using TMPro;
 using UnityEngine;
+using Assets.Script.Player;
 
 namespace Assets.Script.UI
 {

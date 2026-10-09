@@ -12,6 +12,8 @@ using UnityEditor.AddressableAssets.Settings;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
+using Assets.Script.Skill;
+using Assets.Script.Models;
 
 /// <summary>
 /// CÔNG CỤ DỌN DẸP & KIỂM TRA PROJECT (chỉ chạy trong Editor).

@@ -7,6 +7,7 @@ using Assets.Script.Player;
 using Assets.Script.UI;
 using Newtonsoft.Json;
 using UnityEngine;
+using Assets.Script.Skill;
 
 namespace Assets.Script.Manager
 {

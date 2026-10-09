@@ -1,6 +1,7 @@
 using Assets.Script.Player;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using Assets.Script.Skill;
 
 namespace Assets.Script.Combat
 {
