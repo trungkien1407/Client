@@ -2,6 +2,7 @@ using Assets.Script.Core;
 using Assets.Script.UI.Kit;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Assets.Script.UI.Windows
 {
@@ -12,34 +13,55 @@ namespace Assets.Script.UI.Windows
     public class SettingsWindow : GameWindow
     {
         private const string PrefFps = "fps_limit", PrefQuality = "quality";
-        private TextMeshProUGUI _music, _sfx, _fps, _quality;
+        [SerializeField] private TextMeshProUGUI _music, _sfx, _fps, _quality;
+        // Nút [-] / [+] của 4 dòng (0 nhạc, 1 hiệu ứng, 2 FPS, 3 đồ hoạ)
+        [SerializeField] private Button[] _minus = new Button[4], _plus = new Button[4];
+        [SerializeField] private Button _tutorial;
 
-        protected override void Build()
+        protected override void Configure()
         {
             Title = "Cài đặt";
             Size = new Vector2(460, 370);
-            var body = CreateBody();
-            _music = Line(body, 0, "Nhạc nền", () => Step(-0.1f, true), () => Step(0.1f, true));
-            _sfx = Line(body, 1, "Hiệu ứng", () => Step(-0.1f, false), () => Step(0.1f, false));
-            _fps = Line(body, 2, "Giới hạn FPS", () => SetFps(30), () => SetFps(60), "30", "60");
-            _quality = Line(body, 3, "Đồ hoạ", () => SetQuality(-1), () => SetQuality(1));
-            var note = UIKit.Text("Note", body, "Điện thoại yếu / tiết kiệm pin: chọn 30 FPS + đồ hoạ thấp.", 13, TextAlignmentOptions.Center, UIKit.DimText);
-            note.rectTransform.Place(new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 44), new Vector2(0, 30), new Vector2(0.5f, 0));
-            var tut = UIKit.Button("Tutorial", body, "Xem hướng dẫn tân thủ", () => Get<TutorialWindow>().ShowFromStart(), 15);
-            ((RectTransform)tut.transform).Place(new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0, 4), new Vector2(240, 36), new Vector2(0.5f, 0));
         }
 
-        private TextMeshProUGUI Line(RectTransform body, int row, string label, System.Action minus, System.Action plus, string a = "-", string b = "+")
+        protected override void Build()
+        {
+            var body = CreateBody();
+            _music = Line(body, 0, "Nhạc nền");
+            _sfx = Line(body, 1, "Hiệu ứng");
+            _fps = Line(body, 2, "Giới hạn FPS", "30", "60");
+            _quality = Line(body, 3, "Đồ hoạ");
+            var note = UIKit.Text("Note", body, "Điện thoại yếu / tiết kiệm pin: chọn 30 FPS + đồ hoạ thấp.", 13, TextAlignmentOptions.Center, UIKit.DimText);
+            note.rectTransform.Place(new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 44), new Vector2(0, 30), new Vector2(0.5f, 0));
+            _tutorial = UIKit.Button("Tutorial", body, "Xem hướng dẫn tân thủ", null, 15);
+            ((RectTransform)_tutorial.transform).Place(new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0, 4), new Vector2(240, 36), new Vector2(0.5f, 0));
+        }
+
+        protected override void Bind()
+        {
+            _minus[0].onClick.AddListener(() => Step(-0.1f, true));
+            _plus[0].onClick.AddListener(() => Step(0.1f, true));
+            _minus[1].onClick.AddListener(() => Step(-0.1f, false));
+            _plus[1].onClick.AddListener(() => Step(0.1f, false));
+            _minus[2].onClick.AddListener(() => SetFps(30));
+            _plus[2].onClick.AddListener(() => SetFps(60));
+            _minus[3].onClick.AddListener(() => SetQuality(-1));
+            _plus[3].onClick.AddListener(() => SetQuality(1));
+            _tutorial.onClick.AddListener(() => Get<TutorialWindow>().ShowFromStart());
+        }
+
+        /// <summary>Dựng 1 dòng: nhãn · [a] · giá trị · [b]. Hai nút lưu vào _minus[row] / _plus[row]; trả về ô giá trị.</summary>
+        private TextMeshProUGUI Line(RectTransform body, int row, string label, string a = "-", string b = "+")
         {
             float y = -row * 56;
             var l = UIKit.Text("L" + row, body, label, 17);
             l.rectTransform.Place(new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, y), new Vector2(150, 44), new Vector2(0, 1));
             var v = UIKit.Text("V" + row, body, "", 17, TextAlignmentOptions.Center, UIKit.ButtonHot);
             v.rectTransform.Place(new Vector2(0, 1), new Vector2(0, 1), new Vector2(210, y), new Vector2(120, 44), new Vector2(0, 1));
-            var bm = UIKit.Button("M" + row, body, a, minus, 18);
-            ((RectTransform)bm.transform).Place(new Vector2(0, 1), new Vector2(0, 1), new Vector2(155, y - 2), new Vector2(50, 40), new Vector2(0, 1));
-            var bp = UIKit.Button("P" + row, body, b, plus, 18);
-            ((RectTransform)bp.transform).Place(new Vector2(0, 1), new Vector2(0, 1), new Vector2(335, y - 2), new Vector2(50, 40), new Vector2(0, 1));
+            _minus[row] = UIKit.Button("M" + row, body, a, null, 18);
+            ((RectTransform)_minus[row].transform).Place(new Vector2(0, 1), new Vector2(0, 1), new Vector2(155, y - 2), new Vector2(50, 40), new Vector2(0, 1));
+            _plus[row] = UIKit.Button("P" + row, body, b, null, 18);
+            ((RectTransform)_plus[row].transform).Place(new Vector2(0, 1), new Vector2(0, 1), new Vector2(335, y - 2), new Vector2(50, 40), new Vector2(0, 1));
             return v;
         }
 

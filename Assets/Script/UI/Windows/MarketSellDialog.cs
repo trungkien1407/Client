@@ -2,20 +2,26 @@ using Assets.Script.Data;
 using Assets.Script.UI.Kit;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Assets.Script.UI.Windows
 {
     /// <summary>Hộp nhập SỐ LƯỢNG + GIÁ khi treo bán; hiện trước phí treo và số yên nhận được sau thuế.</summary>
     public class MarketSellDialog : GameWindow
     {
-        private TextMeshProUGUI _info, _calc;
-        private TMP_InputField _qty, _price;
+        [SerializeField] private TextMeshProUGUI _info, _calc;
+        [SerializeField] private TMP_InputField _qty, _price;
+        [SerializeField] private Button _ok, _cancel;
         private int _bagIndex;
 
-        protected override void Build()
+        protected override void Configure()
         {
             Title = "Treo bán";
             Size = new Vector2(440, 300);
+        }
+
+        protected override void Build()
+        {
             var body = CreateBody();
             _info = UIKit.Text("Info", body, "", 16, TextAlignmentOptions.TopLeft);
             _info.rectTransform.Place(new Vector2(0, 1), new Vector2(1, 1), Vector2.zero, new Vector2(0, 50), new Vector2(0.5f, 1));
@@ -27,12 +33,18 @@ namespace Assets.Script.UI.Windows
             ((RectTransform)_price.transform).Place(new Vector2(0, 1), new Vector2(0, 1), new Vector2(110, -96), new Vector2(200, 34), new Vector2(0, 1));
             _calc = UIKit.Text("Calc", body, "", 14, TextAlignmentOptions.TopLeft, UIKit.DimText);
             _calc.rectTransform.Place(new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -136), new Vector2(0, 50), new Vector2(0.5f, 1));
+            _ok = UIKit.Button("Ok", body, "Treo bán", null, 16);
+            ((RectTransform)_ok.transform).Place(new Vector2(1, 0), new Vector2(1, 0), Vector2.zero, new Vector2(140, 42), new Vector2(1, 0));
+            _ok.image.color = UIKit.ButtonHot;
+            _cancel = UIKit.Button("Cancel", body, "Huỷ", null, 16);
+            ((RectTransform)_cancel.transform).Place(new Vector2(0, 0), new Vector2(0, 0), Vector2.zero, new Vector2(120, 42), Vector2.zero);
+        }
+
+        protected override void Bind()
+        {
             _price.onValueChanged.AddListener(_ => UpdateCalc());
-            var ok = UIKit.Button("Ok", body, "Treo bán", Submit, 16);
-            ((RectTransform)ok.transform).Place(new Vector2(1, 0), new Vector2(1, 0), Vector2.zero, new Vector2(140, 42), new Vector2(1, 0));
-            ok.image.color = UIKit.ButtonHot;
-            var cancel = UIKit.Button("Cancel", body, "Huỷ", Hide, 16);
-            ((RectTransform)cancel.transform).Place(new Vector2(0, 0), new Vector2(0, 0), Vector2.zero, new Vector2(120, 42), Vector2.zero);
+            _ok.onClick.AddListener(Submit);
+            _cancel.onClick.AddListener(Hide);
         }
 
         public void Ask(int bagIndex, BagSlot s)

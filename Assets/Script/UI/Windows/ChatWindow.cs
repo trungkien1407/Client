@@ -16,22 +16,26 @@ namespace Assets.Script.UI.Windows
         private static readonly int[] TabChannels = { 1, 0, 4, 2 };
         private static readonly string[] TabLabels = { "Khu", "Thế giới", "Gia tộc", "Riêng" };
 
-        private readonly Button[] _tabs = new Button[4];
-        private RectTransform _list;
-        private ScrollRect _scroll;
-        private TMP_InputField _input, _target;
+        [SerializeField] private Button[] _tabs = new Button[4];
+        [SerializeField] private RectTransform _list;
+        [SerializeField] private ScrollRect _scroll;
+        [SerializeField] private TMP_InputField _input, _target;
+        [SerializeField] private Button _send;
         private int _channel = 1;
 
-        protected override void Build()
+        protected override void Configure()
         {
             Title = "Trò chuyện";
             Size = new Vector2(600, 470);
+        }
+
+        protected override void Build()
+        {
             var body = CreateBody();
 
             for (int i = 0; i < 4; i++)
             {
-                int ch = TabChannels[i];
-                _tabs[i] = UIKit.Button("Tab" + i, body, TabLabels[i], () => { _channel = ch; RefreshTabs(); }, 15);
+                _tabs[i] = UIKit.Button("Tab" + i, body, TabLabels[i], null, 15);
                 ((RectTransform)_tabs[i].transform).Place(new Vector2(0, 1), new Vector2(0, 1), new Vector2(i * 112, 0), new Vector2(106, 32), new Vector2(0, 1));
             }
 
@@ -42,13 +46,25 @@ namespace Assets.Script.UI.Windows
             _target = UIKit.Input("Target", body, "Tên người nhận", 16, TMP_InputField.ContentType.Standard, 16);
             ((RectTransform)_target.transform).Place(new Vector2(0, 0), new Vector2(0, 0), Vector2.zero, new Vector2(130, 42), Vector2.zero);
             _input = UIKit.Input("Input", body, "Nhập tin nhắn... (/a thế giới · /g gia tộc · /w Tên riêng)", 16, TMP_InputField.ContentType.Standard, 150);
+            _send = UIKit.Button("Send", body, "Gửi", null, 16);
+            ((RectTransform)_send.transform).Place(new Vector2(1, 0), new Vector2(1, 0), Vector2.zero, new Vector2(90, 42), new Vector2(1, 0));
+            _send.image.color = UIKit.ButtonHot;
+
+            RefreshTabs(); // trạng thái ban đầu (kênh Khu): tô tab, ẩn ô người nhận, đặt chỗ ô nhập — lưu luôn vào prefab
+        }
+
+        protected override void Bind()
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                int ch = TabChannels[i];
+                _tabs[i].onClick.AddListener(() => { _channel = ch; RefreshTabs(); });
+            }
             _input.onSubmit.AddListener(OnSubmit);
-            var send = UIKit.Button("Send", body, "Gửi", () => OnSubmit(_input.text), 16);
-            ((RectTransform)send.transform).Place(new Vector2(1, 0), new Vector2(1, 0), Vector2.zero, new Vector2(90, 42), new Vector2(1, 0));
-            send.image.color = UIKit.ButtonHot;
+            _send.onClick.AddListener(() => OnSubmit(_input.text));
 
             ChatBox.OnNewLine += () => RefreshIfOpen();
-            RefreshTabs();
+            RefreshTabs(); // đồng bộ giao diện với kênh hiện tại (khi tạo từ prefab)
         }
 
         /// <summary>Mở cửa sổ và đặt con trỏ vào ô nhập (bàn phím ảo tự hiện trên điện thoại).</summary>

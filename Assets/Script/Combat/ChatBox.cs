@@ -65,18 +65,9 @@ namespace Assets.Script.Combat
 
         private void BuildOverlay()
         {
-            var hud = UIRoot.Instance.HudLayer;
-            _overlayRoot = UIKit.Rect("ChatOverlay", hud).gameObject;
-            var rt = (RectTransform)_overlayRoot.transform;
-            // Góc trái, PHÍA TRÊN joystick / nút mũi tên (dưới cùng bên trái)
-            rt.Place(new Vector2(0, 0), new Vector2(0, 0), new Vector2(8, 240), new Vector2(470, 170), Vector2.zero);
-            _overlay = UIKit.Text("Lines", rt, "", 15, TextAlignmentOptions.BottomLeft);
-            _overlay.rectTransform.Fill(4, 4, 2, 2);
-            _overlay.outlineWidth = 0.2f;
-            _overlay.outlineColor = new Color32(0, 0, 0, 200);
-            var btn = UIKit.Button("ChatBtn", hud, "Chat", () => GameWindow.Get<ChatWindow>().OpenAndFocus(), 15);
-            ((RectTransform)btn.transform).Place(new Vector2(0, 0), new Vector2(0, 0), new Vector2(8, 200), new Vector2(80, 34), Vector2.zero);
-            btn.transform.SetParent(rt, true); // ẩn/hiện cùng overlay
+            var v = HudPanel.Create<Assets.Script.UI.ChatOverlay>(UIRoot.Instance.HudLayer);
+            _overlayRoot = v.gameObject;
+            _overlay = v.lines;
             RefreshOverlay();
         }
 

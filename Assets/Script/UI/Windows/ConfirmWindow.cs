@@ -22,8 +22,8 @@ namespace Assets.Script.UI.Windows
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Hook() => Data.GameData.OnSessionReset += () => Pending.Clear();   // lời mời của phiên cũ
         private Item _current;
-        private TextMeshProUGUI _text, _timer;
-        private Button _yes, _no;
+        [SerializeField] private TextMeshProUGUI _text, _timer;
+        [SerializeField] private Button _yes, _no;
 
         public static void Ask(string text, string yes, Action onYes, string no = "Huỷ", Action onNo = null, float timeout = 30f)
         {
@@ -32,20 +32,30 @@ namespace Assets.Script.UI.Windows
             if (w._current == null) w.Next();
         }
 
-        protected override void Build()
+        protected override void Configure()
         {
             Title = "Xác nhận";
             Size = new Vector2(440, 230);
+        }
+
+        protected override void Build()
+        {
             var body = CreateBody();
             _text = UIKit.Text("Text", body, "", 19, TextAlignmentOptions.Center);
             _text.rectTransform.Fill(6, 6, 4, 64);
             _timer = UIKit.Text("Timer", body, "", 13, TextAlignmentOptions.TopRight, UIKit.DimText);
             _timer.rectTransform.Place(new Vector2(1, 1), new Vector2(1, 1), Vector2.zero, new Vector2(80, 18), new Vector2(1, 1));
-            _yes = UIKit.Button("Yes", body, "Đồng ý", () => Answer(true));
+            _yes = UIKit.Button("Yes", body, "Đồng ý", null);
             ((RectTransform)_yes.transform).Place(new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(-80, 6), new Vector2(150, 44), new Vector2(0.5f, 0));
             _yes.image.color = UIKit.ButtonHot;
-            _no = UIKit.Button("No", body, "Huỷ", () => Answer(false));
+            _no = UIKit.Button("No", body, "Huỷ", null);
             ((RectTransform)_no.transform).Place(new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(80, 6), new Vector2(150, 44), new Vector2(0.5f, 0));
+        }
+
+        protected override void Bind()
+        {
+            _yes.onClick.AddListener(() => Answer(true));
+            _no.onClick.AddListener(() => Answer(false));
         }
 
         private void Next()

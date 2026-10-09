@@ -80,15 +80,19 @@ namespace Assets.Script.UI.Windows
              "<b>Tỉ thí</b>: mời 1 người đấu tay đôi, không ai chết thật, không mất gì."),
         };
 
-        private RectTransform _topics;
-        private TextMeshProUGUI _body;
+        [SerializeField] private RectTransform _topics;
+        [SerializeField] private TextMeshProUGUI _body;
         private int _sel;
 
-        protected override void Build()
+        protected override void Configure()
         {
             Title = "Cẩm nang nhẫn giả";
             HotKey = Key.G;
             Size = new Vector2(760, 520);
+        }
+
+        protected override void Build()
+        {
             var body = CreateBody();
             _topics = UIKit.ScrollList("Topics", body, 4);
             ((RectTransform)_topics.parent).Place(new Vector2(0, 0), new Vector2(0, 1), Vector2.zero, new Vector2(220, 0), new Vector2(0, 0.5f));
@@ -96,6 +100,9 @@ namespace Assets.Script.UI.Windows
             ((RectTransform)right.parent).Fill(228, 0, 0, 0);
             _body = UIKit.Text("Text", right, "", 17, TextAlignmentOptions.TopLeft); // trong ScrollList: chữ dài tự cuộn
         }
+
+        /// <summary>Không có nút cố định — nút chủ đề tạo lại trong Refresh(). Khai báo để tool xuất được prefab.</summary>
+        protected override void Bind() { }
 
         /// <summary>Mở tới chủ đề thứ topic (TipWindow gọi).</summary>
         public void ShowTopic(int topic)

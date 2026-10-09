@@ -16,17 +16,21 @@ namespace Assets.Script.UI.Windows
     /// </summary>
     public class ZoneWindow : GameWindow
     {
-        private RectTransform _grid;
-        private TextMeshProUGUI _info;
+        [SerializeField] private RectTransform _grid;
+        [SerializeField] private TextMeshProUGUI _info;
         private readonly List<int[]> _zones = new List<int[]>(); // [id, players, max]
         private int _current = -1;
         /// <summary>Số khu đã nhận từ server (AutoTest kiểm).</summary>
         public int ZoneCount => _zones.Count;
 
-        protected override void Build()
+        protected override void Configure()
         {
             Title = "Chọn khu";
             Size = new Vector2(520, 420);
+        }
+
+        protected override void Build()
+        {
             var body = CreateBody();
             _info = UIKit.Text("Info", body, "", 15, TextAlignmentOptions.MidlineLeft, UIKit.DimText);
             _info.rectTransform.Place(new Vector2(0, 1), new Vector2(1, 1), Vector2.zero, new Vector2(0, 26), new Vector2(0.5f, 1));
@@ -34,6 +38,9 @@ namespace Assets.Script.UI.Windows
             ((RectTransform)scroll.parent).Fill(0, 0, 30, 0);
             _grid = scroll;
         }
+
+        /// <summary>Không có nút cố định: nút khu sinh lúc chạy trong Refresh; xin danh sách khu nằm ở OnEnable.</summary>
+        protected override void Bind() { }
 
         private void OnEnable()
         {

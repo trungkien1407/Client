@@ -16,17 +16,22 @@ namespace Assets.Script.UI.Windows
     /// </summary>
     public class ActivityWindow : GameWindow
     {
-        private Image _bar;
-        private TextMeshProUGUI _points;
-        private RectTransform _miles, _list;
-        private TMP_InputField _code;
-        private TextMeshProUGUI _codeMsg;
+        [SerializeField] private Image _bar;
+        [SerializeField] private TextMeshProUGUI _points;
+        [SerializeField] private RectTransform _miles, _list;
+        [SerializeField] private TMP_InputField _code;
+        [SerializeField] private TextMeshProUGUI _codeMsg;
+        [SerializeField] private Button _btnUseCode;
 
-        protected override void Build()
+        protected override void Configure()
         {
             Title = "Hoạt động hằng ngày";
             HotKey = Key.H;
             Size = new Vector2(620, 560);
+        }
+
+        protected override void Build()
+        {
             var body = CreateBody();
 
             _points = UIKit.Text("Points", body, "", 18, TextAlignmentOptions.MidlineLeft, new Color(1f, 0.85f, 0.3f));
@@ -34,6 +39,7 @@ namespace Assets.Script.UI.Windows
             _bar = UIKit.Bar("Bar", body, new Color(0.95f, 0.6f, 0.15f));
             ((RectTransform)_bar.transform.parent).Place(new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -30), new Vector2(0, 14), new Vector2(0.5f, 1));
 
+            // Hàng nút mốc: xếp ngang (layout lưu trong prefab), nút tạo lúc chạy trong Draw()
             _miles = UIKit.Rect("Miles", body);
             _miles.Place(new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -50), new Vector2(0, 58), new Vector2(0.5f, 1));
             var h = _miles.gameObject.AddComponent<HorizontalLayoutGroup>();
@@ -45,11 +51,15 @@ namespace Assets.Script.UI.Windows
             // Giftcode (dưới cùng): ô nhập + nút Nhận; kết quả hiện bên phải
             _code = UIKit.Input("Code", body, "Nhập giftcode...", 16, TMP_InputField.ContentType.Standard, 32);
             ((RectTransform)_code.transform).Place(new Vector2(0, 0), new Vector2(0, 0), new Vector2(0, 4), new Vector2(230, 38), Vector2.zero);
-            var use = UIKit.Button("UseCode", body, "Nhận quà", () => { GameActions.GiftcodeUse(_code.text); _code.text = ""; }, 15);
-            ((RectTransform)use.transform).Place(new Vector2(0, 0), new Vector2(0, 0), new Vector2(236, 4), new Vector2(110, 38), Vector2.zero);
+            _btnUseCode = UIKit.Button("UseCode", body, "Nhận quà", null, 15);
+            ((RectTransform)_btnUseCode.transform).Place(new Vector2(0, 0), new Vector2(0, 0), new Vector2(236, 4), new Vector2(110, 38), Vector2.zero);
             _codeMsg = UIKit.Text("CodeMsg", body, "", 13, TextAlignmentOptions.MidlineLeft);
             _codeMsg.rectTransform.Place(new Vector2(0, 0), new Vector2(1, 0), new Vector2(352, 4), new Vector2(-352, 38), Vector2.zero);
+        }
 
+        protected override void Bind()
+        {
+            _btnUseCode.onClick.AddListener(() => { GameActions.GiftcodeUse(_code.text); _code.text = ""; });
             GameData.OnChanged += k => { if (k == DataKind.Activity || k == DataKind.Templates) RefreshIfOpen(); };
         }
 

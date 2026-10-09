@@ -19,25 +19,29 @@ namespace Assets.Script.UI.Windows
     {
         private enum Tab { Party, Friends, Guild }
         private Tab _tab = Tab.Party;
-        private readonly Button[] _tabs = new Button[3];
+        [SerializeField] private Button[] _tabs = new Button[3];
 
-        private RectTransform _partyHead, _friendHead, _guildNone, _guildHead, _list;
-        private TMP_InputField _friendName, _guildName, _donate, _notice;
-        private TextMeshProUGUI _partyInfo, _guildInfo;
-        private Button _btnNotice;
+        [SerializeField] private RectTransform _partyHead, _friendHead, _guildNone, _guildHead, _list;
+        [SerializeField] private TMP_InputField _friendName, _guildName, _donate, _notice;
+        [SerializeField] private TextMeshProUGUI _partyInfo, _guildInfo;
+        [SerializeField] private Button _btnNotice;
+        [SerializeField] private Button _btnLeave, _btnAdd, _btnReload, _btnCreate, _btnDonate, _btnGLeave;
 
-        protected override void Build()
+        protected override void Configure()
         {
             Title = "Xã hội";
             HotKey = Key.O;
             Size = new Vector2(620, 540);
+        }
+
+        protected override void Build()
+        {
             var body = CreateBody();
 
             string[] names = { "Nhóm", "Bạn bè", "Gia tộc" };
             for (int i = 0; i < 3; i++)
             {
-                var t = (Tab)i;
-                _tabs[i] = UIKit.Button("Tab" + i, body, names[i], () => SwitchTab(t), 17);
+                _tabs[i] = UIKit.Button("Tab" + i, body, names[i], null, 17);
                 ((RectTransform)_tabs[i].transform).Place(new Vector2(0, 1), new Vector2(0, 1), new Vector2(i * 130, 0), new Vector2(124, 36), new Vector2(0, 1));
             }
 
@@ -45,51 +49,67 @@ namespace Assets.Script.UI.Windows
             _partyHead = Head(body, "PartyHead", 60);
             _partyInfo = UIKit.Text("Info", _partyHead, "", 15, TextAlignmentOptions.MidlineLeft, UIKit.DimText);
             _partyInfo.rectTransform.Fill(4, 140, 0, 0);
-            var leave = UIKit.Button("Leave", _partyHead, "Rời nhóm", GameActions.PartyLeave, 15);
-            ((RectTransform)leave.transform).Place(new Vector2(1, 0.5f), new Vector2(1, 0.5f), Vector2.zero, new Vector2(130, 38), new Vector2(1, 0.5f));
+            _btnLeave = UIKit.Button("Leave", _partyHead, "Rời nhóm", null, 15);
+            ((RectTransform)_btnLeave.transform).Place(new Vector2(1, 0.5f), new Vector2(1, 0.5f), Vector2.zero, new Vector2(130, 38), new Vector2(1, 0.5f));
 
             _friendHead = Head(body, "FriendHead", 60);
             _friendName = UIKit.Input("Name", _friendHead, "Tên nhân vật", 16, TMP_InputField.ContentType.Standard, 16);
             ((RectTransform)_friendName.transform).Place(new Vector2(0, 0.5f), new Vector2(0, 0.5f), Vector2.zero, new Vector2(260, 38), new Vector2(0, 0.5f));
-            var add = UIKit.Button("Add", _friendHead, "Kết bạn", () =>
-            {
-                if (!string.IsNullOrWhiteSpace(_friendName.text)) { GameActions.FriendRequest(_friendName.text.Trim()); _friendName.text = ""; }
-            }, 15);
-            ((RectTransform)add.transform).Place(new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(268, 0), new Vector2(110, 38), new Vector2(0, 0.5f));
-            var reload = UIKit.Button("Reload", _friendHead, "Làm mới", GameActions.FriendList, 15);
-            ((RectTransform)reload.transform).Place(new Vector2(1, 0.5f), new Vector2(1, 0.5f), Vector2.zero, new Vector2(110, 38), new Vector2(1, 0.5f));
+            _btnAdd = UIKit.Button("Add", _friendHead, "Kết bạn", null, 15);
+            ((RectTransform)_btnAdd.transform).Place(new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(268, 0), new Vector2(110, 38), new Vector2(0, 0.5f));
+            _btnReload = UIKit.Button("Reload", _friendHead, "Làm mới", null, 15);
+            ((RectTransform)_btnReload.transform).Place(new Vector2(1, 0.5f), new Vector2(1, 0.5f), Vector2.zero, new Vector2(110, 38), new Vector2(1, 0.5f));
 
             _guildNone = Head(body, "GuildNone", 60);
             _guildName = UIKit.Input("GName", _guildNone, "Tên gia tộc (3–20 ký tự)", 16, TMP_InputField.ContentType.Standard, 20); // khớp GuildService.create
             ((RectTransform)_guildName.transform).Place(new Vector2(0, 0.5f), new Vector2(0, 0.5f), Vector2.zero, new Vector2(260, 38), new Vector2(0, 0.5f));
-            var create = UIKit.Button("Create", _guildNone, "Lập gia tộc", () =>
-            {
-                if (!string.IsNullOrWhiteSpace(_guildName.text)) GameActions.GuildCreate(_guildName.text.Trim());
-            }, 15);
-            ((RectTransform)create.transform).Place(new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(268, 0), new Vector2(140, 38), new Vector2(0, 0.5f));
+            _btnCreate = UIKit.Button("Create", _guildNone, "Lập gia tộc", null, 15);
+            ((RectTransform)_btnCreate.transform).Place(new Vector2(0, 0.5f), new Vector2(0, 0.5f), new Vector2(268, 0), new Vector2(140, 38), new Vector2(0, 0.5f));
 
             _guildHead = Head(body, "GuildHead", 150);
             _guildInfo = UIKit.Text("Info", _guildHead, "", 15, TextAlignmentOptions.TopLeft);
             _guildInfo.rectTransform.Fill(4, 4, 0, 48);
             _donate = UIKit.Input("Donate", _guildHead, "Số yên góp", 15, TMP_InputField.ContentType.IntegerNumber, 9);
             ((RectTransform)_donate.transform).Place(new Vector2(0, 0), new Vector2(0, 0), new Vector2(0, 4), new Vector2(120, 36), Vector2.zero);
-            var donate = UIKit.Button("DonateBtn", _guildHead, "Góp quỹ", () =>
-            {
-                if (int.TryParse(_donate.text, out int v) && v > 0) { GameActions.GuildDonate(v); _donate.text = ""; }
-            }, 14);
-            ((RectTransform)donate.transform).Place(new Vector2(0, 0), new Vector2(0, 0), new Vector2(124, 4), new Vector2(90, 36), Vector2.zero);
+            _btnDonate = UIKit.Button("DonateBtn", _guildHead, "Góp quỹ", null, 14);
+            ((RectTransform)_btnDonate.transform).Place(new Vector2(0, 0), new Vector2(0, 0), new Vector2(124, 4), new Vector2(90, 36), Vector2.zero);
             _notice = UIKit.Input("Notice", _guildHead, "Thông báo mới", 15, TMP_InputField.ContentType.Standard, 100);
             ((RectTransform)_notice.transform).Place(new Vector2(0, 0), new Vector2(0, 0), new Vector2(222, 4), new Vector2(170, 36), Vector2.zero);
-            _btnNotice = UIKit.Button("NoticeBtn", _guildHead, "Đăng", () =>
-            {
-                if (!string.IsNullOrWhiteSpace(_notice.text)) { GameActions.GuildNotice(_notice.text.Trim()); _notice.text = ""; }
-            }, 14);
+            _btnNotice = UIKit.Button("NoticeBtn", _guildHead, "Đăng", null, 14);
             ((RectTransform)_btnNotice.transform).Place(new Vector2(0, 0), new Vector2(0, 0), new Vector2(396, 4), new Vector2(70, 36), Vector2.zero);
-            var gLeave = UIKit.Button("GLeave", _guildHead, "Rời tộc", () =>
-                ConfirmWindow.Ask("Rời gia tộc? (Tộc trưởng rời khi còn 1 người = giải tán)", "Rời", GameActions.GuildLeave, "Ở lại"), 14);
-            ((RectTransform)gLeave.transform).Place(new Vector2(1, 0), new Vector2(1, 0), new Vector2(0, 4), new Vector2(100, 36), new Vector2(1, 0));
+            _btnGLeave = UIKit.Button("GLeave", _guildHead, "Rời tộc", null, 14);
+            ((RectTransform)_btnGLeave.transform).Place(new Vector2(1, 0), new Vector2(1, 0), new Vector2(0, 4), new Vector2(100, 36), new Vector2(1, 0));
 
             _list = UIKit.ScrollList("List", body, 4);
+        }
+
+        protected override void Bind()
+        {
+            for (int i = 0; i < 3; i++)
+            {
+                var t = (Tab)i;
+                _tabs[i].onClick.AddListener(() => SwitchTab(t));
+            }
+            _btnLeave.onClick.AddListener(GameActions.PartyLeave);
+            _btnAdd.onClick.AddListener(() =>
+            {
+                if (!string.IsNullOrWhiteSpace(_friendName.text)) { GameActions.FriendRequest(_friendName.text.Trim()); _friendName.text = ""; }
+            });
+            _btnReload.onClick.AddListener(GameActions.FriendList);
+            _btnCreate.onClick.AddListener(() =>
+            {
+                if (!string.IsNullOrWhiteSpace(_guildName.text)) GameActions.GuildCreate(_guildName.text.Trim());
+            });
+            _btnDonate.onClick.AddListener(() =>
+            {
+                if (int.TryParse(_donate.text, out int v) && v > 0) { GameActions.GuildDonate(v); _donate.text = ""; }
+            });
+            _btnNotice.onClick.AddListener(() =>
+            {
+                if (!string.IsNullOrWhiteSpace(_notice.text)) { GameActions.GuildNotice(_notice.text.Trim()); _notice.text = ""; }
+            });
+            _btnGLeave.onClick.AddListener(() =>
+                ConfirmWindow.Ask("Rời gia tộc? (Tộc trưởng rời khi còn 1 người = giải tán)", "Rời", GameActions.GuildLeave, "Ở lại"));
 
             GameData.OnChanged += k =>
             {

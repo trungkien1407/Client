@@ -14,15 +14,19 @@ namespace Assets.Script.UI.Windows
     /// </summary>
     public class StorageWindow : GameWindow
     {
-        private RectTransform _grid;
-        private TextMeshProUGUI _title, _detail;
-        private Button _take1, _takeAll;
+        [SerializeField] private RectTransform _grid;
+        [SerializeField] private TextMeshProUGUI _title, _detail;
+        [SerializeField] private Button _take1, _takeAll;
         private int _sel = -1;
 
-        protected override void Build()
+        protected override void Configure()
         {
             Title = "Rương đồ";
             Size = new Vector2(460, 500);
+        }
+
+        protected override void Build()
+        {
             var body = CreateBody();
             _title = UIKit.Text("Cap", body, "", 16, TextAlignmentOptions.MidlineLeft, UIKit.DimText);
             _title.rectTransform.Place(new Vector2(0, 1), new Vector2(1, 1), Vector2.zero, new Vector2(0, 24), new Vector2(0.5f, 1));
@@ -35,11 +39,16 @@ namespace Assets.Script.UI.Windows
             bottom.Place(new Vector2(0, 0), new Vector2(1, 0), Vector2.zero, new Vector2(0, 104), new Vector2(0.5f, 0));
             _detail = UIKit.Text("Detail", bottom, "Chọn 1 ô trong rương. Muốn cất: chọn đồ trong Hành trang → [Cất rương].", 14, TextAlignmentOptions.TopLeft);
             _detail.rectTransform.Fill(8, 200, 6, 6);
-            _take1 = UIKit.Button("Take1", bottom, "Lấy 1", () => Take(false), 15);
+            _take1 = UIKit.Button("Take1", bottom, "Lấy 1", null, 15);
             ((RectTransform)_take1.transform).Place(new Vector2(1, 0.5f), new Vector2(1, 0.5f), new Vector2(-100, 0), new Vector2(88, 36), new Vector2(1, 0.5f));
-            _takeAll = UIKit.Button("TakeAll", bottom, "Lấy hết", () => Take(true), 15);
+            _takeAll = UIKit.Button("TakeAll", bottom, "Lấy hết", null, 15);
             ((RectTransform)_takeAll.transform).Place(new Vector2(1, 0.5f), new Vector2(1, 0.5f), new Vector2(-6, 0), new Vector2(88, 36), new Vector2(1, 0.5f));
+        }
 
+        protected override void Bind()
+        {
+            _take1.onClick.AddListener(() => Take(false));
+            _takeAll.onClick.AddListener(() => Take(true));
             GameData.OnChanged += k => { if (k == DataKind.Storage || k == DataKind.Templates) RefreshIfOpen(); };
         }
 

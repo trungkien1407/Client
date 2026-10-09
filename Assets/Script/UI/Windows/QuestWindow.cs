@@ -16,18 +16,26 @@ namespace Assets.Script.UI.Windows
     /// </summary>
     public class QuestWindow : GameWindow
     {
-        private RectTransform _list;
+        [SerializeField] private RectTransform _list;
         private bool _requested;
         private int _knownQuestCount = -1;
 
-        protected override void Build()
+        protected override void Configure()
         {
             Title = "Nhiệm vụ";
             HotKey = Key.L;
             Size = new Vector2(600, 520);
+        }
+
+        protected override void Build()
+        {
             var body = CreateBody();
             _list = UIKit.ScrollList("List", body, 6);
             ((RectTransform)_list.parent).Fill();
+        }
+
+        protected override void Bind()
+        {
             GameData.OnChanged += k =>
             {
                 if (k == DataKind.Quests && IsOpen && GameData.MyQuests.Count != _knownQuestCount) _requested = false; // nhận / trả nhiệm vụ → xin lại sổ tay

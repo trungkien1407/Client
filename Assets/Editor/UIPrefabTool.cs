@@ -11,6 +11,7 @@ using UnityEngine;
 ///      UITheme.asset (bảng màu), UIRoot.prefab (canvas chung).
 ///   2. Cửa sổ: Assets/Resources/UI/Windows/&lt;Lớp&gt;.prefab — bản biến thể của Kit/Window, các nút / chữ bên trong
 ///      là bản lồng của Kit/Button, Kit/Text... → sửa mẫu 1 lần, mọi nơi đổi theo.
+///   3. HUD: Assets/Resources/UI/Hud/&lt;Lớp&gt;.prefab (mọi lớp HudPanel — thanh EXP + menu, minimap, khung chat, nút điện thoại)
 /// MẶC ĐỊNH KHÔNG GHI ĐÈ file đã có (giữ chỉnh sửa của bạn). Chỉ xuất cửa sổ đã tách Bind() (GameWindow.SupportsPrefab).
 /// Chạy không mở Editor: -executeMethod UIPrefabTool.BatchGenerate
 /// </summary>
@@ -21,24 +22,24 @@ public static class UIPrefabTool
     [MenuItem("Tools/Naruto/UI/1. Tạo bộ mẫu (Kit + UITheme + UIRoot)", priority = 20)]
     public static void MenuKit() => Report(GenerateKit(false));
 
-    [MenuItem("Tools/Naruto/UI/2. Xuất cửa sổ còn thiếu ra prefab", priority = 21)]
-    public static void MenuWindows() => Report(ExportWindows(false));
+    [MenuItem("Tools/Naruto/UI/2. Xuất cửa sổ + HUD còn thiếu ra prefab", priority = 21)]
+    public static void MenuWindows() => Report(ExportWindows(false) + ExportHud(false));
 
     [MenuItem("Tools/Naruto/UI/3. Xuất lại cửa sổ đang chọn (ghi đè)", priority = 22)]
     public static void MenuReexportSelected()
     {
         var names = Selection.objects.Select(o => o.name).ToArray();
-        var types = WindowTypes().Where(t => names.Contains(t.Name)).ToArray();
+        var types = WindowTypes().Concat(HudTypes()).Where(t => names.Contains(t.Name)).ToArray();
         if (types.Length == 0) { EditorUtility.DisplayDialog("UI", "Chọn prefab (hoặc script) cửa sổ cần xuất lại.", "OK"); return; }
         if (!EditorUtility.DisplayDialog("UI", "Ghi đè " + string.Join(", ", types.Select(t => t.Name)) + "?\nMọi chỉnh sửa trong prefab đó sẽ mất.", "Ghi đè", "Huỷ")) return;
         int n = 0;
-        foreach (var t in types) if (ExportWindow(t, true)) n++;
+        foreach (var t in types) if (typeof(HudPanel).IsAssignableFrom(t) ? ExportHudPanel(t, true) : ExportWindow(t, true)) n++;
         Report(n);
     }
 
     public static void BatchGenerate()
     {
-        int n = GenerateKit(false) + ExportWindows(false);
+        int n = GenerateKit(false) + ExportWindows(false) + ExportHud(false);
         Debug.Log($"[UIPrefabTool] Đã tạo {n} file");
     }
 
@@ -50,6 +51,7 @@ public static class UIPrefabTool
     {
         Directory.CreateDirectory(Res + UIPrefabs.KitFolder);
         Directory.CreateDirectory(Res + UIPrefabs.WindowFolder);
+        Directory.CreateDirectory(Res + UIPrefabs.HudFolder);
         int n = 0;
 
         string white = Res + UIPrefabs.KitFolder + "White.png";
@@ -136,6 +138,35 @@ public static class UIPrefabTool
             return 1;
         }) == 1;
     }
+
+    // ==========================================
+    // HUD
+    // ==========================================
+
+    public static int ExportHud(bool overwrite)
+    {
+        Directory.CreateDirectory(Res + UIPrefabs.HudFolder);
+        int n = 0;
+        foreach (var t in HudTypes()) if (ExportHudPanel(t, overwrite)) n++;
+        AssetDatabase.SaveAssets();
+        UIPrefabs.ClearCache();
+        return n;
+    }
+
+    private static bool ExportHudPanel(Type t, bool overwrite)
+    {
+        string path = Res + UIPrefabs.HudFolder + t.Name + ".prefab";
+        if (!overwrite && File.Exists(path)) return false;
+        return WithKitLinks(() =>
+        {
+            var p = HudPanel.CreateByCode(t, null);
+            PrefabUtility.SaveAsPrefabAsset(p.gameObject, path);
+            UnityEngine.Object.DestroyImmediate(p.gameObject);
+            return 1;
+        }) == 1;
+    }
+
+    private static Type[] HudTypes() => TypeCache.GetTypesDerivedFrom<HudPanel>().Where(t => !t.IsAbstract).OrderBy(t => t.Name).ToArray();
 
     /// <summary>Lớp cửa sổ xuất được (đã tách Bind()).</summary>
     private static Type[] WindowTypes() => TypeCache.GetTypesDerivedFrom<GameWindow>()

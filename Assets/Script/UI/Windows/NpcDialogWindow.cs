@@ -13,20 +13,27 @@ namespace Assets.Script.UI.Windows
     /// </summary>
     public class NpcDialogWindow : GameWindow
     {
-        private TextMeshProUGUI _text;
-        private RectTransform _options;
+        [SerializeField] private TextMeshProUGUI _text;
+        [SerializeField] private RectTransform _options;
         private int _npcId;
 
-        protected override void Build()
+        protected override void Configure()
         {
             Title = "NPC";
             Size = new Vector2(560, 420);
+        }
+
+        protected override void Build()
+        {
             var body = CreateBody();
             _text = UIKit.Text("Text", body, "", 18, TextAlignmentOptions.TopLeft);
             _text.rectTransform.Place(new Vector2(0, 1), new Vector2(1, 1), Vector2.zero, new Vector2(0, 150), new Vector2(0.5f, 1));
             _options = UIKit.ScrollList("Options", body, 6);
             ((RectTransform)_options.parent).Fill(0, 0, 158, 0);
         }
+
+        /// <summary>Không có nút cố định: các lựa chọn sinh lúc chạy trong ShowMenu.</summary>
+        protected override void Bind() { }
 
         private readonly List<string> _optionTexts = new List<string>();
         public int NpcId => _npcId;

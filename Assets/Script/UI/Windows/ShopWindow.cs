@@ -16,20 +16,28 @@ namespace Assets.Script.UI.Windows
     /// </summary>
     public class ShopWindow : GameWindow
     {
-        private RectTransform _list;
-        private TextMeshProUGUI _money;
+        [SerializeField] private RectTransform _list;
+        [SerializeField] private TextMeshProUGUI _money;
         private int _npcId = -1;
         private readonly List<ShopGood> _goods = new List<ShopGood>();
 
-        protected override void Build()
+        protected override void Configure()
         {
             Title = "Cửa hàng";
             Size = new Vector2(460, 480);
+        }
+
+        protected override void Build()
+        {
             var body = CreateBody();
             _money = UIKit.Text("Money", body, "", 17, TextAlignmentOptions.MidlineLeft, new Color(1f, 0.85f, 0.3f));
             _money.rectTransform.Place(new Vector2(0, 1), new Vector2(1, 1), Vector2.zero, new Vector2(0, 28), new Vector2(0.5f, 1));
             _list = UIKit.ScrollList("List", body, 6);
             ((RectTransform)_list.parent).Fill(0, 0, 32, 0);
+        }
+
+        protected override void Bind()
+        {
             GameData.OnChanged += k => { if (k == DataKind.Character || k == DataKind.Money || k == DataKind.Templates) RefreshIfOpen(); };
         }
 

@@ -1,6 +1,7 @@
 using Assets.Script.UI.Kit;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Assets.Script.UI.Windows
 {
@@ -10,22 +11,33 @@ namespace Assets.Script.UI.Windows
     /// </summary>
     public class TipWindow : GameWindow
     {
-        private TextMeshProUGUI _text;
+        [SerializeField] private TextMeshProUGUI _text;
+        [SerializeField] private Button _ok, _more;
         private int _topic;
         private readonly System.Collections.Generic.Queue<(string, string, int)> _queue = new System.Collections.Generic.Queue<(string, string, int)>();
 
-        protected override void Build()
+        protected override void Configure()
         {
             Title = "Mẹo";
             Size = new Vector2(480, 250);
+        }
+
+        protected override void Build()
+        {
             var body = CreateBody();
             _text = UIKit.Text("Text", body, "", 17, TextAlignmentOptions.TopLeft);
             _text.rectTransform.Fill(6, 6, 4, 56);
-            var ok = UIKit.Button("Ok", body, "Đã hiểu", Next, 16);
-            ((RectTransform)ok.transform).Place(new Vector2(1, 0), new Vector2(1, 0), new Vector2(-4, 4), new Vector2(140, 44), new Vector2(1, 0));
-            ok.image.color = UIKit.ButtonHot;
-            var more = UIKit.Button("More", body, "Xem cẩm nang", () => { int t = _topic; Next(); Get<GuideWindow>().ShowTopic(t); }, 16);
-            ((RectTransform)more.transform).Place(new Vector2(0, 0), new Vector2(0, 0), new Vector2(4, 4), new Vector2(170, 44), Vector2.zero);
+            _ok = UIKit.Button("Ok", body, "Đã hiểu", null, 16);
+            ((RectTransform)_ok.transform).Place(new Vector2(1, 0), new Vector2(1, 0), new Vector2(-4, 4), new Vector2(140, 44), new Vector2(1, 0));
+            _ok.image.color = UIKit.ButtonHot;
+            _more = UIKit.Button("More", body, "Xem cẩm nang", null, 16);
+            ((RectTransform)_more.transform).Place(new Vector2(0, 0), new Vector2(0, 0), new Vector2(4, 4), new Vector2(170, 44), Vector2.zero);
+        }
+
+        protected override void Bind()
+        {
+            _ok.onClick.AddListener(Next);
+            _more.onClick.AddListener(() => { int t = _topic; Next(); Get<GuideWindow>().ShowTopic(t); });
         }
 
         public void ShowTip(string title, string text, int topic)

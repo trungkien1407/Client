@@ -15,16 +15,20 @@ namespace Assets.Script.UI.Windows
     {
         private const float MaxW = 1100f, MaxScale = 16f;
 
-        private RawImage _map;
-        private MapMarkers _markers;
+        [SerializeField] private RawImage _map;
+        private MapMarkers _markers; // lớp thường (không lưu prefab được) → tạo trong Bind
         private int _version = -1;
         private float _scale, _next;
 
-        protected override void Build()
+        protected override void Configure()
         {
             Title = "Bản đồ";
             HotKey = Key.B;
             Size = new Vector2(MaxW + 20, 330);
+        }
+
+        protected override void Build()
+        {
             var body = CreateBody();
 
             var frame = UIKit.Panel("Frame", body, new Color(0.05f, 0.08f, 0.14f, 0.9f));
@@ -32,14 +36,18 @@ namespace Assets.Script.UI.Windows
             _map = new GameObject("Map", typeof(RectTransform), typeof(RawImage)).GetComponent<RawImage>();
             _map.transform.SetParent(frame.transform, false);
             _map.raycastTarget = false;
-            _markers = new MapMarkers(_map.rectTransform, true);
 
             string Dot(Color c) => $"<color=#{ColorUtility.ToHtmlStringRGB(c)}>■</color>";
             var legend = UIKit.Text("Legend", body,
                 $"{Dot(MapMarkers.Me)} Bạn    {Dot(MapMarkers.Npc)} NPC    {Dot(MapMarkers.Mob)} Quái    {Dot(MapMarkers.Portal)} Cổng    {Dot(MapMarkers.Other)} Người chơi" +
                 "    <color=#9aa>Bục cam: nhảy xuyên từ dưới lên, bấm xuống để thả.</color>", 14, TextAlignmentOptions.MidlineLeft);
             legend.rectTransform.Place(new Vector2(0, 0), new Vector2(1, 0), Vector2.zero, new Vector2(0, 26), new Vector2(0.5f, 0));
+        }
 
+        protected override void Bind()
+        {
+            // Chấm NPC / quái / cổng / người chơi vẽ đè lên ảnh map (tạo lúc chạy)
+            _markers = new MapMarkers(_map.rectTransform, true);
             GameData.OnChanged += k => { if (IsOpen) SetTitle("Bản đồ — " + GameData.MapName); };
         }
 

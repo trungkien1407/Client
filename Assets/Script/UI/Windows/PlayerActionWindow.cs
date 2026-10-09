@@ -2,6 +2,7 @@ using Assets.Script.Data;
 using Assets.Script.UI.Kit;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Assets.Script.UI.Windows
 {
@@ -11,18 +12,34 @@ namespace Assets.Script.UI.Windows
     /// </summary>
     public class PlayerActionWindow : GameWindow
     {
-        private TextMeshProUGUI _info;
+        private static readonly string[] Labels = { "Mời vào nhóm", "Giao dịch", "Kết bạn", "Tỉ thí", "Mời vào gia tộc", "Gửi thư" };
+
+        [SerializeField] private TextMeshProUGUI _info;
+        [SerializeField] private Button[] _actions = new Button[6];
         private int _id;
         private string _name;
 
-        protected override void Build()
+        protected override void Configure()
         {
             Title = "Người chơi";
             Size = new Vector2(360, 420);
+        }
+
+        protected override void Build()
+        {
             var body = CreateBody();
             _info = UIKit.Text("Info", body, "", 16, TextAlignmentOptions.Center);
             _info.rectTransform.Place(new Vector2(0, 1), new Vector2(1, 1), Vector2.zero, new Vector2(0, 50), new Vector2(0.5f, 1));
-            string[] labels = { "Mời vào nhóm", "Giao dịch", "Kết bạn", "Tỉ thí", "Mời vào gia tộc", "Gửi thư" };
+            for (int i = 0; i < Labels.Length; i++)
+            {
+                _actions[i] = UIKit.Button("A" + i, body, Labels[i], null, 17);
+                ((RectTransform)_actions[i].transform).Place(new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -56 - i * 50), new Vector2(260, 44), new Vector2(0.5f, 1));
+            }
+        }
+
+        protected override void Bind()
+        {
+            // Cùng thứ tự với Labels
             System.Action[] acts =
             {
                 () => GameActions.PartyInvite(_id),
@@ -32,11 +49,10 @@ namespace Assets.Script.UI.Windows
                 () => GameActions.GuildInvite(_id),
                 () => Open<MailWindow>().Compose(_name),
             };
-            for (int i = 0; i < labels.Length; i++)
+            for (int i = 0; i < acts.Length; i++)
             {
                 var a = acts[i];
-                var b = UIKit.Button("A" + i, body, labels[i], () => { a(); Hide(); }, 17);
-                ((RectTransform)b.transform).Place(new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -56 - i * 50), new Vector2(260, 44), new Vector2(0.5f, 1));
+                _actions[i].onClick.AddListener(() => { a(); Hide(); });
             }
         }
 

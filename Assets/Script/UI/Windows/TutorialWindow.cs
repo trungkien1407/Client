@@ -15,8 +15,8 @@ namespace Assets.Script.UI.Windows
     /// </summary>
     public class TutorialWindow : GameWindow
     {
-        private TextMeshProUGUI _text, _page;
-        private Button _prev, _next;
+        [SerializeField] private TextMeshProUGUI _text, _page;
+        [SerializeField] private Button _prev, _next;
         private int _index;
 
         private static bool Touch => Touchscreen.current != null && Keyboard.current == null;
@@ -39,20 +39,30 @@ namespace Assets.Script.UI.Windows
                 "<b>5. Chơi cùng mọi người</b>\n\n<b>Enter</b> để chat (/a thế giới, /g gia tộc, /w Tên nhắn riêng).\nClick 1 người chơi → <b>Tương tác</b>: mời nhóm, giao dịch, kết bạn, tỉ thí.\n<b>O</b> xã hội · <b>M</b> thư.\n<b>H</b> hoạt động hằng ngày (việc nên làm + lịch boss) · <b>G</b> cẩm nang (tra cứu mọi tính năng).",
             };
 
-        protected override void Build()
+        protected override void Configure()
         {
             Title = "Hướng dẫn tân thủ";
             Size = new Vector2(600, 380);
+        }
+
+        protected override void Build()
+        {
             var body = CreateBody();
             _text = UIKit.Text("Text", body, "", 19, TextAlignmentOptions.TopLeft);
             _text.rectTransform.Fill(10, 10, 6, 60);
             _page = UIKit.Text("Page", body, "", 14, TextAlignmentOptions.Center, UIKit.DimText);
             _page.rectTransform.Place(new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0, 10), new Vector2(120, 36), new Vector2(0.5f, 0));
-            _prev = UIKit.Button("Prev", body, "Trước", () => { _index--; Refresh(); }, 16);
+            _prev = UIKit.Button("Prev", body, "Trước", null, 16);
             ((RectTransform)_prev.transform).Place(new Vector2(0, 0), new Vector2(0, 0), new Vector2(6, 6), new Vector2(120, 44), Vector2.zero);
-            _next = UIKit.Button("Next", body, "Tiếp", Next, 16);
+            _next = UIKit.Button("Next", body, "Tiếp", null, 16);
             ((RectTransform)_next.transform).Place(new Vector2(1, 0), new Vector2(1, 0), new Vector2(-6, 6), new Vector2(140, 44), new Vector2(1, 0));
             _next.image.color = UIKit.ButtonHot;
+        }
+
+        protected override void Bind()
+        {
+            _prev.onClick.AddListener(() => { _index--; Refresh(); });
+            _next.onClick.AddListener(Next);
         }
 
         private void Next()

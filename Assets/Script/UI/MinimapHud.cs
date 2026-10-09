@@ -8,40 +8,44 @@ using UnityEngine.UI;
 namespace Assets.Script.UI
 {
     /// <summary>
-    /// MINIMAP góc phải trên: ảnh map (MapImage) cuộn theo nhân vật + chấm NPC / quái / cổng / người chơi.
-    /// Bấm vào hoặc phím B → bản đồ lớn (WorldMapWindow). GameHud tạo.
+    /// MINIMAP góc phải trên (prefab Resources/UI/Hud/MinimapHud): ảnh map (MapImage) cuộn theo nhân vật + chấm NPC / quái /
+    /// cổng / người chơi. Bấm vào hoặc phím B → bản đồ lớn (WorldMapWindow). GameHud tạo.
     /// </summary>
-    public class MinimapHud : MonoBehaviour
+    public class MinimapHud : HudPanel
     {
         public const float W = 160f, H = 112f;
 
-        private RectTransform _view;
-        private RawImage _map;
+        [SerializeField] private Button _button;
+        [SerializeField] private RawImage _map;
         private MapMarkers _markers;
         private int _version = -1;
         private float _scale, _next;
 
-        public static MinimapHud Create(Transform parent)
+        protected override void Build()
         {
-            var bg = UIKit.Panel("Minimap", parent, new Color(0.05f, 0.08f, 0.14f, 0.75f));
-            bg.rectTransform.Place(new Vector2(1, 1), new Vector2(1, 1), new Vector2(-8, -8), new Vector2(W, H), new Vector2(1, 1));
-            var btn = bg.gameObject.AddComponent<Button>();
-            btn.onClick.AddListener(() => GameWindow.Get<WorldMapWindow>().Toggle());
-            return bg.gameObject.AddComponent<MinimapHud>();
-        }
+            gameObject.name = "Minimap";   // AutoTestRunner tìm theo tên
+            var bg = gameObject.AddComponent<Image>();
+            bg.color = new Color(0.05f, 0.08f, 0.14f, 0.75f);
+            ((RectTransform)transform).Place(new Vector2(1, 1), new Vector2(1, 1), new Vector2(-8, -8), new Vector2(W, H), new Vector2(1, 1));
+            _button = gameObject.AddComponent<Button>();
 
-        private void Awake()
-        {
-            _view = UIKit.Rect("View", transform).Fill(2, 2, 2, 2);
-            _view.gameObject.AddComponent<RectMask2D>();
+            var view = UIKit.Rect("View", transform).Fill(2, 2, 2, 2);
+            view.gameObject.AddComponent<RectMask2D>();
             _map = new GameObject("Map", typeof(RectTransform), typeof(RawImage)).GetComponent<RawImage>();
-            _map.transform.SetParent(_view, false);
+            _map.transform.SetParent(view, false);
+            _map.gameObject.layer = 5;
             _map.raycastTarget = false;
-            _markers = new MapMarkers(_map.rectTransform, false);
 
             var hint = UIKit.Text("Hint", transform, "B", 12, TextAlignmentOptions.TopRight, new Color(1, 1, 1, 0.6f));
             hint.rectTransform.Fill(0, 4, 2, 0);
             hint.raycastTarget = false;
+        }
+
+        protected override void Bind()
+        {
+            gameObject.name = "Minimap";
+            _button.onClick.AddListener(() => GameWindow.Get<WorldMapWindow>().Toggle());
+            _markers = new MapMarkers(_map.rectTransform, false);
         }
 
         private void Update()

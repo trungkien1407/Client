@@ -14,23 +14,35 @@ namespace Assets.Script.UI.Windows
     {
         private static readonly string[] TabNames = { "Cấp độ", "Tài phú", "Gia tộc", "Cừu sát" };
         private static readonly string[] ValueNames = { "Cấp", "Yên", "Cấp tộc", "Điểm PK" };
-        private readonly Button[] _tabs = new Button[4];
-        private RectTransform _list;
+        [SerializeField] private Button[] _tabs = new Button[4];
+        [SerializeField] private RectTransform _list;
         private int _type;
 
-        protected override void Build()
+        protected override void Configure()
         {
             Title = "Bảng xếp hạng";
             Size = new Vector2(560, 540);
+        }
+
+        protected override void Build()
+        {
             var body = CreateBody();
             for (int i = 0; i < 4; i++)
             {
-                int t = i;
-                _tabs[i] = UIKit.Button("Tab" + i, body, TabNames[i], () => { _type = t; GameActions.Top(t); Refresh(); }, 16);
+                _tabs[i] = UIKit.Button("Tab" + i, body, TabNames[i], null, 16);
                 ((RectTransform)_tabs[i].transform).Place(new Vector2(0, 1), new Vector2(0, 1), new Vector2(i * 134, 0), new Vector2(128, 36), new Vector2(0, 1));
             }
             _list = UIKit.ScrollList("List", body, 3);
             ((RectTransform)_list.parent).Fill(0, 0, 44, 0);
+        }
+
+        protected override void Bind()
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                int t = i;
+                _tabs[i].onClick.AddListener(() => { _type = t; GameActions.Top(t); Refresh(); });
+            }
             GameData.OnChanged += k => { if (k == DataKind.Top) RefreshIfOpen(); };
         }
 

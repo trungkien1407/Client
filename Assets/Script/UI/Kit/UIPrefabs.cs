@@ -9,7 +9,8 @@ namespace Assets.Script.UI.Kit
     /// NƠI LẤY PREFAB UI (thư mục Assets/Resources/UI/):
     ///   UI/UIRoot          canvas chung (lớp HUD + lớp cửa sổ)
     ///   UI/Kit/&lt;Tên&gt;      prefab mẫu: Window, Panel, Text, Button, Input, ScrollList, Bar
-    ///   UI/Windows/&lt;Lớp&gt;  cửa sổ đã chuyển sang prefab (vd UI/Windows/InventoryWindow)
+    ///   UI/Windows/&lt;Lớp&gt;  cửa sổ (vd UI/Windows/InventoryWindow)
+    ///   UI/Hud/&lt;Lớp&gt;      phần HUD (GameHudView, MinimapHud, ChatOverlay, MobileControlsView)
     /// Không có prefab → dựng bằng code (giao diện cũ), game vẫn chạy.
     /// Tạo / cập nhật prefab: menu Tools → Naruto → UI (Assets/Editor/UIPrefabTool.cs).
     /// </summary>
@@ -19,6 +20,7 @@ namespace Assets.Script.UI.Kit
         public const string ThemePath = "UI/UITheme";
         public const string KitFolder = "UI/Kit/";
         public const string WindowFolder = "UI/Windows/";
+        public const string HudFolder = "UI/Hud/";
         public static readonly string[] KitNames = { "Panel", "Text", "Button", "Input", "ScrollList", "Bar", "Window" };
 
         private static readonly Dictionary<string, GameObject> Cache = new Dictionary<string, GameObject>();
@@ -31,6 +33,7 @@ namespace Assets.Script.UI.Kit
 
         public static GameObject Kit(string name) => UseKit ? Load(KitFolder + name) : null;
         public static GameObject Window(Type windowType) => Load(WindowFolder + windowType.Name);
+        public static GameObject Hud(Type panelType) => Load(HudFolder + panelType.Name);
 
         public static GameObject Spawn(GameObject prefab, Transform parent)
         {

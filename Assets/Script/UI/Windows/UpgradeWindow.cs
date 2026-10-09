@@ -16,16 +16,20 @@ namespace Assets.Script.UI.Windows
     /// </summary>
     public class UpgradeWindow : GameWindow
     {
-        private RectTransform _list;
-        private TextMeshProUGUI _detail, _result;
-        private Button _btnUp, _btnProtect;
+        [SerializeField] private RectTransform _list;
+        [SerializeField] private TextMeshProUGUI _detail, _result;
+        [SerializeField] private Button _btnUp, _btnProtect;
         private int _npcId = -1, _sel = -1;
         private bool _useProtect;
 
-        protected override void Build()
+        protected override void Configure()
         {
             Title = "Nâng cấp trang bị";
             Size = new Vector2(760, 500);
+        }
+
+        protected override void Build()
+        {
             var body = CreateBody();
 
             _list = UIKit.ScrollList("Equips", body, 4);
@@ -35,14 +39,19 @@ namespace Assets.Script.UI.Windows
             right.Fill(310, 0, 0, 0);
             _detail = UIKit.Text("Detail", right, "Chọn 1 trang bị bên trái", 17, TextAlignmentOptions.TopLeft);
             _detail.rectTransform.Fill(12, 12, 10, 150);
-            _btnProtect = UIKit.Button("Protect", right, "", () => { _useProtect = !_useProtect; Refresh(); }, 15);
+            _btnProtect = UIKit.Button("Protect", right, "", null, 15);
             ((RectTransform)_btnProtect.transform).Place(new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 104), new Vector2(-24, 36), new Vector2(0.5f, 0));
-            _btnUp = UIKit.Button("Upgrade", right, "NÂNG CẤP", OnUpgrade, 20);
+            _btnUp = UIKit.Button("Upgrade", right, "NÂNG CẤP", null, 20);
             ((RectTransform)_btnUp.transform).Place(new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0, 52), new Vector2(220, 46), new Vector2(0.5f, 0));
             _btnUp.image.color = UIKit.ButtonHot;
             _result = UIKit.Text("Result", right, "", 16, TextAlignmentOptions.Center);
             _result.rectTransform.Place(new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 6), new Vector2(-16, 42), new Vector2(0.5f, 0));
+        }
 
+        protected override void Bind()
+        {
+            _btnProtect.onClick.AddListener(() => { _useProtect = !_useProtect; Refresh(); });
+            _btnUp.onClick.AddListener(OnUpgrade);
             GameData.OnChanged += k =>
             {
                 if (k == DataKind.Inventory || k == DataKind.Money || k == DataKind.Character || k == DataKind.Upgrade) RefreshIfOpen();

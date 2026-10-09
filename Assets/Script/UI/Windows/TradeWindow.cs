@@ -16,14 +16,18 @@ namespace Assets.Script.UI.Windows
     /// </summary>
     public class TradeWindow : GameWindow
     {
-        private TextMeshProUGUI _mine, _theirs, _status;
-        private TMP_InputField _yen;
-        private Button _lock, _confirm;
+        [SerializeField] private TextMeshProUGUI _mine, _theirs, _status;
+        [SerializeField] private TMP_InputField _yen;
+        [SerializeField] private Button _lock, _confirm, _setYen, _cancel;
 
-        protected override void Build()
+        protected override void Configure()
         {
             Title = "Giao dịch";
             Size = new Vector2(470, 480);
+        }
+
+        protected override void Build()
+        {
             var body = CreateBody();
 
             var left = UIKit.Panel("Mine", body, new Color(0, 0, 0, 0.3f)).rectTransform;
@@ -40,23 +44,30 @@ namespace Assets.Script.UI.Windows
 
             _yen = UIKit.Input("Yen", body, "Số yên đưa", 16, TMP_InputField.ContentType.IntegerNumber, 9);
             ((RectTransform)_yen.transform).Place(new Vector2(0, 0), new Vector2(0, 0), new Vector2(0, 100), new Vector2(150, 38), Vector2.zero);
-            var setYen = UIKit.Button("SetYen", body, "Đặt yên", () =>
-            {
-                if (int.TryParse(_yen.text, out int v) && v >= 0) GameActions.TradeSetYen(v);
-            }, 15);
-            ((RectTransform)setYen.transform).Place(new Vector2(0, 0), new Vector2(0, 0), new Vector2(156, 100), new Vector2(100, 38), Vector2.zero);
+            _setYen = UIKit.Button("SetYen", body, "Đặt yên", null, 15);
+            ((RectTransform)_setYen.transform).Place(new Vector2(0, 0), new Vector2(0, 0), new Vector2(156, 100), new Vector2(100, 38), Vector2.zero);
 
             _status = UIKit.Text("Status", body, "", 14, TextAlignmentOptions.MidlineLeft, UIKit.DimText);
             _status.rectTransform.Place(new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 58), new Vector2(0, 36), new Vector2(0, 0));
 
-            _lock = UIKit.Button("Lock", body, "Khoá", GameActions.TradeLock, 17);
+            _lock = UIKit.Button("Lock", body, "Khoá", null, 17);
             ((RectTransform)_lock.transform).Place(new Vector2(0, 0), new Vector2(0, 0), new Vector2(0, 8), new Vector2(140, 44), Vector2.zero);
-            _confirm = UIKit.Button("Confirm", body, "Xác nhận", GameActions.TradeConfirm, 17);
+            _confirm = UIKit.Button("Confirm", body, "Xác nhận", null, 17);
             ((RectTransform)_confirm.transform).Place(new Vector2(0, 0), new Vector2(0, 0), new Vector2(150, 8), new Vector2(140, 44), Vector2.zero);
             _confirm.image.color = UIKit.ButtonHot;
-            var cancel = UIKit.Button("Cancel", body, "Huỷ", GameActions.TradeCancel, 17);
-            ((RectTransform)cancel.transform).Place(new Vector2(1, 0), new Vector2(1, 0), new Vector2(0, 8), new Vector2(140, 44), new Vector2(1, 0));
+            _cancel = UIKit.Button("Cancel", body, "Huỷ", null, 17);
+            ((RectTransform)_cancel.transform).Place(new Vector2(1, 0), new Vector2(1, 0), new Vector2(0, 8), new Vector2(140, 44), new Vector2(1, 0));
+        }
 
+        protected override void Bind()
+        {
+            _setYen.onClick.AddListener(() =>
+            {
+                if (int.TryParse(_yen.text, out int v) && v >= 0) GameActions.TradeSetYen(v);
+            });
+            _lock.onClick.AddListener(GameActions.TradeLock);
+            _confirm.onClick.AddListener(GameActions.TradeConfirm);
+            _cancel.onClick.AddListener(GameActions.TradeCancel);
             GameData.OnChanged += k => { if (k == DataKind.Trade || k == DataKind.Templates) RefreshIfOpen(); };
         }
 

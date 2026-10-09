@@ -17,20 +17,25 @@ namespace Assets.Script.UI.Windows
     {
         private static readonly string[] Cats = { "Tất cả", "Vũ khí", "Trang phục", "Bình", "Nguyên liệu" };
         private int _tab, _cat, _sort, _page;
-        private TMP_InputField _kw;
-        private RectTransform _list, _filters;
-        private TextMeshProUGUI _status, _pageText;
-        private Button _tabBuy, _tabMine, _sortBtn, _prev, _next;
+        [SerializeField] private TMP_InputField _kw;
+        [SerializeField] private RectTransform _list, _filters;
+        [SerializeField] private TextMeshProUGUI _status, _pageText;
+        [SerializeField] private Button _tabBuy, _tabMine, _sortBtn, _prev, _next, _find;
+        [SerializeField] private Button[] _catBtns = new Button[5];   // 5 = Cats.Length
 
-        protected override void Build()
+        protected override void Configure()
         {
             Title = "Chợ";
             Size = new Vector2(480, 560);   // + Hành trang 780 = vừa màn 1280
+        }
+
+        protected override void Build()
+        {
             var body = CreateBody();
 
-            _tabBuy = UIKit.Button("TabBuy", body, "Mua hàng", () => { _tab = 0; Search(); }, 16);
+            _tabBuy = UIKit.Button("TabBuy", body, "Mua hàng", null, 16);
             ((RectTransform)_tabBuy.transform).Place(new Vector2(0, 1), new Vector2(0, 1), Vector2.zero, new Vector2(150, 34), new Vector2(0, 1));
-            _tabMine = UIKit.Button("TabMine", body, "Hàng của tôi", () => { _tab = 1; GameActions.MarketMine(); Refresh(); }, 16);
+            _tabMine = UIKit.Button("TabMine", body, "Hàng của tôi", null, 16);
             ((RectTransform)_tabMine.transform).Place(new Vector2(0, 1), new Vector2(0, 1), new Vector2(156, 0), new Vector2(150, 34), new Vector2(0, 1));
 
             // Bộ lọc (thẻ Mua)
@@ -38,28 +43,42 @@ namespace Assets.Script.UI.Windows
             _filters.Place(new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -40), new Vector2(0, 76), new Vector2(0.5f, 1));
             for (int i = 0; i < Cats.Length; i++)
             {
-                int c = i;
-                var b = UIKit.Button("Cat" + i, _filters, Cats[i], () => { _cat = c; _page = 0; Search(); }, 14);
-                ((RectTransform)b.transform).Place(new Vector2(0, 1), new Vector2(0, 1), new Vector2(i * 92, 0), new Vector2(88, 32), new Vector2(0, 1));
+                _catBtns[i] = UIKit.Button("Cat" + i, _filters, Cats[i], null, 14);
+                ((RectTransform)_catBtns[i].transform).Place(new Vector2(0, 1), new Vector2(0, 1), new Vector2(i * 92, 0), new Vector2(88, 32), new Vector2(0, 1));
             }
             _kw = UIKit.Input("Kw", _filters, "Tìm theo tên...", 15, TMP_InputField.ContentType.Standard, 30);
             ((RectTransform)_kw.transform).Place(new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, -38), new Vector2(230, 34), new Vector2(0, 1));
-            var find = UIKit.Button("Find", _filters, "Tìm", () => { _page = 0; Search(); }, 15);
-            ((RectTransform)find.transform).Place(new Vector2(0, 1), new Vector2(0, 1), new Vector2(236, -38), new Vector2(70, 34), new Vector2(0, 1));
-            _sortBtn = UIKit.Button("Sort", _filters, "Mới nhất", () => { _sort = 1 - _sort; _page = 0; Search(); }, 14);
+            _find = UIKit.Button("Find", _filters, "Tìm", null, 15);
+            ((RectTransform)_find.transform).Place(new Vector2(0, 1), new Vector2(0, 1), new Vector2(236, -38), new Vector2(70, 34), new Vector2(0, 1));
+            _sortBtn = UIKit.Button("Sort", _filters, "Mới nhất", null, 14);
             ((RectTransform)_sortBtn.transform).Place(new Vector2(0, 1), new Vector2(0, 1), new Vector2(312, -38), new Vector2(120, 34), new Vector2(0, 1));
 
             _list = UIKit.ScrollList("List", body, 4);
             ((RectTransform)_list.parent).Fill(0, 0, 122, 72);
 
-            _prev = UIKit.Button("Prev", body, "< Trước", () => { if (_page > 0) { _page--; Search(); } }, 14);
+            _prev = UIKit.Button("Prev", body, "< Trước", null, 14);
             ((RectTransform)_prev.transform).Place(new Vector2(0, 0), new Vector2(0, 0), new Vector2(0, 36), new Vector2(100, 30), Vector2.zero);
             _pageText = UIKit.Text("Page", body, "", 14, TextAlignmentOptions.Center, UIKit.DimText);
             _pageText.rectTransform.Place(new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0, 36), new Vector2(200, 30), new Vector2(0.5f, 0));
-            _next = UIKit.Button("Next", body, "Sau >", () => { _page++; Search(); }, 14);
+            _next = UIKit.Button("Next", body, "Sau >", null, 14);
             ((RectTransform)_next.transform).Place(new Vector2(1, 0), new Vector2(1, 0), new Vector2(0, 36), new Vector2(100, 30), new Vector2(1, 0));
             _status = UIKit.Text("Status", body, "", 14, TextAlignmentOptions.MidlineLeft);
             _status.rectTransform.Place(new Vector2(0, 0), new Vector2(1, 0), Vector2.zero, new Vector2(0, 32), new Vector2(0.5f, 0));
+        }
+
+        protected override void Bind()
+        {
+            _tabBuy.onClick.AddListener(() => { _tab = 0; Search(); });
+            _tabMine.onClick.AddListener(() => { _tab = 1; GameActions.MarketMine(); Refresh(); });
+            for (int i = 0; i < Cats.Length; i++)
+            {
+                int c = i;
+                _catBtns[i].onClick.AddListener(() => { _cat = c; _page = 0; Search(); });
+            }
+            _find.onClick.AddListener(() => { _page = 0; Search(); });
+            _sortBtn.onClick.AddListener(() => { _sort = 1 - _sort; _page = 0; Search(); });
+            _prev.onClick.AddListener(() => { if (_page > 0) { _page--; Search(); } });
+            _next.onClick.AddListener(() => { _page++; Search(); });
 
             GameData.OnChanged += k => { if (k == DataKind.Market || k == DataKind.Templates || k == DataKind.Money) RefreshIfOpen(); };
         }
@@ -91,7 +110,7 @@ namespace Assets.Script.UI.Windows
             _pageText.gameObject.SetActive(_tab == 0);
             ((RectTransform)_list.parent).offsetMax = new Vector2(0, _tab == 0 ? -122 : -40);
             for (int i = 0; i < Cats.Length; i++)
-                _filters.GetChild(i).GetComponent<Image>().color = i == _cat ? UIKit.ButtonHot : UIKit.ButtonColor;
+                _catBtns[i].image.color = i == _cat ? UIKit.ButtonHot : UIKit.ButtonColor;
             _sortBtn.SetLabel(_sort == 0 ? "Mới nhất" : "Rẻ nhất");
             _status.text = string.IsNullOrEmpty(GameData.MarketMessage)
                 ? $"<color=#9aa>Phí treo {GameData.MarketFeePermil / 10f:0.#}% (tối thiểu 100 yên) · thuế khi bán {GameData.MarketTaxPercent}% · tối đa {GameData.MarketMax} món · {GameData.MarketHours} giờ</color>"

@@ -14,20 +14,27 @@ namespace Assets.Script.UI.Windows
     /// </summary>
     public class SkillWindow : GameWindow
     {
-        private RectTransform _list;
-        private TextMeshProUGUI _points;
+        [SerializeField] private RectTransform _list;
+        [SerializeField] private TextMeshProUGUI _points;
 
-        protected override void Build()
+        protected override void Configure()
         {
             Title = "Kỹ năng";
             HotKey = Key.K;
             Size = new Vector2(640, 500);
+        }
+
+        protected override void Build()
+        {
             var body = CreateBody();
             _points = UIKit.Text("Points", body, "", 18, TextAlignmentOptions.MidlineLeft, UIKit.ButtonHot);
             _points.rectTransform.Place(new Vector2(0, 1), new Vector2(1, 1), Vector2.zero, new Vector2(0, 28), new Vector2(0.5f, 1));
             _list = UIKit.ScrollList("List", body, 6);
             ((RectTransform)_list.parent).Fill(0, 0, 32, 0);
+        }
 
+        protected override void Bind()
+        {
             GameData.OnChanged += k => { if (k == DataKind.Skills || k == DataKind.Character || k == DataKind.Templates) RefreshIfOpen(); };
         }
 

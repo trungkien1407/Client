@@ -17,24 +17,29 @@ namespace Assets.Script.UI.Windows
     /// </summary>
     public class MailWindow : GameWindow
     {
-        private RectTransform _list, _view, _compose;
-        private TextMeshProUGUI _content, _attachInfo;
-        private Button _claim, _delete;
-        private TMP_InputField _to, _title, _body, _yen;
+        [SerializeField] private RectTransform _list, _view, _compose;
+        [SerializeField] private TextMeshProUGUI _content, _attachInfo;
+        [SerializeField] private Button _claim, _delete;
+        [SerializeField] private TMP_InputField _to, _title, _body, _yen;
         private bool _attach;
-        private Button _btnAttach;
+        [SerializeField] private Button _btnAttach;
+        [SerializeField] private Button _btnNew, _btnReload, _btnSend, _btnBack;
 
-        protected override void Build()
+        protected override void Configure()
         {
             Title = "Hòm thư";
             HotKey = Key.M;
             Size = new Vector2(760, 520);
+        }
+
+        protected override void Build()
+        {
             var body = CreateBody();
 
-            var compose = UIKit.Button("New", body, "Soạn thư", () => Compose(""), 15);
-            ((RectTransform)compose.transform).Place(new Vector2(0, 1), new Vector2(0, 1), Vector2.zero, new Vector2(130, 34), new Vector2(0, 1));
-            var reload = UIKit.Button("Reload", body, "Làm mới", GameActions.MailList, 15);
-            ((RectTransform)reload.transform).Place(new Vector2(0, 1), new Vector2(0, 1), new Vector2(136, 0), new Vector2(110, 34), new Vector2(0, 1));
+            _btnNew = UIKit.Button("New", body, "Soạn thư", null, 15);
+            ((RectTransform)_btnNew.transform).Place(new Vector2(0, 1), new Vector2(0, 1), Vector2.zero, new Vector2(130, 34), new Vector2(0, 1));
+            _btnReload = UIKit.Button("Reload", body, "Làm mới", null, 15);
+            ((RectTransform)_btnReload.transform).Place(new Vector2(0, 1), new Vector2(0, 1), new Vector2(136, 0), new Vector2(110, 34), new Vector2(0, 1));
 
             _list = UIKit.ScrollList("List", body, 4);
             ((RectTransform)_list.parent).Place(new Vector2(0, 0), new Vector2(0, 1), new Vector2(0, 0), new Vector2(270, -40), new Vector2(0, 0));
@@ -45,14 +50,10 @@ namespace Assets.Script.UI.Windows
             _view.Fill(280, 0, 0, 0);
             _content = UIKit.Text("Content", _view, "Chọn 1 thư để đọc.", 16, TextAlignmentOptions.TopLeft);
             _content.rectTransform.Fill(10, 10, 8, 56);
-            _claim = UIKit.Button("Claim", _view, "Nhận quà", () => { if (GameData.OpenMail != null) GameActions.MailClaim(GameData.OpenMail.id); }, 16);
+            _claim = UIKit.Button("Claim", _view, "Nhận quà", null, 16);
             ((RectTransform)_claim.transform).Place(new Vector2(0, 0), new Vector2(0, 0), new Vector2(10, 8), new Vector2(140, 40), Vector2.zero);
             _claim.image.color = UIKit.ButtonHot;
-            _delete = UIKit.Button("Delete", _view, "Xoá thư", () =>
-            {
-                var m = GameData.OpenMail;
-                if (m != null) { GameActions.MailDelete(m.id); GameData.OpenMail = null; Refresh(); }
-            }, 16);
+            _delete = UIKit.Button("Delete", _view, "Xoá thư", null, 16);
             ((RectTransform)_delete.transform).Place(new Vector2(1, 0), new Vector2(1, 0), new Vector2(-10, 8), new Vector2(120, 40), new Vector2(1, 0));
 
             // ---- soạn thư ----
@@ -66,16 +67,31 @@ namespace Assets.Script.UI.Windows
             _body.textComponent.alignment = TextAlignmentOptions.TopLeft;
             ((RectTransform)_body.transform).Place(new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -96), new Vector2(-20, 130), new Vector2(0.5f, 1));
             _yen = Field(_compose, "Yen", "Kèm yên (0)", 4.4f, 9, TMP_InputField.ContentType.IntegerNumber);
-            _btnAttach = UIKit.Button("Attach", _compose, "", () => { _attach = !_attach; UpdateAttach(); }, 14);
+            _btnAttach = UIKit.Button("Attach", _compose, "", null, 14);
             ((RectTransform)_btnAttach.transform).Place(new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -278), new Vector2(-20, 34), new Vector2(0.5f, 1));
             _attachInfo = UIKit.Text("AttachInfo", _compose, "", 13, TextAlignmentOptions.TopLeft, UIKit.DimText);
             _attachInfo.rectTransform.Place(new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -316), new Vector2(-20, 40), new Vector2(0.5f, 1));
-            var send = UIKit.Button("Send", _compose, "Gửi thư", OnSend, 16);
-            ((RectTransform)send.transform).Place(new Vector2(0, 0), new Vector2(0, 0), new Vector2(10, 8), new Vector2(140, 40), Vector2.zero);
-            send.image.color = UIKit.ButtonHot;
-            var back = UIKit.Button("Back", _compose, "Huỷ", () => { _compose.gameObject.SetActive(false); Refresh(); }, 16);
-            ((RectTransform)back.transform).Place(new Vector2(1, 0), new Vector2(1, 0), new Vector2(-10, 8), new Vector2(110, 40), new Vector2(1, 0));
+            _btnSend = UIKit.Button("Send", _compose, "Gửi thư", null, 16);
+            ((RectTransform)_btnSend.transform).Place(new Vector2(0, 0), new Vector2(0, 0), new Vector2(10, 8), new Vector2(140, 40), Vector2.zero);
+            _btnSend.image.color = UIKit.ButtonHot;
+            _btnBack = UIKit.Button("Back", _compose, "Huỷ", null, 16);
+            ((RectTransform)_btnBack.transform).Place(new Vector2(1, 0), new Vector2(1, 0), new Vector2(-10, 8), new Vector2(110, 40), new Vector2(1, 0));
             _compose.gameObject.SetActive(false);
+        }
+
+        protected override void Bind()
+        {
+            _btnNew.onClick.AddListener(() => Compose(""));
+            _btnReload.onClick.AddListener(GameActions.MailList);
+            _claim.onClick.AddListener(() => { if (GameData.OpenMail != null) GameActions.MailClaim(GameData.OpenMail.id); });
+            _delete.onClick.AddListener(() =>
+            {
+                var m = GameData.OpenMail;
+                if (m != null) { GameActions.MailDelete(m.id); GameData.OpenMail = null; Refresh(); }
+            });
+            _btnAttach.onClick.AddListener(() => { _attach = !_attach; UpdateAttach(); });
+            _btnSend.onClick.AddListener(OnSend);
+            _btnBack.onClick.AddListener(() => { _compose.gameObject.SetActive(false); Refresh(); });
 
             GameData.OnChanged += k => { if (k == DataKind.Mails || k == DataKind.Templates) RefreshIfOpen(); if (k == DataKind.Inventory) UpdateAttach(); };
         }

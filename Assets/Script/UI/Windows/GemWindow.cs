@@ -13,14 +13,18 @@ namespace Assets.Script.UI.Windows
     /// </summary>
     public class GemWindow : GameWindow
     {
-        private RectTransform _equips, _gems, _sockets;
-        private TextMeshProUGUI _status, _detail;
+        [SerializeField] private RectTransform _equips, _gems, _sockets;
+        [SerializeField] private TextMeshProUGUI _status, _detail;
         private int _selTpl = -1, _selPos = -1;   // nhớ món đang chọn theo vị trí trong túi (túi đổi thì tìm lại)
 
-        protected override void Build()
+        protected override void Configure()
         {
             Title = "Khảm ngọc";
             Size = new Vector2(700, 540);
+        }
+
+        protected override void Build()
+        {
             var body = CreateBody();
 
             UIKit.Text("H1", body, "<b><color=#fd5>Trang bị trong túi</color></b>", 16).rectTransform
@@ -40,7 +44,10 @@ namespace Assets.Script.UI.Windows
 
             _status = UIKit.Text("Status", body, "", 14, TextAlignmentOptions.MidlineLeft);
             _status.rectTransform.Place(new Vector2(0, 0), new Vector2(1, 0), Vector2.zero, new Vector2(0, 40), new Vector2(0.5f, 0));
+        }
 
+        protected override void Bind()
+        {
             GameData.OnChanged += k => { if (k == DataKind.Gem || k == DataKind.Inventory || k == DataKind.Templates || k == DataKind.Money) RefreshIfOpen(); };
         }
 
