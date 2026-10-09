@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using Spine.Unity;
 using System.Collections;
+using System.Collections.Generic;
 
 namespace Assets.Script.Player
 {
@@ -79,15 +80,44 @@ namespace Assets.Script.Player
         /// Diễn 1 động tác KHÔNG lặp (vd "Punch_Combo" khi đánh) rồi tự quay về Idle.
         /// Trong lúc diễn, các lệnh PlayAnimation của di chuyển bị bỏ qua.
         /// </summary>
-        public void PlayActionOnce(string animName, float maxSeconds = 0.6f)
+        public bool PlayActionOnce(string animName, float maxSeconds = 0.6f)
         {
-            if (mainSkeleton == null || mainVisualObj == null || !mainVisualObj.activeSelf) return;
+            if (mainSkeleton == null || mainVisualObj == null || !mainVisualObj.activeSelf) return false;
             var anim = mainSkeleton.Skeleton?.Data?.FindAnimation(animName);
-            if (anim == null) return;
+            if (anim == null) return false;
 
             mainSkeleton.AnimationState.SetAnimation(0, anim, false);
             mainSkeleton.AnimationState.AddAnimation(0, idleAnimation, true, 0f);
             _actionLockUntil = Time.time + Mathf.Min(anim.Duration, maxSeconds);
+            return true;
+        }
+
+        // ---- HÀNH ĐỘNG → ANIM (dùng chung cho mình và người khác) ----
+        // Đòn cơ bản (chiêu 1 / 2 / 3 của 3 hệ) đấm – đá luân phiên. Chiêu khác tra bảng; thiếu anim thì lùi dần.
+        // [CẦN ĐIỀN khi có art mới] thêm / đổi dòng trong bảng này.
+        private static readonly HashSet<int> BasicSkills = new HashSet<int> { 1, 2, 3 };
+        private static readonly Dictionary<int, string> SkillAnim = new Dictionary<int, string>
+        {
+            { 6, "Skill20" },   // Trảm Phong (Đấu sĩ)
+            { 8, "Skill20" },   // Ám Sát (Sát thủ)
+            { 7, "Jutsu2" },    // Y Thuật: Hồi Phục
+            { 9, "Jutsu1" },    // Cổ Vũ
+            { 10, "Jutsu2" },   // Thiết Thể
+            { 11, "Jutsu1" },   // Ảnh Bộ
+        };
+        private static readonly string[] Combo = { "Punch_Combo", "Kick_Combo" };
+        private int _comboStep;
+
+        /// <summary>Diễn anim của chiêu skillId (bấm đánh, kể cả khi đòn không gửi lên server).</summary>
+        public void PlaySkill(int skillId)
+        {
+            if (BasicSkills.Contains(skillId) || !SkillAnim.TryGetValue(skillId, out var name))
+            {
+                name = Combo[_comboStep++ % Combo.Length];
+                if (PlayActionOnce(name, 0.45f)) return;
+            }
+            else if (PlayActionOnce(name, 0.8f)) return;
+            if (!PlayActionOnce("Jutsu1", 0.8f)) PlayActionOnce("Punch_Combo", 0.45f);
         }
 
         /// <summary>

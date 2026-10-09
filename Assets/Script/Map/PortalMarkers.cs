@@ -5,9 +5,8 @@ using UnityEngine;
 namespace Assets.Script.Map
 {
     /// <summary>
-    /// CHỮ CHỈ ĐƯỜNG Ở CỔNG (GĐ8) — server gửi MAP_INFO (vị trí cổng + tên map đích) mỗi lần vào khu;
-    /// ở mỗi cổng hiện tên map đích kèm mũi tên, nhấp nhô nhẹ. Map chưa có hình cổng riêng nên chữ này là cách duy nhất
-    /// để người chơi biết đường. [CẦN ĐIỀN khi có art] có thể thêm hình cổng vào đây.
+    /// CHỮ CHỈ ĐƯỜNG Ở CỔNG — từ MAP_INFO (vị trí cổng + tên map đích), nhấp nhô nhẹ. Minimap đọc Current.
+    /// [CẦN ĐIỀN khi có art] thêm hình cổng.
     /// </summary>
     public static class PortalMarkers
     {
@@ -15,10 +14,12 @@ namespace Assets.Script.Map
         public struct Info { public Vector2 pos; public string target; public int side; }
 
         private static readonly List<GameObject> _markers = new List<GameObject>();
+        public static readonly List<Info> Current = new List<Info>();
 
         public static void Show(List<Info> portals)
         {
             Clear();
+            Current.AddRange(portals);
             foreach (var p in portals)
             {
                 var go = new GameObject("PortalMarker");
@@ -41,6 +42,7 @@ namespace Assets.Script.Map
         {
             foreach (var m in _markers) if (m != null) Object.Destroy(m);
             _markers.Clear();
+            Current.Clear();
         }
 
         /// <summary>Nhấp nhô lên xuống cho dễ thấy.</summary>

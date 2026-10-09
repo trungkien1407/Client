@@ -116,9 +116,6 @@ public class RemotePlayer : MonoBehaviour, ITargetable, IHasHealth
     // ==========================================
     // HÀM CẬP NHẬT HP
     // ==========================================
-    // ==========================================
-    // HÀM CẬP NHẬT HP
-    // ==========================================
     public void UpdateHp(int newHp)
     {
         if (visualCtrl != null && visualCtrl.isdead) return;
@@ -147,8 +144,8 @@ public class RemotePlayer : MonoBehaviour, ITargetable, IHasHealth
         UpdateUI();
     }
 
-    /// <summary>Diễn động tác đánh khi server báo người này vừa ra đòn.</summary>
-    public void PlayAttack() => visualCtrl?.PlayActionOnce("Punch_Combo");
+    /// <summary>Server báo người này vừa ra chiêu → diễn anim của chiêu đó.</summary>
+    public void PlayAttack(int skillId) => visualCtrl?.PlaySkill(skillId);
 
     /// <summary>Server đặt lại vị trí (REVIVE) -> nhảy thẳng tới, không trượt mượt.</summary>
     public void TeleportTo(float x, float y)

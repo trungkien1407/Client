@@ -31,8 +31,8 @@ namespace Assets.Script.UI
     public class GameHud : NetworkListener
     {
         private const float TalkRange = 3.5f;
-        /// <summary>[CẦN ĐIỀN nếu đổi minimap] bề rộng minimap góc phải trên của scene — menu xếp sang trái nó.</summary>
-        public static float MinimapWidth = 176f;
+        /// <summary>Bề rộng dành cho minimap góc phải trên (MinimapHud) — menu xếp sang trái nó.</summary>
+        public static float MinimapWidth = MinimapHud.W + 16f;
 
         private static GameHud _instance;
         private GameObject _root;
@@ -116,9 +116,10 @@ namespace Assets.Script.UI
                 if (i == 11) _pkBtn = b;
             }
 
-            // ---- Nút đổi khu (ngay dưới minimap) ----
+            // ---- Minimap (phím B = bản đồ lớn) + nút đổi khu ngay dưới ----
+            MinimapHud.Create(_root.transform);
             _zoneBtn = UIKit.Button("Zone", _root.transform, "Khu", () => GameWindow.Get<ZoneWindow>().Toggle(), 14);
-            ((RectTransform)_zoneBtn.transform).Place(new Vector2(1, 1), new Vector2(1, 1), new Vector2(-8, -174), new Vector2(MinimapWidth - 16, 30), new Vector2(1, 1));
+            ((RectTransform)_zoneBtn.transform).Place(new Vector2(1, 1), new Vector2(1, 1), new Vector2(-8, -MinimapHud.H - 14), new Vector2(MinimapHud.W, 30), new Vector2(1, 1));
 
             _money = UIKit.Text("Money", _root.transform, "", 15, TextAlignmentOptions.MidlineRight, new Color(1f, 0.85f, 0.3f));
             _money.rectTransform.Place(new Vector2(1, 1), new Vector2(1, 1), new Vector2(-MinimapWidth, -88), new Vector2(460, 24), new Vector2(1, 1));
@@ -172,6 +173,7 @@ namespace Assets.Script.UI
             GameWindow.Preload<ChatWindow>();
             GameWindow.Preload<ActivityWindow>();   // phím H
             GameWindow.Preload<GuideWindow>();      // phím G
+            GameWindow.Preload<WorldMapWindow>();   // phím B
             SettingsWindow.ApplySaved();
 
             GameData.OnChanged += k =>

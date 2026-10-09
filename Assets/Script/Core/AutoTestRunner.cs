@@ -3,6 +3,7 @@ using System.Collections;
 using Assets.Script.Combat;
 using Assets.Script.Data;
 using Assets.Script.Manager;
+using Assets.Script.Map;
 using Assets.Script.Player;
 using Assets.Script.UI;
 using Assets.Script.UI.Kit;
@@ -250,6 +251,35 @@ namespace Assets.Script.Core
                 Check($"Sang map {mapId} ({mapName}) — nhận đúng tên map", GameData.MapName == mapName);
                 yield return Shot("Map_" + mapId);
             }
+            // 5g. GĐ10 — bục 1 chiều (Đồi Hoa Cúc: bục hàng 6, cột 30..36, đất dưới cao 4), minimap, bản đồ lớn, anim chiêu
+            GameActions.Chat(1, "/tele 2 33.5 4.1");
+            yield return WaitUntil(() => GameData.MapName == "Đồi Hoa Cúc", 8);
+            yield return new WaitForSecondsRealtime(1.5f);
+            var me = NetworkPlayerManager.Instance.localPlayer;
+            Check($"Map có lớp Platform (bục 1 chiều) có PlatformEffector2D",
+                MapManager.Instance.currentMapInstance.transform.Find("Platform")?.GetComponent<PlatformEffector2D>() != null);
+            me.GetComponent<Rigidbody2D>().velocity = new Vector2(0, 15f);      // nhảy thẳng lên từ dưới bục
+            yield return new WaitForSecondsRealtime(2f);
+            Check($"Nhảy xuyên bục từ dưới lên và đứng trên bục (y = {me.transform.position.y:0.00}, cần ~7)", Mathf.Abs(me.transform.position.y - 7f) < 0.3f);
+            Check("Bấm xuống trên bục → rơi xuyên", me.TryDropThrough());
+            yield return new WaitForSecondsRealtime(1.5f);
+            Check($"Rơi về mặt đất dưới bục (y = {me.transform.position.y:0.00}, cần ~4)", Mathf.Abs(me.transform.position.y - 4f) < 0.3f);
+            Check($"Minimap vẽ từ tilemap ({MapImage.Width}x{MapImage.Height})", MapImage.Texture != null && MapImage.Width == 76 && GameObject.Find("Minimap") != null);
+            var wm = GameWindow.Open<WorldMapWindow>();
+            yield return new WaitForSecondsRealtime(0.6f);
+            yield return Shot("WorldMap");
+            wm.Hide();
+            var vis = me.GetComponent<PlayerVisualController>();
+            vis.PlaySkill(6);
+            Check($"Chiêu Trảm Phong → anim {vis.mainSkeleton.AnimationName}", vis.mainSkeleton.AnimationName == "Skill20");
+            yield return new WaitForSecondsRealtime(1f);
+            vis.PlaySkill(1);
+            string a1 = vis.mainSkeleton.AnimationName;
+            yield return new WaitForSecondsRealtime(0.6f);
+            vis.PlaySkill(1);
+            Check($"Đòn cơ bản đấm – đá luân phiên ({a1} → {vis.mainSkeleton.AnimationName})", a1 != vis.mainSkeleton.AnimationName);
+            yield return Shot("Platform");
+
             GameActions.Chat(1, "/tele 1");
             yield return WaitUntil(() => GameData.MapName == "Làng Lá", 8);
 

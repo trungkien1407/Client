@@ -127,7 +127,7 @@ namespace Assets.Script.Combat
                 sw.WriteInt(LocalPlayerState.Id);
                 NetworkManager.Instance.Send(Cmd.USE_SKILL, sw.ToArray());
                 sw.Cleanup();
-                if (local.TryGetComponent(out PlayerVisualController svc)) svc.PlayActionOnce("Punch_Combo"); // [CẦN ĐIỀN khi có art] anim niệm chú
+                PlayLocal(local, skillTemplateId);
                 return;
             }
 
@@ -146,7 +146,7 @@ namespace Assets.Script.Combat
                     _targeting?.SelectTarget(nearest);
                 }
             }
-            if (target == null) return;
+            if (target == null) { SwingInAir(local, skillTemplateId); return; }
 
             byte targetType;
             switch (target.GetTargetType())
@@ -171,6 +171,7 @@ namespace Assets.Script.Combat
                     ChatBox.AddSystem($"Quá xa (tầm chiêu {range:0.#}) — lại gần mục tiêu.");
                     _nextRangeWarn = Time.time + 1.5f;
                 }
+                SwingInAir(local, skillTemplateId);
                 return;
             }
 
@@ -183,8 +184,20 @@ namespace Assets.Script.Combat
             NetworkManager.Instance.Send(Cmd.USE_SKILL, w.ToArray());
             w.Cleanup();
 
-            // Diễn anim ngay cho mượt (nếu server từ chối do cooldown/hết mana thì chỉ là anim suông)
-            if (local.TryGetComponent(out PlayerVisualController vc)) vc.PlayActionOnce("Punch_Combo");
+            // Diễn anim ngay, không đợi server (server từ chối do cooldown / hết mana thì chỉ là anim suông)
+            PlayLocal(local, skillTemplateId);
+        }
+
+        private static void PlayLocal(Component local, int skillId)
+        {
+            if (local.TryGetComponent(out PlayerVisualController vc)) vc.PlaySkill(skillId);
+        }
+
+        /// <summary>Không có mục tiêu / ở xa: vẫn vung đòn (không gửi gì lên server).</summary>
+        private void SwingInAir(Component local, int skillId)
+        {
+            _nextAttackTime = Time.time + LocalAttackGap;
+            PlayLocal(local, skillId);
         }
 
         private float _nextRangeWarn;
@@ -207,21 +220,22 @@ namespace Assets.Script.Combat
         // NHẬN TỪ SERVER
         // ==========================================
 
-        /// <summary>BROADCAST_ATTACK: int attackerId, byte targetType, int targetId, int skillId, int damage, int hpRemain, byte dead</summary>
+        /// <summary>BROADCAST_ATTACK: int attackerId, byte targetType (0 quái · 1 người · 2 chiêu hỗ trợ), int targetId, int skillId, int damage, int hpRemain, byte dead</summary>
         private void OnBroadcastAttack(byte[] data)
         {
             var r = new MessageReader(data);
             int attackerId = r.ReadInt();
             byte targetType = r.ReadByte();
             int targetId = r.ReadInt();
-            r.ReadInt(); // skillId (chưa dùng: sau này chọn hiệu ứng theo skill)
+            int skillId = r.ReadInt();
             int damage = r.ReadInt();
             int hpRemain = r.ReadInt();
             r.ReadByte(); // dead: quái chết có MOB_DIE riêng, người chết có PLAYER_DIE riêng
             r.Cleanup();
 
             bool mine = attackerId == LocalPlayerState.Id;
-            if (!mine) NetworkPlayerManager.Instance?.GetRemotePlayer(attackerId)?.PlayAttack();
+            if (!mine) NetworkPlayerManager.Instance?.GetRemotePlayer(attackerId)?.PlayAttack(skillId);
+            if (targetType == 2) return;   // chiêu hỗ trợ: chỉ diễn anim, số hồi máu đến bằng PLAYER_HEAL
 
             if (targetType == 0)
             {

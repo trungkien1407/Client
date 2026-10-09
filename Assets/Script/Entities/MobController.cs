@@ -9,7 +9,7 @@ using UnityEngine.U2D;
 
 namespace Assets.Script.Entities
 {
-    public enum MobState { Idle, Walk, Attack, Dead }
+    public enum MobState { Idle, Walk, Attack, Dead, Hurt }
 
     [RequireComponent(typeof(SpriteRenderer))]
     public class MobController : MonoBehaviour, ITargetable, IHasHealth
@@ -55,14 +55,15 @@ namespace Assets.Script.Entities
             _currentState = MobState.Idle;
             _currentFrameIndex = 0;
             _attackAnimUntil = 0f;
+            _hurtUntil = 0f;
             if (_spriteRenderer != null) _spriteRenderer.color = BaseColor;
             UpdateUI();
         }
 
         public bool IsDead => _currentState == MobState.Dead;
 
-        // Giữ frame "attack" trong 1 khoảng ngắn khi quái đánh người
-        private float _attackAnimUntil;
+        // Giữ frame đánh / bị đánh trong 1 khoảng ngắn
+        private float _attackAnimUntil, _hurtUntil;
 
         /// <summary>Server báo quái vừa đánh (MOB_ATTACK) -> quay mặt về mục tiêu + hiện frame tấn công.</summary>
         public void PlayAttack(Vector3 targetPos)
@@ -73,7 +74,14 @@ namespace Assets.Script.Entities
             _attackAnimUntil = Time.time + 0.4f;
         }
 
-        /// <summary>Server báo quái chết (MOB_DIE): hiện frame chết, mờ dần. Manager sẽ thu hồi về Pool sau.</summary>
+        /// <summary>Trúng đòn → hiện frame bị đánh 0,25 giây.</summary>
+        private void PlayHurt()
+        {
+            ChangeState(MobState.Hurt);
+            _hurtUntil = Time.time + 0.25f;
+        }
+
+        /// <summary>Server báo quái chết (MOB_DIE): hiện frame bị đánh, mờ dần. Manager sẽ thu hồi về Pool sau.</summary>
         public void PlayDeath()
         {
             currentHp = 0;
@@ -158,6 +166,7 @@ namespace Assets.Script.Entities
                     _animationCache[MobState.Idle] = ExtractSprites(atlas, "idle");
                     _animationCache[MobState.Walk] = ExtractSprites(atlas, "walk");
                     _animationCache[MobState.Attack] = ExtractSprites(atlas, "attack");
+                    _animationCache[MobState.Hurt] = ExtractSprites(atlas, "hurt");
                     _animationCache[MobState.Dead] = ExtractSprites(atlas, "dead");
 
                     _isReady = true;
@@ -187,12 +196,13 @@ namespace Assets.Script.Entities
             }
             else
             {
-                // Các trạng thái khác vẫn giữ nguyên logic cũ (chỉ 1 ảnh)
+                // Bộ hình quái (kiểu NSO): 0–1 đứng/đi · 2 bị đánh · 3 tấn công. Chết dùng frame bị đánh.
                 int actionIdx = action switch
                 {
                     "idle" => 0,
-                    "attack" => 2,
-                    "dead" => 3,
+                    "hurt" => 2,
+                    "dead" => 2,
+                    "attack" => 3,
                     _ => 0
                 };
 
@@ -233,13 +243,16 @@ namespace Assets.Script.Entities
             // 2. Di chuyển mượt (Lerp/MoveTowards) theo Server
             float distance = Vector3.Distance(transform.position, _targetPosition);
             bool attacking = Time.time < _attackAnimUntil;
+            bool hurt = Time.time < _hurtUntil;
             if (!attacking && _currentState == MobState.Attack) ChangeState(MobState.Idle);
+            if (!hurt && _currentState == MobState.Hurt) ChangeState(MobState.Idle);
+            bool busy = attacking || hurt;
 
             if (distance > 0.05f)
             {
                 float requiredSpeed = distance / 0.2f;
                 transform.position = Vector3.MoveTowards(transform.position, _targetPosition, requiredSpeed * 1.15f * Time.deltaTime);
-                if (!attacking && _currentState != MobState.Walk) ChangeState(MobState.Walk);
+                if (!busy && _currentState != MobState.Walk) ChangeState(MobState.Walk);
             }
             else
             {
@@ -283,13 +296,10 @@ namespace Assets.Script.Entities
         {
             if (_currentState == MobState.Dead) return;
 
+            if (newHp < currentHp && newHp > 0) PlayHurt();
             currentHp = newHp;
-            UpdateUI(); // Cập nhật thanh máu trên đỉnh đầu
-
-         
+            UpdateUI();
             OnHpChanged?.Invoke(currentHp, maxHp);
-
-          //  if (currentHp <= 0) Die();
         }
 
         private void UpdateUI()

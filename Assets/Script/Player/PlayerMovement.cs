@@ -48,33 +48,22 @@ public class PlayerMovement : MonoBehaviour
     private float waterSurfaceY = 0f;
     private bool isJumping = false;
 
-    // ==========================================
-    // VÒNG ĐỜI OBJECT & INPUT SYSTEM (FIX LEAK)
-    // ==========================================
+    // Bục 1 chiều: collider đang đứng lên + hạn bỏ qua va chạm khi bấm xuống để rơi xuyên
+    private Collider2D groundCollider;
+    private Collider2D droppingThrough;
+    private float dropUntil;
+    private const float DROP_TIME = 0.35f;
+
+    // Input tạo 1 lần, bật/tắt theo object, Dispose khi huỷ (tránh rò bộ nhớ)
     private void Awake()
     {
-        // 1. Khởi tạo Input 1 lần duy nhất
         controls = new PlayerControls();
         controls.Player.Jump.performed += ctx => OnJump();
     }
 
-    private void OnEnable()
-    {
-        // 2. Bật Input
-        controls?.Enable();
-    }
-
-    private void OnDisable()
-    {
-        // 3. Tắt Input
-        controls?.Disable();
-    }
-
-    private void OnDestroy()
-    {
-        // 4. Giải phóng hoàn toàn để tránh Memory Leak
-        controls?.Dispose();
-    }
+    private void OnEnable() => controls?.Enable();
+    private void OnDisable() => controls?.Disable();
+    private void OnDestroy() => controls?.Dispose();
 
     private void Start()
     {
@@ -86,7 +75,7 @@ public class PlayerMovement : MonoBehaviour
         this.myData = dataFromServer;
 
         this.baseMoveSpeed = myData.moveSpeed > 0 ? myData.moveSpeed : 6f;
-        this.jumpForce = myData.jumpForce > 0 ? myData.jumpForce : 12f;
+        this.jumpForce = myData.jumpForce > 0 ? myData.jumpForce : 15f;
         this.baseGravity = myData.gravity > 0 ? myData.gravity : 3.5f;
 
         this.moveSpeed = baseMoveSpeed;
@@ -137,18 +126,38 @@ public class PlayerMovement : MonoBehaviour
         }
 
         if (isDead) return;
+        HandleDropThrough();
         UpdateVisuals();
         HandleNetworkSync();
     }
 
-    // ==========================================
-    // ĐIỀU KHIỂN TỪ SERVER
-    // ==========================================
+    private void HandleDropThrough()
+    {
+        if (droppingThrough != null && Time.time >= dropUntil)
+        {
+            Physics2D.IgnoreCollision(col, droppingThrough, false);
+            droppingThrough = null;
+        }
+        if (moveInput.y < -0.5f) TryDropThrough();
+    }
+
+    /// <summary>Đang đứng trên bục 1 chiều → tạm bỏ va chạm với bục để rơi xuyên qua (bấm xuống).</summary>
+    public bool TryDropThrough()
+    {
+        if (droppingThrough != null || !isGrounded || groundCollider == null) return false;
+        if (!groundCollider.TryGetComponent<PlatformEffector2D>(out _)) return false;
+
+        droppingThrough = groundCollider;
+        dropUntil = Time.time + DROP_TIME;
+        Physics2D.IgnoreCollision(col, droppingThrough, true);
+        isGrounded = false;
+        groundCollider = null;
+        return true;
+    }
 
     /// <summary>
-    /// Server ép vị trí (FORCE_MOVE / REVIVE / đổi map). Phải đặt qua Rigidbody2D và xoá vận tốc,
-    /// nếu chỉ gán transform.position thì vật lý frame sau sẽ kéo nhân vật đi tiếp theo quán tính.
-    /// Đồng thời coi vị trí này là "đã gửi" để không gửi ngược lại 1 gói thừa.
+    /// Server ép vị trí (FORCE_MOVE / hồi sinh / đổi map): đặt qua Rigidbody2D + xoá vận tốc
+    /// (chỉ gán transform thì vật lý kéo đi tiếp), coi như "đã gửi" để khỏi gửi ngược.
     /// </summary>
     public void SnapTo(Vector2 pos)
     {
@@ -183,9 +192,6 @@ public class PlayerMovement : MonoBehaviour
 
             rb.velocity = new Vector2(rb.velocity.x, jumpForce);
             isGrounded = false;
-
-            // SendMovePacket(2, (byte)(isFacingLeft ? 1 : 0)); 
-
             isJumping = true;
         }
     }
@@ -261,16 +267,18 @@ public class PlayerMovement : MonoBehaviour
             if (contact.normal.y > 0.5f)
             {
                 isGrounded = true;
+                groundCollider = collision.collider;
                 break;
             }
         }
     }
 
-    private void OnCollisionExit2D(Collision2D collision) => isGrounded = false;
+    private void OnCollisionExit2D(Collision2D collision)
+    {
+        isGrounded = false;
+        if (collision.collider == groundCollider) groundCollider = null;
+    }
 
-    // ==========================================
-    // XỬ LÝ HÌNH ẢNH QUA VISUAL CONTROLLER
-    // ==========================================
     void UpdateVisuals()
     {
         if (visualCtrl == null) return;
@@ -300,9 +308,7 @@ public class PlayerMovement : MonoBehaviour
         visualCtrl.SetFlip(isFacingLeft);
     }
 
-    // ==========================================
-    // ĐỒNG BỘ MẠNG 
-    // ==========================================
+    /// <summary>Gửi PLAYER_MOVE khi đổi trạng thái/hướng, lúc lên đỉnh cú nhảy, hoặc mỗi syncInterval nếu có di chuyển.</summary>
     void HandleNetworkSync()
     {
         byte currentState = 0;

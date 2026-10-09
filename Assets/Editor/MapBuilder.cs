@@ -9,16 +9,10 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 
 /// <summary>
-/// DỰNG MAP TỪ THIẾT KẾ (GĐ8) — Menu: Tools/Naruto/6. Dựng map từ thiết kế (MapLayouts)
-///
-/// Thiết kế map nằm ở repo server: tools/map_design.py. Chạy script đó sẽ ghi
-///   - data/maps/map_N.json          (server: va chạm, NPC, quái, cổng)
-///   - Assets/MapLayouts/map_N.json  (file này đọc: tile mặt đất / nước / trang trí, màu trời, khung camera)
-/// Menu này dựng Assets/Prefabs/Maps/Map_N.prefab cho từng file rồi gắn Addressables "Map_N" (group Maps).
-/// Khung prefab (Grid, Ground có va chạm, Water, CameraBounds) lấy từ Assets/Prefabs/MapPrefabs_2.prefab.
-///
-/// Sửa map: sửa tools/map_design.py → chạy lại script → chạy lại menu này → build Addressables (menu 4) / build game.
-/// KHÔNG sửa tay prefab trong Assets/Prefabs/Maps (lần dựng sau sẽ bị ghi đè). Chi tiết: docs/NOI_DUNG.md (repo server).
+/// DỰNG MAP TỪ THIẾT KẾ — menu Tools/Naruto/6. Đọc Assets/MapLayouts/map_N.json (do tools/map_design.py ở repo server sinh)
+/// → Assets/Prefabs/Maps/Map_N.prefab + Addressables "Map_N". Khung lấy từ MapPrefabs_2.prefab.
+/// Lớp: Ground (đặc) · Platform (bục 1 chiều, PlatformEffector2D) · Water · Decor (không va chạm).
+/// Không sửa tay prefab trong Prefabs/Maps — lần dựng sau ghi đè. Chi tiết: docs/NOI_DUNG.md (repo server).
 /// </summary>
 public static class MapBuilder
 {
@@ -74,12 +68,15 @@ public static class MapBuilder
             var water = root.transform.Find("Water").GetComponent<Tilemap>();
             var groundRenderer = ground.GetComponent<TilemapRenderer>();
             var decor = GetOrCreateTilemap(root.transform, "Decor", groundRenderer, -1); // sau mặt đất, trước nền trời
+            var platform = GetOrCreateTilemap(root.transform, "Platform", groundRenderer, 0);
+            SetupOneWay(platform.gameObject, ground.gameObject.layer);
 
             Fill(ground, json["ground"], tileCache);
+            Fill(platform, json["platform"], tileCache);
             Fill(water, json["water"], tileCache);
             Fill(decor, json["decor"], tileCache);
 
-            // Khung camera (Cinemachine Confiner + minimap đọc collider này — GameMaster.SetupCameraBounds)
+            // Khung camera (Cinemachine Confiner đọc collider này — GameMaster.SetupCameraBounds)
             var b = json["cameraBounds"];
             float x0 = (float)b[0], y0 = (float)b[1], x1 = (float)b[2], y1 = (float)b[3];
             var cb = root.transform.Find("CameraBounds");
@@ -109,6 +106,31 @@ public static class MapBuilder
             PrefabUtility.UnloadPrefabContents(root);
         }
         RegisterAddressable(outPath, $"Map_{id}");
+    }
+
+    /// <summary>
+    /// Bục 1 chiều: TilemapCollider2D gộp vào CompositeCollider2D, PlatformEffector2D chỉ chặn từ trên xuống
+    /// → đứng dưới nhảy xuyên lên được. PlayerMovement bấm xuống để thả xuyên qua (tạm bỏ va chạm).
+    /// </summary>
+    private static void SetupOneWay(GameObject go, int layer)
+    {
+        go.layer = layer;
+        var rb = go.GetComponent<Rigidbody2D>();
+        if (rb == null) rb = go.AddComponent<Rigidbody2D>();
+        rb.bodyType = RigidbodyType2D.Static;
+        var tc = go.GetComponent<TilemapCollider2D>();
+        if (tc == null) tc = go.AddComponent<TilemapCollider2D>();
+        tc.usedByComposite = true;
+        var cc = go.GetComponent<CompositeCollider2D>();
+        if (cc == null) cc = go.AddComponent<CompositeCollider2D>();
+        cc.geometryType = CompositeCollider2D.GeometryType.Polygons;
+        cc.usedByEffector = true;
+        var pe = go.GetComponent<PlatformEffector2D>();
+        if (pe == null) pe = go.AddComponent<PlatformEffector2D>();
+        pe.useOneWay = true;
+        pe.surfaceArc = 160f;
+        pe.useSideFriction = false;
+        pe.useSideBounce = false;
     }
 
     private static Tilemap GetOrCreateTilemap(Transform root, string name, TilemapRenderer like, int orderOffset)
