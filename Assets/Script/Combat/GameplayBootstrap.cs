@@ -20,8 +20,9 @@ namespace Assets.Script.Combat
             go.AddComponent<GroundItemNetwork>();
             go.AddComponent<ChatBox>();
             go.AddComponent<Assets.Script.Data.GameDataNetwork>(); // dữ liệu tĩnh, túi đồ, chỉ số, nhiệm vụ
-            go.AddComponent<Assets.Script.Data.SocialNetwork>();   // GĐ2–GĐ4: nâng cấp, rương, giao dịch, PvP, xã hội, sự kiện
-            go.AddComponent<Assets.Script.Data.WorldNetwork>();    // GĐ9: hoạt động hằng ngày, sổ tay nhiệm vụ, mẹo theo cấp
+            go.AddComponent<Assets.Script.Data.EconomyNetwork>();  // nâng cấp, rương, giao dịch, chợ, ngọc, giftcode
+            go.AddComponent<Assets.Script.Data.SocialNetwork>();   // PvP, nhóm, bạn bè, thư, gia tộc, xếp hạng
+            go.AddComponent<Assets.Script.Data.EventNetwork>();    // hiệu ứng, phó bản, sự kiện, khu, tên map, hoạt động, mẹo
             go.AddComponent<Assets.Script.UI.GameHud>();           // thanh EXP, nút menu, NPC, cửa hàng
             go.AddComponent<Assets.Script.UI.MobileControls>();    // joystick + nút ảo (chỉ hiện trên máy cảm ứng)
         }

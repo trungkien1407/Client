@@ -74,7 +74,7 @@
         public const short MONEY_UPDATE = 313;      // S→C int yen, int xu, int luong
         public const short BAG_SORT = 314;          // C→S (rỗng) sắp xếp + gộp túi
         // ---- GĐ2: nâng cấp / rương / giao dịch ----
-        public const short UPGRADE_OPEN = 320;      // S→C bảng tỉ lệ (xem SocialNetwork.OnUpgradeOpen)
+        public const short UPGRADE_OPEN = 320;      // S→C bảng tỉ lệ (xem EconomyNetwork.OnUpgradeOpen)
         public const short UPGRADE_ITEM = 321;      // C→S int npcId, int bagIndex, byte useProtect
         public const short UPGRADE_RESULT = 322;    // S→C byte result(0 ok/1 trượt giữ/2 trượt tụt/3 lỗi), byte level, UTF msg
         public const short STORAGE_DATA = 325;      // S→C int npcId, short capacity, short n, [ô đồ] x n
