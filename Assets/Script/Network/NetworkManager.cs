@@ -14,7 +14,7 @@ namespace Assets.Script.Network
 
         private TcpClient client;
         // NetworkStream thường, hoặc SslStream (TLS) bọc ngoài khi GameConfig.UseTls — xem OnConnect
-        private System.IO.Stream stream;
+        private volatile System.IO.Stream stream;   // gán ở luồng nền sau khi kết nối (+ bắt tay TLS) xong
         private string _host;
         private byte[] receiveBuffer = new byte[4096];
         private List<byte> byteList = new List<byte>();
@@ -222,10 +222,8 @@ namespace Assets.Script.Network
             }
         }
 
-        public bool IsConnected
-        {
-            get { return client != null && client.Connected; }
-        }
+        /// <summary>Đã gửi được gói: socket nối xong VÀ (nếu bật TLS) bắt tay xong — trước đó Send() bỏ gói trong im lặng.</summary>
+        public bool IsConnected => client != null && client.Connected && stream != null;
 
         private void OnApplicationQuit()
         {

@@ -56,6 +56,9 @@ namespace Assets.Script.Player
 
         private void Update()
         {
+            // Mục tiêu đã bị huỷ / trả về pool (quái biến mất, người rời khu, đổi map...) → bỏ chọn
+            if (currentTarget != null && (!(currentTarget is MonoBehaviour mb) || mb == null || !mb.gameObject.activeInHierarchy))
+                ClearTarget();
             if (playerTransform == null) return;
             if (controls.Player.TargetClick.WasPerformedThisFrame())
             {
@@ -227,7 +230,7 @@ namespace Assets.Script.Player
                     healthTarget.OnHpChanged -= HandleTargetHpChanged;
                 }
 
-                currentTarget.OnDeselected();
+                if (currentTarget is MonoBehaviour alive && alive != null) currentTarget.OnDeselected();   // đã huỷ thì thôi
                 currentTarget = null;
 
                 if (UISetup.Instance != null)

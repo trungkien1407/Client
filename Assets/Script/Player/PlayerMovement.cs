@@ -65,13 +65,19 @@ public class PlayerMovement : MonoBehaviour
     private void OnDisable() => controls?.Disable();
     private void OnDestroy() => controls?.Dispose();
 
+    private bool initialized;
+
+    // Đặt sẵn trong scene thử (Design.unity) thì tự khởi tạo mặc định. Nhân vật thật được NetworkPlayerManager
+    // AddComponent rồi Initialize(dữ liệu server) NGAY — Start chạy frame sau, không được ghi đè lại (trước đây ghi đè
+    // tốc chạy / lực nhảy / trọng lực của server bằng mặc định).
     private void Start()
     {
-        Initialize(new PlayerData(), 1);
+        if (!initialized) Initialize(new PlayerData(), 1);
     }
 
     public void Initialize(PlayerData dataFromServer, int dir)
     {
+        initialized = true;
         this.myData = dataFromServer;
 
         this.baseMoveSpeed = myData.moveSpeed > 0 ? myData.moveSpeed : 6f;

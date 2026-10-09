@@ -16,6 +16,9 @@ namespace Assets.Script.Map
         private static readonly List<GameObject> _markers = new List<GameObject>();
         public static readonly List<Info> Current = new List<Info>();
 
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        private static void Hook() => Data.GameData.OnSessionReset += Clear;
+
         public static void Show(List<Info> portals)
         {
             Clear();

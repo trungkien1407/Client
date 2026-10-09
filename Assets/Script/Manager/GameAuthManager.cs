@@ -24,6 +24,9 @@ namespace Assets.Script.Manager
         [SerializeField] private GameObject quickLoginPanel;
         [SerializeField] private GameObject HUDCanvas;
 
+        /// <summary>Màn đăng nhập tạo lại sau khi mất kết nối (GameDisconnectHandler) — prefab không giữ được tham chiếu tới HUD của scene.</summary>
+        public void SetHud(GameObject hud) { if (hud != null) HUDCanvas = hud; }
+
         [Header("Input Fields")]
         [SerializeField] private TMP_InputField inputLoginUser;
         [SerializeField] private TMP_InputField inputLoginPass;
@@ -294,7 +297,15 @@ namespace Assets.Script.Manager
             else
             {
                 reader.Cleanup();
-                PopupAndLoad.Instance.ShowPopup("Lỗi tạo nhân vật!");
+                PopupAndLoad.Instance.ShowPopup(status switch
+                {
+                    1 => "Tên nhân vật phải từ 3 đến 15 ký tự.",
+                    2 => "Tên nhân vật đã có người dùng!",
+                    3 => "Phiên đăng nhập đã hết, vui lòng đăng nhập lại.",
+                    4 => "Hệ phái không hợp lệ.",
+                    5 => "Tài khoản đã có nhân vật.",
+                    _ => "Lỗi tạo nhân vật!"
+                });
             }
         }
 
@@ -369,7 +380,7 @@ namespace Assets.Script.Manager
             if (status == 0) PopupAndLoad.Instance.ShowPopup("Đăng ký thành công!", () => SwitchPanel(loginPanel));
             else PopupAndLoad.Instance.ShowPopup(status switch
             {
-                1 => "Tài khoản và mật khẩu phải từ 3 ký tự.",
+                1 => "Tài khoản từ 4 ký tự, mật khẩu từ 6 ký tự.",
                 2 => "Tài khoản hoặc email đã được dùng!",
                 3 => "Email không hợp lệ.",
                 4 => "Mạng của bạn thử quá nhiều lần. Đợi ít phút rồi thử lại.",

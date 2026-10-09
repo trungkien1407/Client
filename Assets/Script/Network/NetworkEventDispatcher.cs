@@ -1,18 +1,21 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace Assets.Script.Network
 {
+    /// <summary>
+    /// Chuyển gói tin từ luồng socket sang luồng chính (Unity chỉ cho đụng GameObject ở luồng chính).
+    ///   Luồng socket: EnqueuePacket → hàng đợi (có khoá).
+    ///   Luồng chính:  Update rút hết hàng đợi → gọi các hàm đã AddHandler cho Cmd đó.
+    /// Mỗi hàm xử lý được gọi riêng trong try/catch: 1 hàm lỗi không làm mất gói của hàm khác, không văng khỏi Update.
+    /// </summary>
     public class NetworkEventDispatcher : MonoBehaviour
     {
         public static NetworkEventDispatcher Instance;
 
-        // Hàng đợi chứa các gói tin chờ xử lý ở Main Thread
-        private Queue<PacketDecoder.Packet> packetQueue = new Queue<PacketDecoder.Packet>();
-
-        // TỪ ĐIỂN CHỨA HÀM XỬ LÝ: Đổi từ string sang byte[]
-        private Dictionary<short, Action<byte[]>> handlers = new Dictionary<short, Action<byte[]>>();
+        private readonly Queue<PacketDecoder.Packet> packetQueue = new Queue<PacketDecoder.Packet>();
+        private readonly Dictionary<short, Action<byte[]>> handlers = new Dictionary<short, Action<byte[]>>();
 
         void Awake()
         {
@@ -21,75 +24,46 @@ namespace Assets.Script.Network
 
         void Update()
         {
-            float startTime = Time.realtimeSinceStartup;
-
-            // Lặp liên tục nếu Queue vẫn còn đồ và chưa lố 2ms
             while (true)
             {
-                bool hasPacket = false;
-                PacketDecoder.Packet currentPacket = default;
-
+                PacketDecoder.Packet packet;
                 lock (packetQueue)
                 {
-                    if (packetQueue.Count > 0)
-                    {
-                        currentPacket = packetQueue.Dequeue();
-                        hasPacket = true;
-                    }
+                    if (packetQueue.Count == 0) break;
+                    packet = packetQueue.Dequeue();
                 }
 
-                // Nếu không có gói tin nào thì thoát
-                // Nếu không có gói tin nào thì thoát
-                if (!hasPacket) break;
-
-                // ==========================================
-                // THÊM DEBUG LOG Ở ĐÂY ĐỂ THEO DÕI
-                // ==========================================
-                int dataLength = currentPacket.data != null ? currentPacket.data.Length : 0;
-               
-                // ==========================================
-
-                // XỬ LÝ GÓI TIN
-                if (handlers.ContainsKey(currentPacket.cmd))
+                if (!handlers.TryGetValue(packet.cmd, out var all) || all == null)
                 {
-                    if (handlers[currentPacket.cmd] != null)
-                    {
-                        handlers[currentPacket.cmd].Invoke(currentPacket.data);
-                    }
+                    Debug.LogWarning($"[Mạng] Nhận Cmd {packet.cmd} nhưng chưa có ai AddHandler để xử lý");
+                    continue;
                 }
-                else
+                foreach (var d in all.GetInvocationList())
                 {
-                    // Log thêm cái này cực kỳ hữu ích để phát hiện lỗi quên đăng ký Event
-                    Debug.LogWarning($"[MẠNG CẢNH BÁO] Nhận được CMD {currentPacket.cmd} nhưng chưa có ai AddHandler để xử lý!");
+                    try
+                    {
+                        ((Action<byte[]>)d)(packet.data);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogError($"[Mạng] Lỗi xử lý gói {packet.cmd} ở {d.Method.DeclaringType?.Name}.{d.Method.Name}: {e}");
+                    }
                 }
             }
         }
 
-        // ĐĂNG KÝ LẮNG NGHE: Action<byte[]>
         public void AddHandler(short cmd, Action<byte[]> action)
         {
-            if (!handlers.ContainsKey(cmd))
-            {
-                handlers[cmd] = action;
-            }
-            else
-            {
-                handlers[cmd] += action;
-            }
+            handlers.TryGetValue(cmd, out var cur);
+            handlers[cmd] = cur + action;
         }
 
-        // HỦY LẮNG NGHE: Action<byte[]>
         public void RemoveHandler(short cmd, Action<byte[]> action)
         {
-            if (handlers.ContainsKey(cmd))
-            {
-                handlers[cmd] -= action;
-
-                if (handlers[cmd] == null)
-                {
-                    handlers.Remove(cmd);
-                }
-            }
+            if (!handlers.TryGetValue(cmd, out var cur)) return;
+            cur -= action;
+            if (cur == null) handlers.Remove(cmd);
+            else handlers[cmd] = cur;
         }
 
         public void EnqueuePacket(PacketDecoder.Packet packet)

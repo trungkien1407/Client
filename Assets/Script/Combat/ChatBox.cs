@@ -35,7 +35,18 @@ namespace Assets.Script.Combat
         private GameObject _overlayRoot;
         private TextMeshProUGUI _overlay;
 
-        private void Awake() => _instance = this;
+        private void Awake()
+        {
+            _instance = this;
+            Data.GameData.OnSessionReset += ClearHistory;
+        }
+
+        /// <summary>Hết phiên: xoá lịch sử chat (đăng nhập tài khoản khác không thấy chat cũ).</summary>
+        private static void ClearHistory()
+        {
+            History.Clear();
+            OnNewLine?.Invoke();
+        }
 
         protected override void RegisterHandlers() => Listen(Cmd.CHAT, OnChat);
 

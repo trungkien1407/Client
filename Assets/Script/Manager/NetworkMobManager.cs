@@ -44,6 +44,7 @@ namespace Assets.Script.Manager
 
         void Start()
         {
+            RegisterNetworkHandlers();   // nghe ngay; gói đến trước khi tải xong dữ liệu hình thì giữ lại (Defer)
             _dbHandle = Addressables.LoadAssetAsync<MobDatabaseSO>(mobDatabaseRef);
             _dbHandle.Completed += handle => {
                 if (handle.Status == AsyncOperationStatus.Succeeded)
@@ -51,10 +52,21 @@ namespace Assets.Script.Manager
                     _mobDatabase = handle.Result;
                     _mobDatabase.Init();
                     _isDatabaseReady = true;
-                    RegisterNetworkHandlers();
+                    foreach (var (h, d) in _early) h(d);
+                    _early.Clear();
                 }
                 else Debug.LogError("[Mob Manager] Lỗi tải MobDatabaseSO!");
             };
+        }
+
+        // Gói quái đến khi chưa tải xong MobDatabase: giữ lại, tải xong xử lý theo đúng thứ tự
+        // (trước đây bị bỏ → vào map đầu tiên không thấy quái).
+        private readonly List<(System.Action<byte[]> h, byte[] d)> _early = new List<(System.Action<byte[]>, byte[])>();
+        private bool Defer(System.Action<byte[]> handler, byte[] data)
+        {
+            if (_isDatabaseReady) return false;
+            _early.Add((handler, data));
+            return true;
         }
 
         private void RegisterNetworkHandlers()
@@ -80,7 +92,7 @@ namespace Assets.Script.Manager
 
         private void OnMobList(byte[] data)
         {
-            if (!_isDatabaseReady) return;
+            if (Defer(OnMobList, data)) return;
 
             ClearAllMobs();
             MessageReader reader = new MessageReader(data);
@@ -114,7 +126,7 @@ namespace Assets.Script.Manager
         /// <summary>MOB_ADD: quái hồi sinh (cùng id cũ). Payload giống 1 phần tử MOB_LIST.</summary>
         private void OnMobAdd(byte[] data)
         {
-            if (!_isDatabaseReady) return;
+            if (Defer(OnMobAdd, data)) return;
             MessageReader reader = new MessageReader(data);
             try
             {
@@ -137,6 +149,7 @@ namespace Assets.Script.Manager
         /// <summary>MOB_REMOVE: int mobId — quái không hồi sinh (boss thế giới, quái phó bản) → xoá luôn.</summary>
         private void OnMobRemove(byte[] data)
         {
+            if (Defer(OnMobRemove, data)) return;
             var reader = new MessageReader(data);
             int mobId = reader.ReadInt();
             reader.Cleanup();
@@ -145,6 +158,7 @@ namespace Assets.Script.Manager
 
         private void OnMobDie(byte[] data)
         {
+            if (Defer(OnMobDie, data)) return;
             MessageReader reader = new MessageReader(data);
             int mobId = reader.ReadInt();
             reader.Cleanup();
@@ -266,6 +280,7 @@ namespace Assets.Script.Manager
 
         private void OnMobMoveBatch(byte[] data)
         {
+            if (!_isDatabaseReady) return;   // vị trí cũ, bỏ cũng được (gói sau sẽ tới)
             MessageReader reader = new MessageReader(data);
             try
             {

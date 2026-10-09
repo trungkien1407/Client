@@ -34,6 +34,9 @@ namespace Assets.Script.Combat
         private readonly Dictionary<int, GroundItem> _items = new Dictionary<int, GroundItem>();
         private static Sprite _squareSprite;
 
+        private void Awake() => Data.GameData.OnSessionReset += ClearAll;
+        protected override void OnDestroy() { base.OnDestroy(); Data.GameData.OnSessionReset -= ClearAll; }
+
         protected override void RegisterHandlers()
         {
             Listen(Cmd.ITEM_DROP, OnItemDrop);
@@ -109,7 +112,9 @@ namespace Assets.Script.Combat
         }
 
         /// <summary>Đổi map/khu: đồ rơi của khu cũ không còn -> xoá hết (khu mới sẽ gửi lại ITEM_DROP).</summary>
-        private void OnChangeMapOrZone(byte[] _)
+        private void OnChangeMapOrZone(byte[] _) => ClearAll();
+
+        private void ClearAll()
         {
             foreach (var it in _items.Values) if (it.go != null) Destroy(it.go);
             _items.Clear();

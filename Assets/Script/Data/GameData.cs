@@ -58,6 +58,14 @@ namespace Assets.Script.Data
         public int maxHp, maxMp, bonusDamage, yen, xu, luong, pkPoint;
         public float dodge, crit, moveSpeed;
         public int defense; public float reduction; // GĐ7: phòng thủ + % giảm sát thương (quái / người cùng cấp)
+
+        public void Reset()
+        {
+            level = potential = skillPoints = sucManh = thanPhap = chakra = theLuc = 0;
+            exp = expToNext = 0;
+            maxHp = maxMp = bonusDamage = yen = xu = luong = pkPoint = defense = 0;
+            dodge = crit = moveSpeed = reduction = 0f;
+        }
     }
 
     /// <summary>1 Ô ĐỒ (túi / rương / giao dịch / thư): mẫu, số lượng, cấp cường hoá +N, khoá (không giao dịch được).</summary>
@@ -264,8 +272,12 @@ namespace Assets.Script.Data
         public static readonly string[] SlotNames = { "", "Vũ khí", "Áo", "Ngọc bội", "Quần", "Găng", "Giày", "Nhẫn", "Dây chuyền", "Phù" };
         public const int EquipSlotCount = 9;
 
+        /// <summary>Hết phiên (đăng nhập mới / mất kết nối): các kho tạm ngoài GameData (đồ dưới đất, chữ cổng, chat...) tự dọn theo.</summary>
+        public static event Action OnSessionReset;
+
         public static void ClearSession()
         {
+            Me.Reset();
             Inventory.Clear(); Equipment.Clear(); EquipLevel.Clear(); EquipSlots.Clear(); GemNpc = -1; MySkills.Clear(); MyQuests.Clear();
             Storage.Clear(); StorageNpc = -1; Upgrade = null; TradeWith = 0;
             MyPkMode = 0; Pvp.Clear(); Party.Clear(); PartyLeader = 0; Friends.Clear(); Mails.Clear(); OpenMail = null; MailUnread = 0;
@@ -274,6 +286,7 @@ namespace Assets.Script.Data
             ActivityPoints = 0; ActivityClaimed = 0; Activities.Clear(); Milestones.Clear(); EventSchedule.Clear(); QuestGuide.Clear();
             OnlineSeconds = 0; OnlineClaimed = 0; OnlineGifts.Clear(); GiftcodeMessage = "";
             MarketNpc = -1; MarketRows.Clear(); MarketMine.Clear(); MarketMessage = "";
+            OnSessionReset?.Invoke();
         }
     }
 

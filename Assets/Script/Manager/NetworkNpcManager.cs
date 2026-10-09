@@ -49,6 +49,7 @@ namespace Assets.Script.Manager
 
         void Start()
         {
+            NetworkEventDispatcher.Instance.AddHandler(Cmd.NPC_LIST, OnNpcList);   // nghe ngay (gói sớm giữ lại ở _earlyList)
             LoadResources();
         }
 
@@ -83,14 +84,16 @@ namespace Assets.Script.Manager
             if (_resourcesLoadedCount == 2)
             {
                 _isReady = true;
-                // Cả DB và Atlas đã xong mới bắt đầu lắng nghe Server
-                NetworkEventDispatcher.Instance.AddHandler(Cmd.NPC_LIST, OnNpcList);
+                if (_earlyList != null) { var d = _earlyList; _earlyList = null; OnNpcList(d); }
             }
         }
 
+        // NPC_LIST đến khi chưa tải xong DB + atlas: giữ bản mới nhất, tải xong mới dựng (trước đây bị bỏ → thiếu NPC)
+        private byte[] _earlyList;
+
         private void OnNpcList(byte[] data)
         {
-            if (!_isReady) return;
+            if (!_isReady) { _earlyList = data; return; }
 
             ClearAllNpcs();
 

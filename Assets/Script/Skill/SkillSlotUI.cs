@@ -2,6 +2,8 @@
 using UnityEngine.UI;
 using UnityEngine.U2D; // Bắt buộc phải có để dùng SpriteAtlas
 using UnityEngine.AddressableAssets;
+using UnityEngine.ResourceManagement.AsyncOperations;
+using System.Collections.Generic;
 using Assets.Script.Database;
 using Assets.Script.Models;
 
@@ -45,38 +47,39 @@ public class SkillSlotUI : MonoBehaviour
         SetNameText(noIcon && Assets.Script.Data.GameData.Skills.TryGetValue(templateId, out var tpl) ? tpl.name
                     : noIcon ? $"Skill {templateId}" : "");
 
-        if (visualData != null && visualData.iconSprite != null)
+        if (visualData != null && visualData.iconSprite != null && visualData.iconSprite.RuntimeKeyIsValid())
         {
-            // Tải SpriteAtlas từ Addressables
-            visualData.iconSprite.LoadAssetAsync().Completed += (handle) =>
+            int forSkill = templateId;
+            LoadAtlas(visualData.iconSprite).Completed += handle =>
             {
-                // Kiểm tra xem UI có bị tắt/hủy trước khi tải xong không
-                if (iconImg != null && handle.Result != null)
-                {
-                    SpriteAtlas atlas = handle.Result;
-
-                    // Lấy Sprite con từ trong Atlas ra. 
-                    // LƯU Ý: Đổi "icon_" thành tiền tố mà bạn đặt tên cho các file ảnh (VD: "skill_101")
-                    string spriteName = "img" + visualData.iconId;
-                    Sprite icon = atlas.GetSprite(spriteName);
-
-                    if (icon != null)
-                    {
-                        iconImg.sprite = icon;
-                        iconImg.enabled = true;
-                    }
-                    else
-                    {
-                        Debug.LogWarning($"[SkillSlotUI] Không tìm thấy ảnh tên '{spriteName}' trong Atlas!");
-                        iconImg.enabled = false;
-                    }
-                }
+                // UI đã huỷ, hoặc ô đã được gán chiêu khác trong lúc chờ tải → bỏ
+                if (iconImg == null || assignedSkillId != forSkill || handle.Status != AsyncOperationStatus.Succeeded) return;
+                string spriteName = "img" + visualData.iconId;
+                Sprite icon = handle.Result.GetSprite(spriteName);
+                if (icon == null) Debug.LogWarning($"[SkillSlotUI] Không tìm thấy ảnh '{spriteName}' trong Atlas!");
+                iconImg.sprite = icon;
+                iconImg.enabled = icon != null;
             };
         }
         else
         {
             iconImg.enabled = false;
         }
+    }
+
+    // Atlas icon tải 1 lần cho mỗi tham chiếu, dùng chung mọi ô, giữ suốt phiên chơi (vài trăm KB).
+    // Gọi LoadAssetAsync() lần 2 trên cùng AssetReference là lỗi Addressables → không dùng hàm của AssetReference.
+    private static readonly Dictionary<object, AsyncOperationHandle<SpriteAtlas>> AtlasCache = new Dictionary<object, AsyncOperationHandle<SpriteAtlas>>();
+
+    private static AsyncOperationHandle<SpriteAtlas> LoadAtlas(AssetReference reference)
+    {
+        object key = reference.RuntimeKey;
+        if (!AtlasCache.TryGetValue(key, out var h) || !h.IsValid())
+        {
+            h = Addressables.LoadAssetAsync<SpriteAtlas>(key);
+            AtlasCache[key] = h;
+        }
+        return h;
     }
 
     // Bật/tắt viền sáng
@@ -86,13 +89,4 @@ public class SkillSlotUI : MonoBehaviour
             highlightObj.SetActive(isSelected);
     }
 
-    private void OnDestroy()
-    {
-        // Giải phóng RAM khi ô UI này bị hủy (Chuyển scene)
-        if (assignedSkillId != -1)
-        {
-            // Tùy theo cách bạn setup Database, Addressables sẽ tự động quản lý Ref-Count
-            // và nhả RAM Atlas ra nếu không còn ô UI nào dùng nó nữa.
-        }
-    }
 }

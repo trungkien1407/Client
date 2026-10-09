@@ -301,10 +301,14 @@ namespace Assets.Script.Manager
                 visualCtrl.SetupVisual(spineData, null);
             }
 
+            // Người khác chỉ đi theo vị trí server gửi (RemotePlayer nội suy) → không chịu vật lý:
+            // body Kinematic (không rơi), collider Trigger (không đẩy nhân vật mình, vẫn bấm chọn được)
             if (obj.TryGetComponent(out Rigidbody2D rb))
             {
+                rb.bodyType = RigidbodyType2D.Kinematic;
                 rb.velocity = Vector2.zero;
             }
+            if (obj.TryGetComponent(out BoxCollider2D box)) box.isTrigger = true;
 
             remotePlayers.Add(pData.id, rp);
         }
@@ -427,7 +431,7 @@ namespace Assets.Script.Manager
                 ReturnRemotePlayerToPool(rp);
             }
             remotePlayers.Clear();
-            loadingPlayers.Clear();
+            loadingPlayers.RemoveWhere(id => id != myPlayerId);   // giữ lượt tải nhân vật CỦA MÌNH (đổi map ngay sau đăng nhập)
         }
 
         public void ClearAllPlayers()

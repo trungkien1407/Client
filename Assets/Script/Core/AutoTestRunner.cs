@@ -446,6 +446,25 @@ namespace Assets.Script.Core
                 yield return Shot("Maint_kicked");
             }
 
+            // 7. GĐ11 — mất kết nối (GM tự kick mình) → màn đăng nhập mới → đăng nhập lại: HUD của scene phải hiện lại
+            if (Array.IndexOf(Environment.GetCommandLineArgs(), "-maint") < 0)
+            {
+                var hudCanvas = GameObject.Find("HUDCanvas");
+                Check("Trước khi rớt mạng: thấy HUD (máu / ô chiêu / nút đánh)", hudCanvas != null && hudCanvas.activeSelf);
+                GameActions.Chat(1, "/kick " + LocalPlayerState.Name);
+                yield return WaitUntil(() => LocalPlayerState.Id < 0, 10);
+                Check("Bị ngắt kết nối → dọn phiên", LocalPlayerState.Id < 0 && Map.PortalMarkers.Current.Count == 0);
+                yield return new WaitForSecondsRealtime(2f);        // màn đăng nhập mới dựng + tự kết nối lại
+                var auth2 = FindAnyObjectByType<GameAuthManager>();
+                Check("Hiện lại màn đăng nhập", auth2 != null);
+                if (auth2 != null) auth2.AutoLogin(Arg("-user", "clientbot"), Arg("-pass", "test1234"));
+                yield return WaitUntil(() => NetworkPlayerManager.Instance?.localPlayer != null && LocalPlayerState.Id >= 0, 25);
+                Check("Đăng nhập lại vào map", NetworkPlayerManager.Instance?.localPlayer != null);
+                yield return new WaitForSecondsRealtime(1.5f);
+                Check("Sau khi đăng nhập lại HUD hiện lại", hudCanvas != null && hudCanvas.activeSelf);
+                yield return Shot("Relogin");
+            }
+
             Check("Không có Exception trong suốt phiên", _exceptions == 0);
             Debug.Log($"[AutoTest] KẾT QUẢ: {_pass} PASS, {_fail} FAIL");
             yield return new WaitForSecondsRealtime(0.5f);

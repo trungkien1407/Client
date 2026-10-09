@@ -73,10 +73,12 @@ namespace Assets.Script.Manager
             if (NetworkNpcManager.Instance != null) NetworkNpcManager.Instance.ClearAllNpcs();
             if (UISetup.Instance != null) UISetup.Instance.ClearUI();
             Assets.Script.UI.Kit.UIRoot.CloseAll(); // cửa sổ NPC/túi/... đang mở không được đè lên màn đăng nhập
+            Assets.Script.Data.GameData.ClearSession(); // + đồ dưới đất, chữ cổng, chat, hộp hỏi xác nhận (OnSessionReset)
 
-            // 2. XỬ LÝ GIAO DIỆN
+            // 2. XỬ LÝ GIAO DIỆN — màn đăng nhập tạo mới từ prefab không có sẵn tham chiếu HUD của scene → trao lại
             if (inGameUI != null) inGameUI.SetActive(false);
-            Instantiate(loginPanel);
+            var auth = Instantiate(loginPanel).GetComponentInChildren<GameAuthManager>(true);
+            if (auth != null) auth.SetHud(inGameUI);
 
             // 3. HIỂN THỊ THÔNG BÁO VÀ TẮT LOADING
             if (PopupAndLoad.Instance != null)

@@ -18,6 +18,9 @@ namespace Assets.Script.UI.Windows
         private class Item { public string text, yes, no; public Action onYes, onNo; public float expire; }
 
         private static readonly Queue<Item> Pending = new Queue<Item>();
+
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+        private static void Hook() => Data.GameData.OnSessionReset += () => Pending.Clear();   // lời mời của phiên cũ
         private Item _current;
         private TextMeshProUGUI _text, _timer;
         private Button _yes, _no;
