@@ -203,8 +203,7 @@ namespace Assets.Script.Data
             for (int i = 0; i < n; i++)
             {
                 int slot = r.ReadInt();
-                var s = new BagSlot { tpl = r.ReadInt(), qty = 1, level = r.ReadByte() };
-                BagSlot.ReadExtras(r, s);                 // GĐ9: phẩm chất + ngọc
+                var s = BagSlot.ReadEquip(r);
                 GameData.Equipment[slot] = s.tpl;
                 GameData.EquipLevel[slot] = s.level;     // cấp cường hoá +N
                 GameData.EquipSlots[slot] = s;

@@ -30,13 +30,10 @@ namespace Assets.Script.Data
 
         private void OnGiftcodeResult(byte[] data)
         {
-            var r = new MessageReader(data);
-            bool ok = r.ReadByte() != 0;
-            string msg = r.ReadUTF();
-            r.Cleanup();
-            GameData.GiftcodeMessage = (ok ? "<color=#7f7>" : "<color=#f77>") + msg + "</color>";
+            var res = Packets.ReadResult(data);
+            GameData.GiftcodeMessage = res.Colored;
             GameData.Notify(DataKind.Activity);
-            if (ok) UI.GameHud.Banner(msg, 3f);
+            if (res.ok) UI.GameHud.Banner(res.msg, 3f);
         }
 
         // ---- KHẢM NGỌC ----
@@ -54,11 +51,7 @@ namespace Assets.Script.Data
 
         private void OnGemResult(byte[] data)
         {
-            var r = new MessageReader(data);
-            bool ok = r.ReadByte() != 0;
-            string msg = r.ReadUTF();
-            r.Cleanup();
-            GameData.GemMessage = (ok ? "<color=#7f7>" : "<color=#f77>") + msg + "</color>";
+            GameData.GemMessage = Packets.ReadResult(data).Colored;
             GameData.Notify(DataKind.Gem);
         }
 
@@ -102,11 +95,7 @@ namespace Assets.Script.Data
 
         private void OnMarketResult(byte[] data)
         {
-            var r = new MessageReader(data);
-            bool ok = r.ReadByte() != 0;
-            string msg = r.ReadUTF();
-            r.Cleanup();
-            GameData.MarketMessage = (ok ? "<color=#7f7>" : "<color=#f77>") + msg + "</color>";
+            GameData.MarketMessage = Packets.ReadResult(data).Colored;
             GameData.Notify(DataKind.Market);
         }
 

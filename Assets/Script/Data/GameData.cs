@@ -94,6 +94,14 @@ namespace Assets.Script.Data
             return s;
         }
 
+        /// <summary>Ô trang bị đang mặc (EQUIPMENT): int tpl, byte level + đuôi GĐ9 — không có số lượng / khoá.</summary>
+        public static BagSlot ReadEquip(Network.MessageReader r)
+        {
+            var s = new BagSlot { tpl = r.ReadInt(), qty = 1, level = r.ReadByte() };
+            ReadExtras(r, s);
+            return s;
+        }
+
         /// <summary>Đuôi GĐ9 (ô túi + ô trang bị): byte bonus, byte n, [int gemId] × n.</summary>
         public static void ReadExtras(Network.MessageReader r, BagSlot s)
         {

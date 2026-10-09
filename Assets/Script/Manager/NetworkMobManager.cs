@@ -101,18 +101,8 @@ namespace Assets.Script.Manager
                 short count = reader.ReadShort();
                 for (int i = 0; i < count; i++)
                 {
-                    int mobId = reader.ReadInt();
-                    int templateId = reader.ReadInt();
-                    float x = reader.ReadFloat();
-                    float y = reader.ReadFloat();
-                    int hp = reader.ReadInt();
-                    int maxHp = reader.ReadInt();
-                    byte isDead = reader.ReadByte();
-
-                    if (isDead == 0)
-                    {
-                        SpawnMob(mobId, (short)templateId, x, y, hp, maxHp);
-                    }
+                    var m = Packets.MobInfo.Read(reader);
+                    if (!m.dead) SpawnMob(m.id, (short)m.templateId, m.x, m.y, m.hp, m.maxHp);
                 }
             }
             catch (Exception e) { Debug.LogError("Lỗi MOB_LIST: " + e.Message); }
@@ -130,16 +120,9 @@ namespace Assets.Script.Manager
             MessageReader reader = new MessageReader(data);
             try
             {
-                int mobId = reader.ReadInt();
-                int templateId = reader.ReadInt();
-                float x = reader.ReadFloat();
-                float y = reader.ReadFloat();
-                int hp = reader.ReadInt();
-                int maxHp = reader.ReadInt();
-                byte isDead = reader.ReadByte();
-
-                RemoveMob(mobId); // xác cũ còn nằm đó thì dọn trước
-                if (isDead == 0) SpawnMob(mobId, (short)templateId, x, y, hp, maxHp);
+                var m = Packets.MobInfo.Read(reader);
+                RemoveMob(m.id); // xác cũ còn nằm đó thì dọn trước
+                if (!m.dead) SpawnMob(m.id, (short)m.templateId, m.x, m.y, m.hp, m.maxHp);
             }
             catch (Exception e) { Debug.LogError("Lỗi MOB_ADD: " + e.Message); }
             finally { reader.Cleanup(); }

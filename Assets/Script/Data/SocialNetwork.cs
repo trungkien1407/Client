@@ -137,10 +137,8 @@ namespace Assets.Script.Data
 
         private void OnTradeInvite(byte[] data)
         {
-            var r = new MessageReader(data);
-            int from = r.ReadInt(); string name = r.ReadUTF();
-            r.Cleanup();
-            ConfirmWindow.Ask($"<b>{name}</b> muốn giao dịch với bạn.", "Đồng ý", () => GameActions.TradeAccept(from), "Từ chối", null);
+            var inv = Packets.ReadInvite(data);
+            ConfirmWindow.Ask($"<b>{inv.name}</b> muốn giao dịch với bạn.", "Đồng ý", () => GameActions.TradeAccept(inv.fromId), "Từ chối", null);
         }
 
         /// <summary>TRADE_UPDATE: int otherId, UTF otherName, [mình: byte locked, byte confirmed, int yen, ô đồ], [bên kia: như trên]</summary>
@@ -197,10 +195,8 @@ namespace Assets.Script.Data
 
         private void OnDuelInvite(byte[] data)
         {
-            var r = new MessageReader(data);
-            int from = r.ReadInt(); string name = r.ReadUTF();
-            r.Cleanup();
-            ConfirmWindow.Ask($"<b>{name}</b> mời bạn TỈ THÍ (không mất gì khi thua).", "Nhận lời", () => GameActions.DuelAccept(from), "Từ chối", null);
+            var inv = Packets.ReadInvite(data);
+            ConfirmWindow.Ask($"<b>{inv.name}</b> mời bạn TỈ THÍ (không mất gì khi thua).", "Nhận lời", () => GameActions.DuelAccept(inv.fromId), "Từ chối", null);
         }
 
         /// <summary>DUEL_STATE: byte state(0 kết thúc/1 đếm ngược/2 đang đấu), int opponentId, UTF msg</summary>
@@ -215,10 +211,8 @@ namespace Assets.Script.Data
 
         private void OnPartyInvite(byte[] data)
         {
-            var r = new MessageReader(data);
-            int from = r.ReadInt(); string name = r.ReadUTF();
-            r.Cleanup();
-            ConfirmWindow.Ask($"<b>{name}</b> mời bạn vào nhóm.", "Vào nhóm", () => GameActions.PartyAccept(from), "Từ chối", null);
+            var inv = Packets.ReadInvite(data);
+            ConfirmWindow.Ask($"<b>{inv.name}</b> mời bạn vào nhóm.", "Vào nhóm", () => GameActions.PartyAccept(inv.fromId), "Từ chối", null);
         }
 
         /// <summary>PARTY_INFO: short n, [int id, UTF name, int hp, int maxHp, short level] x n, int leaderId (n = 0 → không còn nhóm)</summary>
@@ -251,10 +245,8 @@ namespace Assets.Script.Data
 
         private void OnFriendInvite(byte[] data)
         {
-            var r = new MessageReader(data);
-            int from = r.ReadInt(); string name = r.ReadUTF();
-            r.Cleanup();
-            ConfirmWindow.Ask($"<b>{name}</b> muốn kết bạn với bạn.", "Kết bạn", () => GameActions.FriendAccept(from), "Từ chối", null);
+            var inv = Packets.ReadInvite(data);
+            ConfirmWindow.Ask($"<b>{inv.name}</b> muốn kết bạn với bạn.", "Kết bạn", () => GameActions.FriendAccept(inv.fromId), "Từ chối", null);
         }
 
         /// <summary>MAIL_LIST: short n, [long id, UTF from, UTF title, byte read, byte claimed, byte hasAttach, long createdMs]</summary>
