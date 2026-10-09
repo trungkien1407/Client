@@ -17,20 +17,14 @@ using UnityEngine.UI;
 namespace Assets.Script.UI
 {
     /// <summary>
-    /// HUD BỔ SUNG (dựng bằng code, nằm trên HUD cũ của scene):
-    ///  - Thanh EXP dưới đáy màn hình + chữ "Cấp N  x%".
-    ///  - 2 hàng nút menu góc phải trên (để chơi trên điện thoại): Nhân vật / Túi / Kỹ năng / Nhiệm vụ / Nói (F)
-    ///    và Xã hội (O) / Thư (M) / Xếp hạng / Cài đặt / Hoà bình↔Đồ sát.
-    ///  - Dòng tiền: Yên · Xu · Lượng (dưới hàng nút).
-    ///  - Banner giữa màn hình (sự kiện, tỉ thí, phó bản) + khung đồng hồ phó bản / boss / lôi đài + bảng điểm lôi đài (góc phải).
-    ///  - Khung máu đồng đội (bên trái), chữ "CHOÁNG" khi bị choáng.
-    ///  - Nút [Tương tác] khi đang chọn 1 người chơi khác → mời nhóm/giao dịch/kết bạn/tỉ thí...
-    ///  - Phím F (hoặc nút "Nói") : nói chuyện với NPC gần nhất. NPC_MENU → hội thoại; SHOP_DATA → cửa hàng.
+    /// HUD DỰNG BẰNG CODE (nằm trên HUD cũ của scene) — chỉ VẼ dữ liệu GameData, không đọc gói tin:
+    ///  - Thanh EXP + số cấp, 2 hàng nút menu góc phải trên, dòng tiền, minimap + nút khu.
+    ///  - Banner giữa màn hình + khung đồng hồ phó bản / boss / Lôi đài, khung máu đồng đội, chữ "CHOÁNG".
+    ///  - Nút [Tương tác] khi đang chọn 1 người chơi khác. Phím F / nút "Nói" → NpcNetwork.TalkToNearest.
     /// Tạo tự động trong GameplayBootstrap.
     /// </summary>
-    public class GameHud : NetworkListener
+    public class GameHud : MonoBehaviour
     {
-        private const float TalkRange = 3.5f;
         /// <summary>Bề rộng dành cho minimap góc phải trên (MinimapHud) — menu xếp sang trái nó.</summary>
         public static float MinimapWidth = MinimapHud.W + 16f;
 
@@ -46,22 +40,15 @@ namespace Assets.Script.UI
 
         private void Awake() => _instance = this;
 
-        protected override void RegisterHandlers()
+        private void Update()
         {
-            Listen(Cmd.NPC_MENU, OnNpcMenu);
-            Listen(Cmd.SHOP_DATA, OnShopData);
-        }
-
-        protected override void Update()
-        {
-            base.Update();
             bool inGame = LocalPlayerState.Id >= 0;
             if (inGame && _root == null) BuildHud();
             if (_root != null && _root.activeSelf != inGame) _root.SetActive(inGame);
             if (!inGame) return;
 
             var kb = Keyboard.current;
-            if (kb != null && !Combat.ChatBox.IsTyping && kb.fKey.wasPressedThisFrame) TalkToNearestNpc();
+            if (kb != null && !Combat.ChatBox.IsTyping && kb.fKey.wasPressedThisFrame) NpcNetwork.TalkToNearest();
 
             ConfirmWindow.Pump();
             UpdateBanner();
@@ -102,7 +89,7 @@ namespace Assets.Script.UI
                 () => GameWindow.Get<InventoryWindow>().Toggle(),
                 () => GameWindow.Get<SkillWindow>().Toggle(),
                 () => GameWindow.Get<QuestWindow>().Toggle(),
-                TalkToNearestNpc,
+                NpcNetwork.TalkToNearest,
                 () => GameWindow.Get<ActivityWindow>().Toggle(),
                 () => GameWindow.Get<SocialWindow>().Toggle(),
                 () => GameWindow.Get<MailWindow>().Toggle(),
@@ -347,50 +334,6 @@ namespace Assets.Script.UI
             var t = CurrentTarget();
             if (t is Component c && c != null && t.GetTargetType() == TargetType.Player)
                 GameWindow.Get<PlayerActionWindow>().ShowFor(t.GetId(), t.GetTargetName());
-        }
-
-        // ================= NPC =================
-
-        /// <summary>Nói chuyện với NPC gần nhân vật nhất (trong tầm). Server kiểm tra lại tầm.</summary>
-        public static void TalkToNearestNpc()
-        {
-            var me = NetworkPlayerManager.Instance != null ? NetworkPlayerManager.Instance.localPlayer : null;
-            if (me == null) return;
-            NpcEntity best = null;
-            float bestSqr = TalkRange * TalkRange;
-            foreach (var npc in FindObjectsByType<NpcEntity>(FindObjectsSortMode.None))
-            {
-                float sqr = ((Vector2)(npc.transform.position - me.transform.position)).sqrMagnitude;
-                if (sqr < bestSqr) { bestSqr = sqr; best = npc; }
-            }
-            if (best != null) GameActions.NpcTalk(best.GetId());
-            else Combat.ChatBox.AddSystem("Không có NPC nào ở gần.");
-        }
-
-        /// <summary>NPC_MENU: int npcId, UTF tên, UTF lời thoại, byte n, [UTF lựa chọn] x n</summary>
-        private void OnNpcMenu(byte[] data)
-        {
-            var r = new MessageReader(data);
-            int npcId = r.ReadInt();
-            string name = r.ReadUTF();
-            string text = r.ReadUTF();
-            int n = r.ReadByte();
-            var opts = new List<string>();
-            for (int i = 0; i < n; i++) opts.Add(r.ReadUTF());
-            r.Cleanup();
-            GameWindow.Get<NpcDialogWindow>().ShowMenu(npcId, name, text, opts);
-        }
-
-        /// <summary>SHOP_DATA: int npcId, short count, [int itemId, int price, byte currency(0 yên/1 xu/2 lượng)] x count</summary>
-        private void OnShopData(byte[] data)
-        {
-            var r = new MessageReader(data);
-            int npcId = r.ReadInt();
-            int n = r.ReadShort();
-            var goods = new List<ShopGood>();
-            for (int i = 0; i < n; i++) goods.Add(new ShopGood { itemId = r.ReadInt(), price = r.ReadInt(), currency = r.ReadByte() });
-            r.Cleanup();
-            GameWindow.Get<ShopWindow>().ShowShop(npcId, goods);
         }
     }
 }

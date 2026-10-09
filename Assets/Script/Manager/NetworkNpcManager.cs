@@ -33,6 +33,8 @@ namespace Assets.Script.Manager
 
         // Quản lý Entity
         private Dictionary<int, NpcEntity> activeNpcs = new Dictionary<int, NpcEntity>();
+        /// <summary>NPC đang có trong map (dùng tìm NPC gần nhất — không quét cả scene).</summary>
+        public IEnumerable<NpcEntity> All => activeNpcs.Values;
 
         // Hàng rào bảo vệ chống lỗi bóng ma (Ghost Spawn)
         private HashSet<int> pendingSpawns = new HashSet<int>();

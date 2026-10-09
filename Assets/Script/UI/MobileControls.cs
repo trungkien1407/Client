@@ -59,7 +59,7 @@ namespace Assets.Script.UI
             {
                 if (SkillBarManager.Instance != null) CombatNetwork.Instance?.TryUseSkill(SkillBarManager.Instance.GetSelectedSkillId());
             });
-            MakeActionButton("Nói", new Vector2(-190, 210), GameHud.TalkToNearestNpc);
+            MakeActionButton("Nói", new Vector2(-190, 210), Assets.Script.Data.NpcNetwork.TalkToNearest);
         }
 
         private void MakeOnScreenButton(string label, string controlPath, Vector2 pos)

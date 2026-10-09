@@ -183,7 +183,7 @@ namespace Assets.Script.Core
 
             // 4. Nói chuyện NPC gần nhất → phải hiện hội thoại
             var dlg = GameWindow.Get<NpcDialogWindow>();
-            GameHud.TalkToNearestNpc();
+            Assets.Script.Data.NpcNetwork.TalkToNearest();
             yield return WaitUntil(() => dlg.IsOpen, 5);
             Check("Nói chuyện NPC → hiện hội thoại", dlg.IsOpen);
             dlg.Hide();
@@ -196,7 +196,7 @@ namespace Assets.Script.Core
             var inv = System.Globalization.CultureInfo.InvariantCulture;
             GameActions.Chat(1, $"/go {(sp.x + 0.6f).ToString(inv)} {(sp.y + 0.05f).ToString(inv)}");
             yield return new WaitForSecondsRealtime(1.5f);
-            GameHud.TalkToNearestNpc();
+            Assets.Script.Data.NpcNetwork.TalkToNearest();
             yield return WaitUntil(() => dlg.IsOpen, 5);
             bool chose = dlg.Choose("Nâng cấp");
             var up = GameWindow.Get<UpgradeWindow>();
@@ -215,7 +215,7 @@ namespace Assets.Script.Core
             Check("Nâng cấp có kết quả (UPGRADE_RESULT)", up.LastResult >= 0 && up.LastResult != 3);
             up.Hide();
 
-            GameHud.TalkToNearestNpc();
+            Assets.Script.Data.NpcNetwork.TalkToNearest();
             yield return WaitUntil(() => dlg.IsOpen, 5);
             dlg.Choose("Rương");
             var st = GameWindow.Get<StorageWindow>();
@@ -326,7 +326,7 @@ namespace Assets.Script.Core
                 GameActions.Chat(1, $"/go {(hkPos.x + 0.6f).ToString(inv)} {(hkPos.y + 0.05f).ToString(inv)}");
                 yield return new WaitForSecondsRealtime(1.5f);
             }
-            GameHud.TalkToNearestNpc();
+            Assets.Script.Data.NpcNetwork.TalkToNearest();
             yield return WaitUntil(() => dlg.IsOpen, 5);
             dlg.Choose("Nhiệm vụ");
             yield return WaitUntil(() => dlg.IsOpen, 5);
@@ -351,7 +351,7 @@ namespace Assets.Script.Core
                 yield return new WaitForSecondsRealtime(1.5f);
             }
             var mk = GameWindow.Get<MarketWindow>();
-            GameHud.TalkToNearestNpc();
+            Assets.Script.Data.NpcNetwork.TalkToNearest();
             yield return WaitUntil(() => dlg.IsOpen, 5);
             dlg.Choose("Chợ");
             yield return WaitUntil(() => mk.IsOpen, 5);
@@ -391,7 +391,7 @@ namespace Assets.Script.Core
                 GameActions.Chat(1, $"/go {(sp3.x + 0.6f).ToString(inv)} {(sp3.y + 0.05f).ToString(inv)}");
                 yield return new WaitForSecondsRealtime(1.5f);
             }
-            GameHud.TalkToNearestNpc();
+            Assets.Script.Data.NpcNetwork.TalkToNearest();
             yield return WaitUntil(() => dlg.IsOpen, 5);
             dlg.Choose("Khảm ngọc");
             var gw2 = GameWindow.Get<GemWindow>();
