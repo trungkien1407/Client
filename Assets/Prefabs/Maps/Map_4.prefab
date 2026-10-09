@@ -383,6 +383,37 @@ PlatformEffector2D:
   m_UseSideFriction: 0
   m_UseSideBounce: 0
   m_SideArc: 1
+--- !u!1 &703924217725635938
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6631537018093365321}
+  m_Layer: 0
+  m_Name: Spots
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6631537018093365321
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 703924217725635938}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2924927207495227197}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1196939768833726065
 GameObject:
   m_ObjectHideFlags: 0
@@ -3480,6 +3511,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2924927207495227197}
   - component: {fileID: 4851638722404714191}
+  - component: {fileID: 6869745857614955346}
   m_Layer: 0
   m_Name: Map_4
   m_TagString: Untagged
@@ -3506,6 +3538,7 @@ Transform:
   - {fileID: 7191295072042566362}
   - {fileID: 8017018199048386311}
   - {fileID: 3330117973064168036}
+  - {fileID: 6631537018093365321}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!156049354 &4851638722404714191
@@ -3520,3 +3553,22 @@ Grid:
   m_CellGap: {x: 0, y: 0, z: 0}
   m_CellLayout: 0
   m_CellSwizzle: 0
+--- !u!114 &6869745857614955346
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8488534140853823380}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01dcdab75a046024da2fb52505287826, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mapId: 4
+  mapName: "L\xF4i \u0110\xE0i"
+  width: 44
+  height: 14
+  spawn: {x: 12.5, y: 4.05}
+  hasBoss: 0
+  boss: {x: 0, y: 0}

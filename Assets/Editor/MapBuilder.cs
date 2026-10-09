@@ -13,7 +13,8 @@ using Assets.Script.Player;
 /// DỰNG MAP TỪ THIẾT KẾ — menu Tools/Naruto/6. Đọc Assets/MapLayouts/map_N.json (do tools/map_design.py ở repo server sinh)
 /// → Assets/Prefabs/Maps/Map_N.prefab + Addressables "Map_N". Khung lấy từ MapPrefabs_2.prefab.
 /// Lớp: Ground (đặc) · Platform (bục 1 chiều, PlatformEffector2D) · Water · Decor (không va chạm).
-/// Không sửa tay prefab trong Prefabs/Maps — lần dựng sau ghi đè. Chi tiết: docs/NOI_DUNG.md (repo server).
+/// CŨ (trước GĐ11): giờ prefab là nguồn dữ liệu, chỉnh tay rồi xuất bằng Tools → Naruto → Map (MapDataTool).
+/// Map đã có MapInfo được BỎ QUA — tool này chỉ còn dùng để dựng map MỚI từ thiết kế. Chi tiết: docs/NOI_DUNG.md (repo server).
 /// </summary>
 public static class MapBuilder
 {
@@ -23,7 +24,7 @@ public static class MapBuilder
     private const string Template = "Assets/Prefabs/MapPrefabs_2.prefab";
     private const string MapsGroup = "Maps";
 
-    [MenuItem("Tools/Naruto/6. Dựng map từ thiết kế (MapLayouts)", priority = 6)]
+    [MenuItem("Tools/Naruto/6. (cũ) Dựng map MỚI từ thiết kế (MapLayouts)", priority = 6)]
     public static void BuildAll()
     {
         if (!Directory.Exists(LayoutDir)) { Debug.LogError($"[MapBuilder] Không có {LayoutDir} — chạy python tools/map_design.py ở repo server trước."); return; }
@@ -52,6 +53,12 @@ public static class MapBuilder
         var json = JObject.Parse(File.ReadAllText(path));
         int id = (int)json["mapId"];
         string outPath = $"{OutDir}/Map_{id}.prefab";
+        var existing = AssetDatabase.LoadAssetAtPath<GameObject>(outPath);
+        if (existing != null && existing.GetComponent<Assets.Script.Map.MapInfo>() != null)
+        {
+            Debug.Log($"[MapBuilder] Bỏ qua Map_{id}: prefab đã là nguồn dữ liệu (có MapInfo) — chỉnh tay, đừng dựng lại");
+            return;
+        }
         string sky = MakeSky(id, json["sky"], json["sky2"]);
 
         var root = PrefabUtility.LoadPrefabContents(Template);
