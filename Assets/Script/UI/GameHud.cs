@@ -37,7 +37,7 @@ namespace Assets.Script.UI
         private static GameHud _instance;
         private GameObject _root;
         private Image _expFill;
-        private TextMeshProUGUI _expText, _money, _banner, _eventText, _partyText, _stun, _questText;
+        private TextMeshProUGUI _expText, _levelText, _money, _banner, _eventText, _partyText, _stun, _questText;
         private Button _pkBtn, _mailBtn, _interactBtn, _zoneBtn, _activityBtn;
         private string _shownMap;
         private int _shownZone = -2;
@@ -87,6 +87,12 @@ namespace Assets.Script.UI
             ((RectTransform)_expFill.transform.parent).Place(new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 2), new Vector2(-4, 14), new Vector2(0.5f, 0));
             _expText = UIKit.Text("ExpText", _expFill.transform.parent, "", 12, TextAlignmentOptions.Center);
             _expText.rectTransform.Fill();
+
+            // Số cấp đè lên ô "LV" của khung avatar (ảnh khung có sẵn chữ LV, chưa có số)
+            _levelText = UIKit.Text("Level", _root.transform, "", 20, TextAlignmentOptions.MidlineLeft, new Color(1f, 0.85f, 0.3f));
+            _levelText.rectTransform.Place(new Vector2(0, 1), new Vector2(0, 1), new Vector2(146, -102), new Vector2(80, 26), new Vector2(0, 0.5f));
+            _levelText.fontStyle = FontStyles.Bold;
+            _levelText.raycastTarget = false;
 
             // ---- Nút menu: 2 hàng x 6 (GĐ9 thêm Hoạt động + Cẩm nang) ----
             string[] labels = { "Nhân vật", "Túi", "Kỹ năng", "Nhiệm vụ", "Nói (F)", "Hoạt động", "Xã hội", "Thư", "Xếp hạng", "Cẩm nang", "Cài đặt", "Hoà bình" };
@@ -196,6 +202,7 @@ namespace Assets.Script.UI
             var c = GameData.Me;
             float pct = c.expToNext > 0 ? Mathf.Clamp01((float)c.exp / c.expToNext) : 0;
             _expFill.fillAmount = pct;
+            _levelText.text = c.level > 0 ? c.level.ToString() : "";
             _expText.text = $"Cấp {c.level}   EXP {pct * 100:F1}%   ({c.exp:N0}/{c.expToNext:N0})" +
                             (c.potential > 0 ? $"   <color=#fd5>+{c.potential} điểm tiềm năng (C)</color>" : "") +
                             (c.skillPoints > 0 ? $"   <color=#7cf>+{c.skillPoints} điểm kỹ năng (K)</color>" : "");

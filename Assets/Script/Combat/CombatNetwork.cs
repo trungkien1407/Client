@@ -315,11 +315,9 @@ namespace Assets.Script.Combat
             r.Cleanup();
 
             bool levelUp = level > LocalPlayerState.Level;
-            LocalPlayerState.Exp = exp;
-            LocalPlayerState.Level = level;
-            LocalPlayerState.SetHpMp(hp, maxHp, mp, maxMp);
             Data.GameData.Me.exp = exp;
             Data.GameData.Me.level = level;
+            LocalPlayerState.SetHpMp(hp, maxHp, mp, maxMp);
             Data.GameData.Notify(Data.DataKind.Character);
 
             if (levelUp)
@@ -338,13 +336,10 @@ namespace Assets.Script.Combat
             int maxMp = r.ReadInt();
             int hp = r.ReadInt();
             int mp = r.ReadInt();
-            LocalPlayerState.BonusDamage = r.ReadInt();
-            LocalPlayerState.Yen = r.ReadInt();
+            Data.GameData.Me.bonusDamage = r.ReadInt();
+            Data.GameData.Me.yen = r.ReadInt();
             r.Cleanup();
             LocalPlayerState.SetHpMp(hp, maxHp, mp, maxMp);
-            Data.GameData.Me.yen = LocalPlayerState.Yen;
-            Data.GameData.Me.maxHp = maxHp;
-            Data.GameData.Me.maxMp = maxMp;
             Data.GameData.Notify(Data.DataKind.Character);
         }
 

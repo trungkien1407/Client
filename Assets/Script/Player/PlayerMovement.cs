@@ -35,7 +35,8 @@ public class PlayerMovement : MonoBehaviour
 
     private PlayerControls controls;
     private Vector2 moveInput;
-    private bool isDead;   // chết -> khoá điều khiển + ngừng gửi PLAYER_MOVE (server bỏ qua move của người chết)
+    // Chết → khoá điều khiển + ngừng gửi PLAYER_MOVE. Đọc cờ chung (CombatNetwork đặt khi PLAYER_DIE / REVIVE).
+    private static bool isDead => Assets.Script.Player.LocalPlayerState.IsDead;
     private bool isGrounded;
     private bool isFacingLeft;
 
@@ -180,7 +181,6 @@ public class PlayerMovement : MonoBehaviour
     /// <summary>Chết: khoá điều khiển. Hồi sinh: mở lại.</summary>
     public void SetDead(bool dead)
     {
-        isDead = dead;
         if (dead && rb != null) rb.velocity = new Vector2(0f, rb.velocity.y);
         if (!dead) lastSentState = -1; // ép gửi 1 gói trạng thái mới sau khi sống lại
     }

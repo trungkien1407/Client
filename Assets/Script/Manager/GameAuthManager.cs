@@ -342,10 +342,10 @@ namespace Assets.Script.Manager
             if (HUDCanvas != null) HUDCanvas.SetActive(true);
 
             UISetup.Instance.SetupAvatar(classType);
-            // Lưu chỉ số chính chủ vào 1 chỗ; các gói HP/EXP sau này cập nhật vào đây (tự vẽ lại HUD)
-            Assets.Script.Player.LocalPlayerState.Init(id, name, level, exp, yen, hp, maxHp, mp, maxMp);
+            // Dọn dữ liệu phiên trước TRƯỚC, rồi mới ghi chỉ số nhân vật vừa vào (ngược lại thì bị xoá mất)
             Assets.Script.Data.GameData.ClearSession();
             Assets.Script.Data.GameData.ClassType = classType;
+            Assets.Script.Player.LocalPlayerState.Init(id, name, level, exp, yen, xu, luong, hp, maxHp, mp, maxMp);
 
             // Parse Skill & Shortcuts
             if (!string.IsNullOrEmpty(skillsJson) && skillsJson != "{}")

@@ -4,22 +4,27 @@ using Assets.Script.UI;
 namespace Assets.Script.Player
 {
     /// <summary>
-    /// Chỉ số của NHÂN VẬT CHÍNH CHỦ (HP/MP/Level/EXP/Yen) — 1 nơi duy nhất giữ số liệu server gửi về.
-    /// Mọi gói cập nhật (LOGIN, PLAYER_HEAL, PLAYER_EXP_UPDATE, PLAYER_STATS, MOB_ATTACK, REVIVE...)
-    /// đều ghi vào đây rồi gọi RefreshHud() để thanh máu/mana trên HUD luôn khớp server.
+    /// TRẠNG THÁI TỨC THỜI của nhân vật chính chủ: id, tên, khu, máu / mana đang có, chết, choáng.
+    /// Bảng nhân vật (cấp, EXP, tiền, máu / mana tối đa, chỉ số) nằm ở GameData.Me — các thuộc tính Level / Exp / Yen /
+    /// MaxHp / MaxMp dưới đây chỉ ĐỌC từ đó (trước đây giữ 2 bản, mỗi gói phải ghi cả hai, dễ lệch nhau).
+    /// Gói cập nhật máu (PLAYER_HEAL, MOB_ATTACK, REVIVE...) gọi SetHp / SetHpMp → HUD vẽ lại.
     /// </summary>
     public static class LocalPlayerState
     {
         public static int Id = -1;
         public static string Name;
-        public static int Hp, MaxHp, Mp, MaxMp;
-        public static int Level;
+        public static int Hp, Mp;
         /// <summary>Khu đang đứng (255 = khu riêng: phó bản / lôi đài). Cập nhật khi đăng nhập / đổi map / đổi khu.</summary>
         public static int ZoneId;
-        public static long Exp;
-        public static int Yen;
-        public static int BonusDamage;
         public static bool IsDead;
+
+        private static Data.CharacterInfo Me => Data.GameData.Me;
+        public static int MaxHp => Me.maxHp;
+        public static int MaxMp => Me.maxMp;
+        public static int Level => Me.level;
+        public static long Exp => Me.exp;
+        public static int Yen => Me.yen;
+        public static int BonusDamage => Me.bonusDamage;
 
         /// <summary>Đang bị CHOÁNG tới thời điểm này (Time.time) — server gửi EFFECT; không di chuyển/đánh được.</summary>
         public static float StunnedUntil;
@@ -32,17 +37,19 @@ namespace Assets.Script.Player
         /// <summary>Bắn ra mỗi khi có chỉ số thay đổi (UI khác muốn nghe thì đăng ký).</summary>
         public static event Action OnChanged;
 
-        public static void Init(int id, string name, int level, long exp, int yen, int hp, int maxHp, int mp, int maxMp)
+        /// <summary>Vào game (gói LOGIN / CREATE_CHARACTER). Gọi SAU GameData.ClearSession.</summary>
+        public static void Init(int id, string name, int level, long exp, int yen, int xu, int luong, int hp, int maxHp, int mp, int maxMp)
         {
-            Id = id; Name = name; Level = level; Exp = exp; Yen = yen;
-            Hp = hp; MaxHp = maxHp; Mp = mp; MaxMp = maxMp;
+            Id = id; Name = name;
+            Me.level = level; Me.exp = exp; Me.yen = yen; Me.xu = xu; Me.luong = luong;
+            Hp = hp; Mp = mp; Me.maxHp = maxHp; Me.maxMp = maxMp;
             IsDead = hp <= 0;
             RefreshHud();
         }
 
         public static void SetHpMp(int hp, int maxHp, int mp, int maxMp)
         {
-            Hp = hp; MaxHp = maxHp; Mp = mp; MaxMp = maxMp;
+            Hp = hp; Mp = mp; Me.maxHp = maxHp; Me.maxMp = maxMp;
             RefreshHud();
         }
 

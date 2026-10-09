@@ -162,12 +162,7 @@ namespace Assets.Script.Data
             if (r.Available() >= 8) { c.defense = r.ReadInt(); c.reduction = r.ReadFloat(); } // GĐ7 (server cũ không gửi)
             r.Cleanup();
 
-            LocalPlayerState.Level = c.level;
-            LocalPlayerState.Exp = c.exp;
-            LocalPlayerState.Yen = c.yen;
-            LocalPlayerState.MaxHp = c.maxHp;
-            LocalPlayerState.MaxMp = c.maxMp;
-            LocalPlayerState.RefreshHud();
+            LocalPlayerState.RefreshHud();   // máu / mana tối đa vừa đổi
             GameData.Notify(DataKind.Character);
         }
 
@@ -218,7 +213,6 @@ namespace Assets.Script.Data
             var r = new MessageReader(data);
             GameData.Me.yen = r.ReadInt(); GameData.Me.xu = r.ReadInt(); GameData.Me.luong = r.ReadInt();
             r.Cleanup();
-            LocalPlayerState.Yen = GameData.Me.yen;
             GameData.Notify(DataKind.Money);
             GameData.Notify(DataKind.Character);
         }
