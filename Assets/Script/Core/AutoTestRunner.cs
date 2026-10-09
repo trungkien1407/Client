@@ -58,6 +58,36 @@ namespace Assets.Script.Core
         /// <summary>
         /// Chụp màn hình (chỉ khi chạy có tham số "-shots &lt;thư mục&gt;", và KHÔNG dùng -nographics) để xem bố cục UI.
         /// </summary>
+        /// <summary>
+        /// GĐ12 — hình theo dữ liệu server: quái có monster_template.art dùng bộ hình MobAnim, hiệu ứng chiêu (GAME_DATA_EFFECTS + kho ảnh)
+        /// diễn được. Chỉ kiểm khi server có cấu hình hình (db/demo_art.sql hoặc hình riêng) — repo sạch thì bỏ qua.
+        /// </summary>
+        private IEnumerator CheckArtPipeline()
+        {
+            bool anyArt = false;
+            foreach (var t in GameData.Mobs.Values) if (t.art >= 0) { anyArt = true; break; }
+            if (anyArt)
+            {
+                int withArt = 0;
+                foreach (var m in UnityEngine.Object.FindObjectsByType<Assets.Script.Entities.MobController>(FindObjectsSortMode.None))
+                    if (m.AppliedArt >= 0) withArt++;
+                Check($"Quái dùng bộ hình theo server (MobAnim): {withArt} con", withArt > 0);
+            }
+            if (GameData.Effects.Count == 0) yield break;
+            var me = NetworkPlayerManager.Instance.localPlayer.transform.position;
+            int shown = 0;
+            foreach (var s in GameData.Skills.Values)
+            {
+                if (s.fxHit >= 0) Fx.EffectPlayer.Play(s.fxHit, me + new Vector3(1.5f + shown * 1.6f, 0f, 0f));
+                if (s.fxCast >= 0) Fx.EffectPlayer.Play(s.fxCast, me + new Vector3(1.5f + shown * 1.6f, 0f, 0f));
+                if (s.fxHit >= 0 || s.fxCast >= 0) shown++;
+                if (shown >= 6) break;
+            }
+            yield return new WaitForSecondsRealtime(0.25f);
+            Check($"Hiệu ứng chiêu theo dữ liệu: {GameData.Effects.Count} mẫu, diễn thử {shown}", shown > 0 && GameObject.Find("Effects") != null);
+            yield return Shot("SkillFx");
+        }
+
         private IEnumerator Shot(string name)
         {
             string dir = Arg("-shots", null);
@@ -251,6 +281,7 @@ namespace Assets.Script.Core
                 yield return new WaitForSecondsRealtime(1.5f); // chờ quái / NPC hiện + chữ tên map
                 Check($"Sang map {mapId} ({mapName}) — nhận đúng tên map", GameData.MapName == mapName);
                 yield return Shot("Map_" + mapId);
+                if (mapId == 7) yield return CheckArtPipeline();
             }
             // 5g. GĐ10 — bục 1 chiều (Đồi Hoa Cúc: bục hàng 6, cột 30..36, đất dưới cao 4), minimap, bản đồ lớn, anim chiêu
             GameActions.Chat(1, "/tele 2 33.5 4.1");

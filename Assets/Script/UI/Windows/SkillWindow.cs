@@ -67,6 +67,7 @@ namespace Assets.Script.UI.Windows
                 if (locked) info += $"  <size=14><color=#f77>(cần cấp {next.levelRequire})</color></size>";
                 var text = UIKit.Text("Info", row.transform, info, 16, TextAlignmentOptions.TopLeft);
                 text.rectTransform.Fill(8, 210, 4, 4);
+                ItemIcon.Add(row, s.iconId, ItemIcon.Place.Left, 56);
 
                 int id = s.id;
                 if (next != null)

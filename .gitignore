@@ -72,3 +72,7 @@ ehthumbs.db
 Thumbs.db
 # Asset tham khảo nội bộ (demo) — không đưa lên git
 /_extracted/
+
+# Hình demo nội bộ (tài nguyên rip — KHÔNG commit; Tools/Naruto/Demo art)
+/[Aa]ssets/_Demo/
+/[Aa]ssets/_Demo.meta

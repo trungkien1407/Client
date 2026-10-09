@@ -112,6 +112,9 @@
         public const short GAME_DATA_QUESTS = 603;  // S→C mẫu nhiệm vụ
         public const short GAME_DATA_MOBS = 604;    // S→C mẫu quái (tên, cấp, hạng)
         public const short GAME_DATA_NPCS = 605;    // S→C tên NPC
+        public const short GAME_DATA_VERSION = 606; // S→C bảng phiên bản dữ liệu tĩnh (GameDataCache so với bản lưu trên máy)
+        public const short GAME_DATA_REQUEST = 607; // C→S xin các gói 601–608 chưa có / đã cũ
+        public const short GAME_DATA_EFFECTS = 608; // S→C mẫu hiệu ứng (khung ảnh trong kho ảnh)
 
         // ==========================================
         // XÃ HỘI (700 - 799)

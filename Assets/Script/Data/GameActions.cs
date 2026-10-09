@@ -28,6 +28,9 @@ namespace Assets.Script.Data
         public static void ClientReady() => Send(Cmd.CLIENT_READY, null);
         /// <summary>Giữ kết nối (server ngắt nếu 60 giây không nhận gói nào).</summary>
         public static void Heartbeat() => Send(Cmd.HEARTBEAT, null);
+        /// <summary>Xin các gói dữ liệu tĩnh (GAME_DATA_*) chưa có / đã cũ: byte n, [short cmd] x n.</summary>
+        public static void RequestGameData(System.Collections.Generic.IList<short> cmds) =>
+            Send(Cmd.GAME_DATA_REQUEST, w => { w.WriteByte((byte)cmds.Count); foreach (var c in cmds) w.WriteShort(c); });
         public static void ReportError(string version, string platform, string message, string stack) =>
             Send(Cmd.CLIENT_ERROR, w => { w.WriteUTF(version); w.WriteUTF(platform); w.WriteUTF(message); w.WriteUTF(stack); });
 

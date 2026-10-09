@@ -59,7 +59,9 @@ namespace Assets.Script.Combat
             // Xa quá thì báo + vung suông, không gửi (server cũng chặn)
             float range = SkillRange(skillId);
             var tt = target.GetTransform();
-            if (tt != null && Vector2.Distance(local.transform.position, tt.position) > range + 0.3f)
+            float dist = target is MobController m ? m.DistanceFrom(local.transform.position)   // tới mép khung va chạm, khớp server
+                       : tt != null ? Vector2.Distance(local.transform.position, tt.position) : 0f;
+            if (dist > range + 0.3f)
             {
                 if (Time.time >= _nextRangeWarn)
                 {

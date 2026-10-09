@@ -53,6 +53,7 @@ namespace Assets.Script.Combat
 
             bool mine = attackerId == LocalPlayerState.Id;
             if (!mine) NetworkPlayerManager.Instance?.GetRemotePlayer(attackerId)?.PlayAttack(skillId);
+            PlaySkillFx(attackerId, targetType, targetId, skillId);
             if (targetType == 2) return;   // chiêu hỗ trợ: chỉ diễn anim, số hồi máu đến bằng PLAYER_HEAL
 
             if (targetType == 0)
@@ -233,6 +234,25 @@ namespace Assets.Script.Combat
 
         /// <summary>Sát thương 0 = mục tiêu né được (server tính theo Thân pháp).</summary>
         private static string DamageText(int damage) => damage <= 0 ? "Né" : "-" + damage;
+
+        // Chiêu diện rộng: mỗi quái trúng 1 gói → hiệu ứng ra chiêu chỉ diễn 1 lần
+        private int _lastCastAttacker, _lastCastSkill;
+        private float _lastCastTime;
+
+        /// <summary>Hiệu ứng chiêu (SkillTpl.fxCast ở người ra chiêu, fxHit ở mục tiêu) — số hiệu ứng do server cấu hình.</summary>
+        private void PlaySkillFx(int attackerId, byte targetType, int targetId, int skillId)
+        {
+            if (!Data.GameData.Skills.TryGetValue(skillId, out var tpl) || (tpl.fxCast < 0 && tpl.fxHit < 0)) return;
+            Transform from = GetPlayerTransform(attackerId);
+            Transform to = targetType == 0 ? NetworkMobManager.Instance?.GetMob(targetId)?.transform
+                         : targetType == 1 ? GetPlayerTransform(targetId) : from;
+            bool flip = from != null && to != null && to.position.x < from.position.x;
+
+            bool sameCast = attackerId == _lastCastAttacker && skillId == _lastCastSkill && Time.time - _lastCastTime < 0.2f;
+            if (from != null && tpl.fxCast >= 0 && !sameCast) Fx.EffectPlayer.Play(tpl.fxCast, Vector3.zero, flip, from);
+            _lastCastAttacker = attackerId; _lastCastSkill = skillId; _lastCastTime = Time.time;
+            if (to != null && tpl.fxHit >= 0 && targetType != 2) Fx.EffectPlayer.Play(tpl.fxHit, to.position, flip);
+        }
 
         private static Transform GetPlayerTransform(int playerId) => NetworkPlayerManager.Instance?.GetPlayerTransform(playerId);
     }

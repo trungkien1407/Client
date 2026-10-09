@@ -8,7 +8,7 @@ namespace Assets.Script.Data
 {
     /// <summary>
     /// Nhận các gói DỮ LIỆU (không phải hình ảnh) rồi ghi vào GameData + báo UI vẽ lại:
-    /// GAME_DATA_ITEMS/SKILLS/QUESTS/MOBS/NPCS, CHARACTER_INFO, SKILL_LIST, INVENTORY, EQUIPMENT, QUEST_LIST/UPDATE, MONEY_UPDATE.
+    /// GAME_DATA_ITEMS/SKILLS/QUESTS/MOBS/NPCS/EFFECTS (gói có thể đến từ bộ đệm trên máy — GameDataCache), CHARACTER_INFO, SKILL_LIST, INVENTORY, EQUIPMENT, QUEST_LIST/UPDATE, MONEY_UPDATE.
     /// (Các gói GĐ2–GĐ4: nâng cấp, rương, giao dịch, xã hội, sự kiện → SocialNetwork.)
     /// Payload từng gói: xem docs/PROTOCOL.md (repo server).
     /// </summary>
@@ -21,6 +21,7 @@ namespace Assets.Script.Data
             Listen(Cmd.GAME_DATA_QUESTS, OnQuests);
             Listen(Cmd.GAME_DATA_MOBS, OnMobs);
             Listen(Cmd.GAME_DATA_NPCS, OnNpcs);
+            Listen(Cmd.GAME_DATA_EFFECTS, OnEffects);
             Listen(Cmd.CHARACTER_INFO, OnCharacterInfo);
             Listen(Cmd.SKILL_LIST, OnSkillList);
             Listen(Cmd.INVENTORY, OnInventory);
@@ -103,6 +104,9 @@ namespace Assets.Script.Data
                         l.buffCrit = buffCrit; l.buffMs = buffMs; l.executeHpPct = exHp; l.executeBonus = exBonus;
                     }
                 }
+            // GĐ12 — hiệu ứng chiêu
+            if (r.Available() > 0)
+                foreach (var t in order) { t.fxCast = r.ReadShort(); t.fxHit = r.ReadShort(); }
             r.Cleanup();
             GameData.Notify(DataKind.Templates);
         }
@@ -133,7 +137,11 @@ namespace Assets.Script.Data
             int n = r.ReadShort();
             for (int i = 0; i < n; i++)
             {
-                var m = new MobTpl { id = r.ReadInt(), name = r.ReadUTF(), level = r.ReadShort(), rank = r.ReadByte(), aggressive = r.ReadByte() != 0 };
+                var m = new MobTpl
+                {
+                    id = r.ReadInt(), name = r.ReadUTF(), level = r.ReadShort(), rank = r.ReadByte(), aggressive = r.ReadByte() != 0,
+                    art = r.ReadShort(), hitW = r.ReadShort(), hitH = r.ReadShort()   // GĐ12
+                };
                 GameData.Mobs[m.id] = m;
             }
             r.Cleanup();
@@ -145,6 +153,23 @@ namespace Assets.Script.Data
             var r = new MessageReader(data);
             int n = r.ReadShort();
             for (int i = 0; i < n; i++) GameData.NpcNames[r.ReadInt()] = r.ReadUTF();
+            r.Cleanup();
+            GameData.Notify(DataKind.Templates);
+        }
+
+        /// <summary>GAME_DATA_EFFECTS: short n, [short id, short frameMs, short nFrames, [short img, short dx, short dy] x nFrames]</summary>
+        private void OnEffects(byte[] data)
+        {
+            var r = new MessageReader(data);
+            int n = r.ReadShort();
+            GameData.Effects.Clear();
+            for (int i = 0; i < n; i++)
+            {
+                var e = new EffectTpl { id = r.ReadShort(), frameMs = r.ReadShort() };
+                e.frames = new Models.FramePart[r.ReadShort()];
+                for (int j = 0; j < e.frames.Length; j++) e.frames[j] = new Models.FramePart(r.ReadShort(), r.ReadShort(), r.ReadShort());
+                GameData.Effects[e.id] = e;
+            }
             r.Cleanup();
             GameData.Notify(DataKind.Templates);
         }

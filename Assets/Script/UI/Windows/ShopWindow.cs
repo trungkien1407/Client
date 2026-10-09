@@ -66,6 +66,7 @@ namespace Assets.Script.UI.Windows
                                                             (t != null && t.levelRequire > 1 ? $"  <size=13>cấp {t.levelRequire}</size>" : "") +
                                                             (cur > 0 ? "  <size=12><color=#aaa>(đồ khoá)</color></size>" : ""), 16);
                 txt.rectTransform.Fill(8, 190, 4, 4);
+                ItemIcon.ForItem(row, id, ItemIcon.Place.Left, 48);
                 int have = GameData.Money(cur);
                 var b1 = UIKit.Button("Buy1", row.transform, "Mua 1", () => GameActions.Buy(_npcId, id, 1), 16);
                 ((RectTransform)b1.transform).Place(new Vector2(1, 0.5f), new Vector2(1, 0.5f), new Vector2(-96, 0), new Vector2(84, 36), new Vector2(1, 0.5f));

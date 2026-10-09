@@ -34,6 +34,7 @@ namespace Assets.Script.Data
     public class SkillTpl
     {
         public int id, classId, maxLevel, type, iconId;
+        public int fxCast = -1, fxHit = -1;   // GĐ12: hiệu ứng ở người ra chiêu / ở mục tiêu (GameData.Effects)
         public string name, description;
         public List<SkillLevel> levels = new List<SkillLevel>();
         public SkillLevel Level(int point) => levels.Find(l => l.point == point);
@@ -46,7 +47,17 @@ namespace Assets.Script.Data
         public string name, description;
     }
 
-    public class MobTpl { public int id, level, rank; public bool aggressive; public string name; }
+    public class MobTpl
+    {
+        public int id, level, rank; public bool aggressive; public string name;
+        public int art = -1;          // GĐ12: bộ hình MobAnim_{art}; -1 = MobDatabase / ô màu
+        public int hitW, hitH;        // khung va chạm (điểm gốc, 24 = 1 ô); 0 = mặc định 24 × 32 (khớp server MonsterTemplate)
+        public float HalfWidth => (hitW > 0 ? hitW : 24) / (2f * Models.ArtUnits.PointsPerUnit);
+        public float Height => (hitH > 0 ? hitH : 32) / Models.ArtUnits.PointsPerUnit;
+    }
+
+    /// <summary>GĐ12 — mẫu hiệu ứng (GAME_DATA_EFFECTS): mỗi khung 1 ảnh kho số, tâm đặt tại (dx, dy) điểm gốc.</summary>
+    public class EffectTpl { public int id, frameMs; public Models.FramePart[] frames; }
 
     // =====================================================================
     // THÔNG TIN NHÂN VẬT (CHARACTER_INFO)
@@ -164,6 +175,7 @@ namespace Assets.Script.Data
         public static readonly Dictionary<int, QuestTpl> Quests = new Dictionary<int, QuestTpl>();
         public static readonly Dictionary<int, MobTpl> Mobs = new Dictionary<int, MobTpl>();
         public static readonly Dictionary<int, string> NpcNames = new Dictionary<int, string>();
+        public static readonly Dictionary<int, EffectTpl> Effects = new Dictionary<int, EffectTpl>();
 
         // ---- trạng thái của mình ----
         public static readonly CharacterInfo Me = new CharacterInfo();

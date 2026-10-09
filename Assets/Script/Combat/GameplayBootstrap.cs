@@ -23,6 +23,7 @@ namespace Assets.Script.Combat
             go.AddComponent<GroundItemNetwork>();
             go.AddComponent<ChatBox>();
             go.AddComponent<Assets.Script.Data.GameDataNetwork>(); // dữ liệu tĩnh, túi đồ, chỉ số, nhiệm vụ
+            go.AddComponent<Assets.Script.Data.GameDataCache>();   // lưu dữ liệu tĩnh trên máy theo phiên bản
             go.AddComponent<Assets.Script.Data.EconomyNetwork>();  // nâng cấp, rương, giao dịch, chợ, ngọc, giftcode
             go.AddComponent<Assets.Script.Data.SocialNetwork>();   // PvP, nhóm, bạn bè, thư, gia tộc, xếp hạng
             go.AddComponent<Assets.Script.Data.EventNetwork>();    // hiệu ứng, phó bản, sự kiện, khu, tên map, hoạt động, mẹo

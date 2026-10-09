@@ -85,6 +85,7 @@ namespace Assets.Script.UI.Windows
                 var b = UIKit.Button("Eq" + i, _list, GameData.ColoredName(s.tpl, s.level) + (s.locked ? " <size=12><color=#aaa>(khoá)</color></size>" : ""),
                     () => { _sel = idx; _result.text = ""; Refresh(); }, 16).Height(44);
                 b.image.color = idx == _sel ? UIKit.ButtonHot : UIKit.SlotColor;
+                ItemIcon.ForItem(b, s.tpl, ItemIcon.Place.Left, 38);
             }
             if (!any) UIKit.Text("Empty", _list, "Túi không có trang bị.\n(Tháo trang bị đang mặc ra túi để nâng cấp.)", 15).Height(60);
 

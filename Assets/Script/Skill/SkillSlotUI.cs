@@ -42,7 +42,25 @@ namespace Assets.Script.Skill
         public void AssignSkill(int templateId, SkillDatabaseSO database)
         {
             assignedSkillId = templateId;
-            SkillVisualData visualData = templateId == -1 ? null : database.GetSkillVisual(templateId);
+
+            // GĐ12: icon = ảnh kho số skill_template.icon_id (ImageBank); không có ảnh → cách cũ (atlas trong SkillDatabase) → tên chữ
+            if (templateId != -1 && Assets.Script.Data.GameData.Skills.TryGetValue(templateId, out var st) && st.iconId > 0)
+            {
+                int forSkill = templateId;
+                Assets.Script.Core.ImageBank.Get(st.iconId, sprite =>
+                {
+                    if (iconImg == null || assignedSkillId != forSkill) return;
+                    if (sprite != null) { iconImg.sprite = sprite; iconImg.enabled = true; SetNameText(""); }
+                    else AssignFromDatabase(forSkill, database);
+                });
+                return;
+            }
+            AssignFromDatabase(templateId, database);
+        }
+
+        private void AssignFromDatabase(int templateId, SkillDatabaseSO database)
+        {
+            SkillVisualData visualData = templateId == -1 || database == null ? null : database.GetSkillVisual(templateId);
 
             // Chưa có icon → ghi tên kỹ năng (lấy từ dữ liệu server). [CẦN ĐIỀN] thêm icon vào Assets/SO/SkillDatabase.asset
             bool noIcon = templateId != -1 && (visualData == null || visualData.iconSprite == null);

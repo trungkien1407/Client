@@ -38,6 +38,13 @@ namespace Assets.Script.Entities
         private Dictionary<MobState, Sprite[]> _animationCache = new Dictionary<MobState, Sprite[]>();
         private AsyncOperationHandle<SpriteAtlas> _atlasHandle;
 
+        // GĐ12 — bộ hình ghép mảnh 5 trạng thái (monster_template.art → MobAnimSO). Có thì dùng thay atlas.
+        private MobAnimSO _anim;
+        private Fx.PartRenderer _parts;
+        private int _loadToken;
+        private bool _attackAlt;   // xen kẽ 2 kiểu đánh (nhóm 2 / 3)
+        private int _shownFrame = -1;
+
         private void Awake()
         {
             if (_spriteRenderer == null) _spriteRenderer = GetComponent<SpriteRenderer>();
@@ -56,11 +63,25 @@ namespace Assets.Script.Entities
             _currentFrameIndex = 0;
             _attackAnimUntil = 0f;
             _hurtUntil = 0f;
-            if (_spriteRenderer != null) _spriteRenderer.color = BaseColor;
+            _loadToken++;   // hình đang tải dở của lần dùng trước (pool) bỏ đi
+            AppliedArt = -1;
+            UseAnim(null);
+            ApplyColor(BaseColor);
             UpdateUI();
         }
 
         public bool IsDead => _currentState == MobState.Dead;
+
+        /// <summary>Khoảng cách từ {p} tới mép khung va chạm (gốc ở chân, kích thước monster_template.hit_w / hit_h) — khớp server Mob.sqrDistanceTo.</summary>
+        public float DistanceFrom(Vector2 p)
+        {
+            Data.GameData.Mobs.TryGetValue(templateId, out var t);
+            float hw = t != null ? t.HalfWidth : 0.5f, h = t != null ? t.Height : 32f / ArtUnits.PointsPerUnit;
+            Vector3 o = transform.position;
+            float dx = Mathf.Max(Mathf.Abs(p.x - o.x) - hw, 0f);
+            float dy = p.y < o.y ? o.y - p.y : Mathf.Max(p.y - (o.y + h), 0f);
+            return Mathf.Sqrt(dx * dx + dy * dy);
+        }
 
         // Giữ frame đánh / bị đánh trong 1 khoảng ngắn
         private float _attackAnimUntil, _hurtUntil;
@@ -70,6 +91,7 @@ namespace Assets.Script.Entities
         {
             if (_currentState == MobState.Dead) return;
             _spriteRenderer.flipX = targetPos.x < transform.position.x;
+            _attackAlt = !_attackAlt;
             ChangeState(MobState.Attack);
             _attackAnimUntil = Time.time + 0.4f;
         }
@@ -88,8 +110,76 @@ namespace Assets.Script.Entities
             UpdateUI();
             OnHpChanged?.Invoke(currentHp, maxHp);
             ChangeState(MobState.Dead);
-            if (_spriteRenderer != null) { var c = BaseColor; c.a = 0.6f; _spriteRenderer.color = c; }
+            var c = BaseColor; c.a = 0.6f; ApplyColor(c);
         }
+
+        private void ApplyColor(Color c)
+        {
+            if (_spriteRenderer != null) _spriteRenderer.color = c;
+            if (_parts != null) _parts.SetColor(c);
+        }
+
+        /// <summary>Đỉnh đầu quái (đơn vị local): bộ hình mảnh → khung va chạm; atlas → khung ảnh.</summary>
+        private float TopY
+        {
+            get
+            {
+                if (_anim != null) return Data.GameData.Mobs.TryGetValue(templateId, out var t) && t.hitH > 0 ? t.Height : ArtUnits.ToUnits(_anim.hitH);
+                return _spriteRenderer != null && _spriteRenderer.sprite != null ? _spriteRenderer.sprite.bounds.max.y : 1f;
+            }
+        }
+
+        /// <summary>
+        /// GĐ12 — chọn hình theo server: monster_template.art ≥ 0 → tải MobAnim_{art} (Addressables → Resources demo);
+        /// không có → {fallback} (dòng MobDatabase, atlas cũ) → không có nữa thì ô màu. Dòng MobDatabase vẫn dùng cho tint / scale.
+        /// </summary>
+        /// <summary>Bộ hình đang dùng / đang tải (-1 = atlas cũ hoặc ô màu).</summary>
+        public int AppliedArt { get; private set; } = -1;
+
+        public void SetArt(int art, MobVisualData fallback)
+        {
+            AppliedArt = art;
+            int token = ++_loadToken;
+            _visualData = fallback;
+            _isReady = false;
+            float s = fallback != null && fallback.scale > 0 ? fallback.scale : 1f;
+            transform.localScale = new Vector3(s, s, 1f);
+            Core.AssetSource.Load<MobAnimSO>(MobAnimSO.Address(art), "MobAnim/" + MobAnimSO.Address(art), anim =>
+            {
+                if (this == null || token != _loadToken) return;
+                if (anim != null) { UnloadAtlas(); UseAnim(anim); return; }
+                if (fallback != null && fallback.mobAtlas != null && fallback.mobAtlas.RuntimeKeyIsValid()) SetVisual(fallback);
+                else SetPlaceholder();
+            });
+        }
+
+        private void UseAnim(MobAnimSO anim)
+        {
+            _anim = anim;
+            if (anim == null) { if (_parts != null) _parts.Hide(); return; }
+            if (_parts == null)
+            {
+                _parts = gameObject.AddComponent<Fx.PartRenderer>();
+                _parts.SetSorting(_spriteRenderer.sortingLayerName, _spriteRenderer.sortingOrder);
+            }
+            _spriteRenderer.sprite = null;   // hình do các mảnh vẽ
+            ApplyColor(BaseColor);
+            _currentFrameIndex = 0;
+            _shownFrame = -1;
+            _isReady = true;
+            UpdateSpriteFrame();
+            AdjustHpBarPosition();
+            UpdateNameLabel();
+        }
+
+        private int AnimState => _currentState switch
+        {
+            MobState.Walk => MobAnimSO.Walk,
+            MobState.Attack => _attackAlt && _anim.Clip(MobAnimSO.Attack2) != _anim.Clip(MobAnimSO.Idle) ? MobAnimSO.Attack2 : MobAnimSO.Attack,
+            MobState.Hurt => MobAnimSO.Hurt,
+            MobState.Dead => MobAnimSO.Hurt,
+            _ => MobAnimSO.Idle,
+        };
 
         /// <summary>Màu nhuộm của loại quái này (MobVisualData.tint, GĐ8); chưa đặt → trắng.</summary>
         private Color BaseColor => _visualData != null && _visualData.tint.a > 0f ? _visualData.tint : Color.white;
@@ -121,8 +211,7 @@ namespace Assets.Script.Entities
             _nameLabel.text = tpl != null ? $"{name} Lv{tpl.level}{rankTag}" : name;
             _nameLabel.color = rank == 2 ? new Color(1f, 0.35f, 0.3f) : rank == 1 ? new Color(1f, 0.85f, 0.3f) : Color.white;
 
-            float top = _spriteRenderer != null && _spriteRenderer.sprite != null ? _spriteRenderer.sprite.bounds.max.y : 1f;
-            _nameLabel.transform.localPosition = new Vector3(0, top + 0.35f, 0);
+            _nameLabel.transform.localPosition = new Vector3(0, TopY + 0.35f, 0);
         }
 
         /// <summary>
@@ -134,6 +223,7 @@ namespace Assets.Script.Entities
         public void SetPlaceholder()
         {
             _visualData = null;
+            UseAnim(null);
             UnloadAtlas();
             _animationCache.Clear();
             if (_placeholderSprite == null)
@@ -150,6 +240,7 @@ namespace Assets.Script.Entities
         {
             this._visualData = visualData;
             _isReady = false;
+            UseAnim(null);
             if (_spriteRenderer != null) _spriteRenderer.color = BaseColor;
             float s = visualData != null && visualData.scale > 0 ? visualData.scale : 1f;
             transform.localScale = new Vector3(s, s, 1f);
@@ -232,7 +323,7 @@ namespace Assets.Script.Entities
 
             // 1. Animation logic
             _frameTimer += Time.deltaTime;
-            float animSpeed = (_visualData != null) ? _visualData.frameRate : 0.15f;
+            float animSpeed = _anim != null ? _anim.frameSeconds : (_visualData != null) ? _visualData.frameRate : 0.15f;
             if (_frameTimer >= animSpeed)
             {
                 _frameTimer = 0f;
@@ -263,6 +354,7 @@ namespace Assets.Script.Entities
 
         private void UpdateSpriteFrame()
         {
+            if (_anim != null) { ShowAnimFrame(); return; }
             if (!_isReady || !_animationCache.ContainsKey(_currentState)) return;
 
             Sprite[] frames = _animationCache[_currentState];
@@ -272,11 +364,31 @@ namespace Assets.Script.Entities
             _spriteRenderer.sprite = frames[_currentFrameIndex];
         }
 
+        private void ShowAnimFrame()
+        {
+            var clip = _anim.Clip(AnimState);
+            if (clip == null || clip.Count == 0) return;
+            if (_currentState == MobState.Dead) _currentFrameIndex = 0;   // chết: đứng yên khung đầu, mờ dần
+            int i = _currentFrameIndex % clip.Count;
+            bool entered = i != _shownFrame;
+            _shownFrame = i;
+            var f = clip.frames[i];
+            bool flip = _spriteRenderer.flipX;
+            _parts.Show(f, _anim.Image, flip);
+            // Khung có hiệu ứng kèm (VD tia lửa lúc cắn) → bật 1 lần khi vào khung
+            if (entered && f.fx >= 0)
+            {
+                float x = ArtUnits.ToUnits(f.fxX) * transform.localScale.x;
+                Fx.EffectPlayer.Play(f.fx, transform.position + new Vector3(flip ? -x : x, -ArtUnits.ToUnits(f.fxY), 0f), flip);
+            }
+        }
+
         public void ChangeState(MobState newState)
         {
             if (_currentState == newState) return;
             _currentState = newState;
             _currentFrameIndex = 0;
+            _shownFrame = -1;
             UpdateSpriteFrame();
         }
 
@@ -315,10 +427,10 @@ namespace Assets.Script.Entities
         }
         private void AdjustHpBarPosition()
         {
-            if (_spriteRenderer.sprite != null && hpBarContainer != null)
+            if ((_spriteRenderer.sprite != null || _anim != null) && hpBarContainer != null)
             {
-                // Lấy điểm Y cao nhất của Sprite hiện tại (tính theo Local Space)
-                float highestPointY = _spriteRenderer.sprite.bounds.max.y;
+                // Đỉnh đầu (local): khung va chạm với bộ hình mảnh, khung ảnh với atlas
+                float highestPointY = TopY;
 
                 // Cập nhật vị trí Local của thanh HP (cao hơn đỉnh đầu 1 đơn vị)
                 hpBarContainer.transform.localPosition = new Vector3(-0.8f, highestPointY, 0f);
@@ -333,7 +445,7 @@ namespace Assets.Script.Entities
         public void OnTargeted() { if (hpBarContainer != null) hpBarContainer.SetActive(true); }
         public void OnDeselected() { if (hpBarContainer != null) hpBarContainer.SetActive(false); }
 
-        public string GetTargetName() => _visualData != null ? _visualData.mobName : $"Quái {templateId}";
+        public string GetTargetName() => Data.GameData.Mobs.TryGetValue(templateId, out var t) ? t.name : _visualData != null ? _visualData.mobName : $"Quái {templateId}";
         public int GetCurrentHp() => currentHp;
         public int GetMaxHp() => maxHp;
 

@@ -44,6 +44,7 @@ namespace Assets.Script.Manager
 
         void Start()
         {
+            Assets.Script.Data.GameData.OnChanged += OnDataChanged;
             RegisterNetworkHandlers();   // nghe ngay; gói đến trước khi tải xong dữ liệu hình thì giữ lại (Defer)
             _dbHandle = Addressables.LoadAssetAsync<MobDatabaseSO>(mobDatabaseRef);
             _dbHandle.Completed += handle => {
@@ -165,7 +166,8 @@ namespace Assets.Script.Manager
 
             // Không có cấu hình hình ảnh → vẫn tạo quái với hình placeholder (xem MobController.SetPlaceholder)
             var visual = _mobDatabase.GetMobVisual(templateId);
-            if (visual == null)
+            bool hasArt = Assets.Script.Data.GameData.Mobs.TryGetValue(templateId, out var mt) && mt.art >= 0;
+            if (visual == null && !hasArt)
                 Debug.LogWarning($"[CẦN ĐIỀN] Quái templateId={templateId} chưa có trong Assets/SO/MobDatabase.asset → hiện placeholder.");
 
             // [MỚI] 1. KIỂM TRA POOL TRƯỚC
@@ -213,7 +215,9 @@ namespace Assets.Script.Manager
             if (mob != null)
             {
                 mob.Initialize(mobId, templateId, hp, maxHp);
-                if (visual != null) mob.SetVisual(visual);
+                // GĐ12: server chỉ định bộ hình (monster_template.art) → MobAnim; không có thì dòng MobDatabase / ô màu
+                if (Assets.Script.Data.GameData.Mobs.TryGetValue(templateId, out var tpl) && tpl.art >= 0) mob.SetArt(tpl.art, visual);
+                else if (visual != null) mob.SetVisual(visual);
                 else mob.SetPlaceholder();
 
                 activeMobs[mobId] = mob;
@@ -300,8 +304,18 @@ namespace Assets.Script.Manager
             return mob;
         }
 
+        /// <summary>Mẫu quái (GAME_DATA_MOBS) thường về SAU khi quái đầu tiên đã hiện → quái nào có bộ hình mới thì đổi hình.</summary>
+        private void OnDataChanged(Assets.Script.Data.DataKind kind)
+        {
+            if (kind != Assets.Script.Data.DataKind.Templates || _mobDatabase == null) return;
+            foreach (var mob in activeMobs.Values)
+                if (mob != null && Assets.Script.Data.GameData.Mobs.TryGetValue(mob.templateId, out var t) && t.art >= 0 && t.art != mob.AppliedArt)
+                    mob.SetArt(t.art, _mobDatabase.GetMobVisual(mob.templateId));
+        }
+
         private void OnDestroy()
         {
+            Assets.Script.Data.GameData.OnChanged -= OnDataChanged;
             UnregisterNetworkHandlers();
 
             if (_dbHandle.IsValid())
