@@ -8,7 +8,8 @@ using UnityEngine.UI;
 namespace Assets.Script.UI.Kit
 {
     /// <summary>
-    /// Canvas chung cho mọi cửa sổ game dựng bằng code. Tự tạo khi cần (UIRoot.Instance).
+    /// Canvas chung cho HUD + cửa sổ game. Có prefab Resources/UI/UIRoot thì tạo từ đó (chỉnh độ phân giải chuẩn,
+    /// thứ tự vẽ trong Editor), không thì dựng bằng code. Tự tạo khi cần (UIRoot.Instance).
     /// - Esc: đóng cửa sổ trên cùng.
     /// - Phím tắt mở cửa sổ: mỗi GameWindow khai báo HotKey riêng.
     /// </summary>
@@ -24,15 +25,33 @@ namespace Assets.Script.UI.Kit
             }
         }
 
-        public RectTransform WindowLayer { get; private set; }  // cửa sổ (kéo được)
-        public RectTransform HudLayer { get; private set; }     // HUD cố định (thanh EXP, nút menu)
+        [SerializeField] private RectTransform hudLayer;      // HUD cố định (thanh EXP, nút menu)
+        [SerializeField] private RectTransform windowLayer;   // cửa sổ (kéo được)
+        public RectTransform HudLayer => hudLayer;
+        public RectTransform WindowLayer => windowLayer;
 
         private readonly List<GameWindow> _windows = new List<GameWindow>();
 
         private static void Create()
         {
-            var go = new GameObject("[UIRoot]");
+            var prefab = Resources.Load<GameObject>(UIPrefabs.RootPath);
+            var go = prefab != null ? Instantiate(prefab) : BuildByCode();
+            go.name = "[UIRoot]";
             DontDestroyOnLoad(go);
+            _instance = go.GetComponent<UIRoot>();
+
+            // Scene đã có EventSystem; nếu chưa (test riêng) thì tạo
+            if (FindAnyObjectByType<EventSystem>() == null)
+            {
+                var es = new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
+                DontDestroyOnLoad(es);
+            }
+        }
+
+        /// <summary>Dựng canvas bằng code (tool cũng dùng để sinh prefab UIRoot lần đầu).</summary>
+        public static GameObject BuildByCode()
+        {
+            var go = new GameObject("[UIRoot]");
             var canvas = go.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             canvas.sortingOrder = 50; // trên HUD cũ của scene
@@ -42,16 +61,10 @@ namespace Assets.Script.UI.Kit
             scaler.matchWidthOrHeight = 0.5f;
             go.AddComponent<GraphicRaycaster>();
 
-            _instance = go.AddComponent<UIRoot>();
-            _instance.HudLayer = UIKit.Rect("HUD", go.transform).Fill();
-            _instance.WindowLayer = UIKit.Rect("Windows", go.transform).Fill();
-
-            // Scene đã có EventSystem; nếu chưa (test riêng) thì tạo
-            if (FindAnyObjectByType<EventSystem>() == null)
-            {
-                var es = new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
-                DontDestroyOnLoad(es);
-            }
+            var root = go.AddComponent<UIRoot>();
+            root.hudLayer = UIKit.Rect("HUD", go.transform).Fill();
+            root.windowLayer = UIKit.Rect("Windows", go.transform).Fill();
+            return go;
         }
 
         public void Register(GameWindow w) => _windows.Add(w);

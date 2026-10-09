@@ -30,15 +30,8 @@ namespace Assets.Script.UI.Windows
             var body = CreateBody();
             _info = UIKit.Text("Info", body, "", 15, TextAlignmentOptions.MidlineLeft, UIKit.DimText);
             _info.rectTransform.Place(new Vector2(0, 1), new Vector2(1, 1), Vector2.zero, new Vector2(0, 26), new Vector2(0.5f, 1));
-            var scroll = UIKit.ScrollList("Grid", body);
+            var scroll = UIKit.ScrollGrid("Grid", body, new Vector2(112, 56), new Vector2(8, 8), 4);
             ((RectTransform)scroll.parent).Fill(0, 0, 30, 0);
-            Object.DestroyImmediate(scroll.GetComponent<VerticalLayoutGroup>());
-            var g = scroll.gameObject.AddComponent<GridLayoutGroup>();
-            g.cellSize = new Vector2(112, 56);
-            g.spacing = new Vector2(8, 8);
-            g.padding = new RectOffset(6, 6, 6, 6);
-            g.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-            g.constraintCount = 4;
             _grid = scroll;
         }
 

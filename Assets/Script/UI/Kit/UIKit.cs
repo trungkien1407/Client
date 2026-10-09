@@ -7,26 +7,23 @@ using UnityEngine.UI;
 namespace Assets.Script.UI.Kit
 {
     /// <summary>
-    /// BỘ DỰNG UI BẰNG CODE (uGUI). Dùng cho các cửa sổ game (túi đồ, nhân vật, kỹ năng...) để không phụ thuộc
-    /// prefab kéo-thả. Muốn đổi giao diện đẹp hơn: sửa màu/kích thước ở đây (1 chỗ) hoặc thay dần bằng prefab.
-    ///
-    /// [CẦN ĐIỀN khi có art UI] gán Sprite khung/nút vào PanelSprite / ButtonSprite để thay ô màu trơn.
+    /// BỘ DỰNG UI (uGUI). Mỗi hàm Panel / Text / Button / Input / ScrollList / Bar / WindowFrame:
+    ///   có prefab mẫu Resources/UI/Kit/&lt;Tên&gt; → tạo từ prefab (hình do bạn chỉnh trong Editor)
+    ///   chưa có → dựng bằng code (hàm Build* bên dưới — tool cũng dùng chúng để sinh prefab mẫu lần đầu).
+    /// Màu chung: UITheme (Resources/UI/UITheme.asset).
     /// </summary>
     public static class UIKit
     {
-        // ---- Bảng màu chung ----
-        public static readonly Color PanelColor = new Color(0.08f, 0.10f, 0.14f, 0.94f);
-        public static readonly Color HeaderColor = new Color(0.85f, 0.45f, 0.10f, 1f);
-        public static readonly Color ButtonColor = new Color(0.22f, 0.27f, 0.36f, 1f);
-        public static readonly Color ButtonHot = new Color(0.90f, 0.55f, 0.15f, 1f);
-        public static readonly Color SlotColor = new Color(0.16f, 0.19f, 0.25f, 1f);
-        public static readonly Color TextColor = new Color(0.95f, 0.95f, 0.95f, 1f);
-        public static readonly Color DimText = new Color(0.70f, 0.74f, 0.80f, 1f);
-        public static readonly Color GoodText = new Color(0.45f, 1f, 0.45f, 1f);
-        public static readonly Color BadText = new Color(1f, 0.45f, 0.45f, 1f);
-
-        /// <summary>[CẦN ĐIỀN tuỳ chọn] Sprite 9-slice cho khung cửa sổ / nút. Để null = ô màu trơn.</summary>
-        public static Sprite PanelSprite, ButtonSprite;
+        // ---- Bảng màu chung (đọc từ UITheme) ----
+        public static Color PanelColor => UITheme.Current.panel;
+        public static Color HeaderColor => UITheme.Current.header;
+        public static Color ButtonColor => UITheme.Current.button;
+        public static Color ButtonHot => UITheme.Current.buttonHot;
+        public static Color SlotColor => UITheme.Current.slot;
+        public static Color TextColor => UITheme.Current.text;
+        public static Color DimText => UITheme.Current.dimText;
+        public static Color GoodText => UITheme.Current.goodText;
+        public static Color BadText => UITheme.Current.badText;
 
         public static RectTransform Rect(string name, Transform parent)
         {
@@ -57,68 +54,229 @@ namespace Assets.Script.UI.Kit
             return rt;
         }
 
+        /// <summary>Tạo từ prefab mẫu UI/Kit/{kit} (đặt tên {name}); không có mẫu → null.</summary>
+        private static T FromKit<T>(string kit, string name, Transform parent) where T : Component
+        {
+            var prefab = UIPrefabs.Kit(kit);
+            if (prefab == null) return null;
+            var go = UIPrefabs.Spawn(prefab, parent);
+            go.name = name;
+            return go.GetComponent<T>();
+        }
+
+        // ==========================================
+        // PHẦN TỬ UI
+        // ==========================================
+
+        /// <summary>Khung nền (màu {color} nhân với sprite của mẫu).</summary>
         public static Image Panel(string name, Transform parent, Color color)
         {
-            var img = Rect(name, parent).gameObject.AddComponent<Image>();
+            var img = FromKit<Image>("Panel", name, parent) ?? BuildPanel(name, parent);
             img.color = color;
-            if (PanelSprite != null) { img.sprite = PanelSprite; img.type = Image.Type.Sliced; }
             return img;
         }
 
+        /// <summary>Chữ. {color} = null → màu của mẫu (hoặc UITheme.text khi dựng bằng code).</summary>
         public static TextMeshProUGUI Text(string name, Transform parent, string text, float size = 18,
             TextAlignmentOptions align = TextAlignmentOptions.MidlineLeft, Color? color = null)
         {
-            var t = Rect(name, parent).gameObject.AddComponent<TextMeshProUGUI>();
+            var t = FromKit<TextMeshProUGUI>("Text", name, parent) ?? BuildText(name, parent);
             t.text = text;
             t.fontSize = size;
             t.alignment = align;
-            t.color = color ?? TextColor;
-            t.enableWordWrapping = true;
-            t.raycastTarget = false;
+            if (color.HasValue) t.color = color.Value;
             return t;
         }
 
+        /// <summary>Nút có chữ. Màu nút lấy từ mẫu; đổi riêng bằng button.image.color.</summary>
         public static Button Button(string name, Transform parent, string label, Action onClick, float fontSize = 18)
         {
-            var img = Panel(name, parent, ButtonColor);
-            if (ButtonSprite != null) img.sprite = ButtonSprite;
-            var btn = img.gameObject.AddComponent<Button>();
-            var colors = btn.colors;
-            colors.highlightedColor = new Color(1.25f, 1.25f, 1.25f, 1f);
-            colors.pressedColor = new Color(0.8f, 0.8f, 0.8f, 1f);
-            btn.colors = colors;
-            var t = Text("Label", img.transform, label, fontSize, TextAlignmentOptions.Center);
-            t.rectTransform.Fill(6, 6, 2, 2);
+            var btn = FromKit<Button>("Button", name, parent) ?? BuildButton(name, parent);
+            var t = btn.GetComponentInChildren<TextMeshProUGUI>(true);
+            if (t != null) { t.text = label; t.fontSize = fontSize; }
             if (onClick != null) btn.onClick.AddListener(() => onClick());
             return btn;
         }
 
         /// <summary>
-        /// Ô NHẬP CHỮ (TMP_InputField) dựng bằng code: nền + vùng chữ + chữ mờ gợi ý.
-        /// Đọc giá trị: input.text. Đang gõ ô này thì phím tắt game tự bị bỏ qua (xem UIKit.IsTypingInUI).
+        /// Ô NHẬP CHỮ (TMP_InputField). Đọc giá trị: input.text.
+        /// Đang gõ ô này thì phím tắt game tự bị bỏ qua (xem UIKit.IsTypingInUI).
         /// </summary>
         public static TMP_InputField Input(string name, Transform parent, string placeholder, float fontSize = 17,
             TMP_InputField.ContentType type = TMP_InputField.ContentType.Standard, int charLimit = 0)
         {
+            var input = FromKit<TMP_InputField>("Input", name, parent) ?? BuildInput(name, parent);
+            if (input.placeholder is TextMeshProUGUI ph) { ph.text = placeholder; ph.fontSize = fontSize; }
+            if (input.textComponent != null) input.textComponent.fontSize = fontSize;
+            input.contentType = type;
+            input.characterLimit = charLimit;
+            input.pointSize = fontSize;
+            return input;
+        }
+
+        /// <summary>Vùng cuộn dọc. Trả về "content" — thêm con vào đây, tự xếp dọc.</summary>
+        public static RectTransform ScrollList(string name, Transform parent, float spacing = 4)
+        {
+            var content = ScrollContent(name, parent);
+            var layout = content.gameObject.AddComponent<VerticalLayoutGroup>();
+            layout.spacing = spacing;
+            layout.padding = new RectOffset(6, 6, 6, 6);
+            layout.childControlHeight = true;
+            layout.childControlWidth = true;
+            layout.childForceExpandHeight = false;
+            return content;
+        }
+
+        /// <summary>Vùng cuộn dọc xếp lưới ô vuông (túi đồ, rương). Trả về "content".</summary>
+        public static RectTransform ScrollGrid(string name, Transform parent, Vector2 cell, Vector2 spacing, int columns)
+        {
+            var content = ScrollContent(name, parent);
+            var g = content.gameObject.AddComponent<GridLayoutGroup>();
+            g.cellSize = cell;
+            g.spacing = spacing;
+            g.padding = new RectOffset(6, 6, 6, 6);
+            g.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            g.constraintCount = columns;
+            return content;
+        }
+
+        private static RectTransform ScrollContent(string name, Transform parent)
+        {
+            var scroll = FromKit<ScrollRect>("ScrollList", name, parent) ?? BuildScrollList(name, parent);
+            return scroll.content;
+        }
+
+        /// <summary>Lưới ô vuông (không cuộn). Trả về transform cha — thêm ô con vào.</summary>
+        public static RectTransform Grid(string name, Transform parent, Vector2 cell, Vector2 spacing, int columns)
+        {
+            var rt = Rect(name, parent);
+            var g = rt.gameObject.AddComponent<GridLayoutGroup>();
+            g.cellSize = cell;
+            g.spacing = spacing;
+            g.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            g.constraintCount = columns;
+            return rt;
+        }
+
+        /// <summary>Thanh tiến trình (máu / EXP): trả về Image "Fill" (đổi fillAmount 0..1).</summary>
+        public static Image Bar(string name, Transform parent, Color fill)
+        {
+            var root = FromKit<Image>("Bar", name, parent) ?? BuildBar(name, parent);
+            var f = root.transform.Find("Fill").GetComponent<Image>();
+            f.color = fill;
+            f.fillAmount = 0;
+            return f;
+        }
+
+        /// <summary>Khung cửa sổ (GameWindow dùng).</summary>
+        public static WindowFrame WindowFrame(string name, Transform parent)
+            => FromKit<WindowFrame>("Window", name, parent) ?? BuildWindowFrame(name, parent);
+
+        // ==========================================
+        // DỰNG BẰNG CODE (khi chưa có prefab mẫu)
+        // ==========================================
+
+        public static Image BuildPanel(string name, Transform parent)
+        {
+            var img = Rect(name, parent).gameObject.AddComponent<Image>();
+            img.color = PanelColor;
+            return img;
+        }
+
+        public static TextMeshProUGUI BuildText(string name, Transform parent)
+        {
+            var t = Rect(name, parent).gameObject.AddComponent<TextMeshProUGUI>();
+            t.fontSize = 18;
+            t.color = TextColor;
+            t.enableWordWrapping = true;
+            t.raycastTarget = false;
+            return t;
+        }
+
+        public static Button BuildButton(string name, Transform parent)
+        {
+            var img = Panel(name, parent, ButtonColor);
+            var btn = img.gameObject.AddComponent<Button>();
+            var colors = btn.colors;
+            colors.highlightedColor = new Color(1.25f, 1.25f, 1.25f, 1f);
+            colors.pressedColor = new Color(0.8f, 0.8f, 0.8f, 1f);
+            btn.colors = colors;
+            var t = Text("Label", img.transform, "", 18, TextAlignmentOptions.Center);
+            t.rectTransform.Fill(6, 6, 2, 2);
+            return btn;
+        }
+
+        public static TMP_InputField BuildInput(string name, Transform parent)
+        {
             var bg = Panel(name, parent, new Color(0.05f, 0.06f, 0.08f, 1f));
             var area = Rect("TextArea", bg.transform).Fill(8, 8, 3, 3);
             area.gameObject.AddComponent<RectMask2D>();
-            var ph = Text("Placeholder", area, placeholder, fontSize, TextAlignmentOptions.MidlineLeft, new Color(1, 1, 1, 0.35f));
+            var ph = Text("Placeholder", area, "", 17, TextAlignmentOptions.MidlineLeft, new Color(1, 1, 1, 0.35f));
             ph.rectTransform.Fill();
             ph.enableWordWrapping = false;
-            var txt = Text("Text", area, "", fontSize, TextAlignmentOptions.MidlineLeft);
+            var txt = Text("Text", area, "", 17, TextAlignmentOptions.MidlineLeft);
             txt.rectTransform.Fill();
             txt.enableWordWrapping = false;
             var input = bg.gameObject.AddComponent<TMP_InputField>();
             input.textViewport = area;
             input.textComponent = txt;
             input.placeholder = ph;
-            input.contentType = type;
-            input.characterLimit = charLimit;
             input.fontAsset = txt.font;
-            input.pointSize = fontSize;
             return input;
         }
+
+        public static ScrollRect BuildScrollList(string name, Transform parent)
+        {
+            var view = Panel(name, parent, new Color(0, 0, 0, 0.25f));
+            view.gameObject.AddComponent<RectMask2D>();
+            var scroll = view.gameObject.AddComponent<ScrollRect>();
+            scroll.horizontal = false;
+            scroll.scrollSensitivity = 30;
+
+            var content = Rect("Content", view.transform);
+            content.anchorMin = new Vector2(0, 1);
+            content.anchorMax = new Vector2(1, 1);
+            content.pivot = new Vector2(0.5f, 1);
+            content.sizeDelta = Vector2.zero;
+            var fit = content.gameObject.AddComponent<ContentSizeFitter>();
+            fit.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+            scroll.content = content;
+            scroll.viewport = (RectTransform)view.transform;
+            return scroll;
+        }
+
+        public static Image BuildBar(string name, Transform parent)
+        {
+            var bg = Panel(name, parent, new Color(0, 0, 0, 0.6f));
+            var f = Panel("Fill", bg.transform, Color.white);
+            f.rectTransform.Fill(2, 2, 2, 2);
+            f.sprite = WhiteSprite;   // Image kiểu Filled cần sprite
+            f.type = Image.Type.Filled;
+            f.fillMethod = Image.FillMethod.Horizontal;
+            return bg;
+        }
+
+        public static WindowFrame BuildWindowFrame(string name, Transform parent)
+        {
+            var root = BuildPanel(name, parent);   // gốc khung không lồng mẫu Panel
+            var rt = root.rectTransform.Place(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(520, 420));
+            var frame = root.gameObject.AddComponent<WindowFrame>();
+
+            var header = Panel("Header", root.transform, HeaderColor);
+            header.rectTransform.Place(new Vector2(0, 1), new Vector2(1, 1), Vector2.zero, new Vector2(0, 36), new Vector2(0.5f, 1));
+            header.gameObject.AddComponent<WindowDragger>().target = rt;
+            frame.header = header.rectTransform;
+            frame.title = Text("Title", header.transform, "Cửa sổ", 20, TextAlignmentOptions.Center);
+            frame.title.rectTransform.Fill(40, 40);
+            frame.close = Button("Close", header.transform, "X", null, 18);
+            ((RectTransform)frame.close.transform).Place(new Vector2(1, 0.5f), new Vector2(1, 0.5f), new Vector2(-20, 0), new Vector2(32, 28));
+            frame.body = Rect("Body", root.transform).Fill(10, 10, 44, 10);
+            return frame;
+        }
+
+        // ==========================================
+        // TIỆN ÍCH
+        // ==========================================
 
         /// <summary>Đang gõ vào 1 ô nhập UI (để phím tắt game như I/C/K/F, di chuyển... không chạy).</summary>
         public static bool IsTypingInUI()
@@ -132,47 +290,6 @@ namespace Assets.Script.UI.Kit
         {
             var t = b.GetComponentInChildren<TextMeshProUGUI>();
             if (t != null) t.text = label;
-        }
-
-        /// <summary>
-        /// Vùng cuộn dọc. Trả về "content" — thêm con vào đây, tự xếp dọc (VerticalLayoutGroup).
-        /// </summary>
-        public static RectTransform ScrollList(string name, Transform parent, float spacing = 4)
-        {
-            var view = Panel(name, parent, new Color(0, 0, 0, 0.25f));
-            view.gameObject.AddComponent<RectMask2D>();
-            var scroll = view.gameObject.AddComponent<ScrollRect>();
-            scroll.horizontal = false;
-            scroll.scrollSensitivity = 30;
-
-            var content = Rect("Content", view.transform);
-            content.anchorMin = new Vector2(0, 1);
-            content.anchorMax = new Vector2(1, 1);
-            content.pivot = new Vector2(0.5f, 1);
-            content.sizeDelta = Vector2.zero;
-            var layout = content.gameObject.AddComponent<VerticalLayoutGroup>();
-            layout.spacing = spacing;
-            layout.padding = new RectOffset(6, 6, 6, 6);
-            layout.childControlHeight = true;
-            layout.childControlWidth = true;
-            layout.childForceExpandHeight = false;
-            var fit = content.gameObject.AddComponent<ContentSizeFitter>();
-            fit.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
-            scroll.content = content;
-            scroll.viewport = (RectTransform)view.transform;
-            return content;
-        }
-
-        /// <summary>Lưới ô vuông (túi đồ). Trả về transform cha — thêm ô con vào.</summary>
-        public static RectTransform Grid(string name, Transform parent, Vector2 cell, Vector2 spacing, int columns)
-        {
-            var rt = Rect(name, parent);
-            var g = rt.gameObject.AddComponent<GridLayoutGroup>();
-            g.cellSize = cell;
-            g.spacing = spacing;
-            g.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-            g.constraintCount = columns;
-            return rt;
         }
 
         /// <summary>Cho phần tử trong VerticalLayoutGroup có chiều cao cố định.</summary>
@@ -190,27 +307,15 @@ namespace Assets.Script.UI.Kit
             for (int i = t.childCount - 1; i >= 0; i--) UnityEngine.Object.Destroy(t.GetChild(i).gameObject);
         }
 
-        /// <summary>Thanh tiến trình (máu/EXP): trả về Image fill (đổi fillAmount 0..1).</summary>
-        public static Image Bar(string name, Transform parent, Color fill)
-        {
-            var bg = Panel(name, parent, new Color(0, 0, 0, 0.6f));
-            var f = Panel("Fill", bg.transform, fill);
-            f.rectTransform.Fill(2, 2, 2, 2);
-            f.type = Image.Type.Filled;
-            f.fillMethod = Image.FillMethod.Horizontal;
-            f.fillAmount = 0;
-            // Image.Filled cần sprite; dùng sprite trắng có sẵn của Unity
-            f.sprite = WhiteSprite;
-            return f;
-        }
-
         private static Sprite _white;
+
+        /// <summary>Sprite trắng 4x4 (Resources/UI/Kit/White.png do tool tạo; chưa có thì tạo tạm lúc chạy).</summary>
         public static Sprite WhiteSprite
         {
             get
             {
-                if (_white == null)
-                    _white = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 4, 4), new Vector2(0.5f, 0.5f));
+                if (_white == null) _white = Resources.Load<Sprite>(UIPrefabs.KitFolder + "White");
+                if (_white == null) _white = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 4, 4), new Vector2(0.5f, 0.5f));
                 return _white;
             }
         }

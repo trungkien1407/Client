@@ -19,9 +19,9 @@ namespace Assets.Script.UI.Windows
     /// </summary>
     public class InventoryWindow : GameWindow
     {
-        private RectTransform _equipGrid, _bagGrid;
-        private TextMeshProUGUI _detail, _bagTitle, _money;
-        private Button _btnUse, _btnEquip, _btnSell, _btnPut, _btnTrade, _btnMarket;
+        [SerializeField] private RectTransform _equipGrid, _bagGrid;
+        [SerializeField] private TextMeshProUGUI _detail, _bagTitle, _money;
+        [SerializeField] private Button _btnSort, _btnUse, _btnEquip, _btnSell, _btnPut, _btnTrade, _btnMarket;
         private int _selectedEquipSlot = -1;
 
         /// <summary>Ô túi đang chọn (bagIndex) — cửa sổ Thư dùng để đính kèm.</summary>
@@ -30,13 +30,16 @@ namespace Assets.Script.UI.Windows
         /// <summary>NPC shop đang mở (-1 = không) — ShopWindow đặt, để hiện nút Bán.</summary>
         public static int OpenShopNpc = -1;
 
-        protected override void Build()
+        protected override void Configure()
         {
             Title = "Hành trang";
             HotKey = Key.I;
             Size = new Vector2(780, 540);
-            var body = CreateBody();
+        }
 
+        protected override void Build()
+        {
+            var body = Body;
             var eqTitle = UIKit.Text("EqTitle", body, "Trang bị", 18, TextAlignmentOptions.Center, UIKit.ButtonHot);
             eqTitle.rectTransform.Place(new Vector2(0, 1), new Vector2(0, 1), Vector2.zero, new Vector2(300, 26), new Vector2(0, 1));
             _equipGrid = UIKit.Grid("Equip", body, new Vector2(94, 64), new Vector2(6, 6), 3);
@@ -44,21 +47,11 @@ namespace Assets.Script.UI.Windows
 
             _bagTitle = UIKit.Text("BagTitle", body, "Túi", 18, TextAlignmentOptions.Center, UIKit.ButtonHot);
             _bagTitle.rectTransform.Place(new Vector2(0, 1), new Vector2(1, 1), new Vector2(110, 0), new Vector2(-420, 26), new Vector2(0.5f, 1));
-            var sort = UIKit.Button("Sort", body, "Sắp xếp", GameActions.SortBag, 14);
-            ((RectTransform)sort.transform).Place(new Vector2(1, 1), new Vector2(1, 1), Vector2.zero, new Vector2(90, 26), new Vector2(1, 1));
+            _btnSort = UIKit.Button("Sort", body, "Sắp xếp", null, 14);
+            ((RectTransform)_btnSort.transform).Place(new Vector2(1, 1), new Vector2(1, 1), Vector2.zero, new Vector2(90, 26), new Vector2(1, 1));
 
-            var bagScroll = UIKit.ScrollList("BagScroll", body);
-            var scrollRt = (RectTransform)bagScroll.parent;
-            scrollRt.Fill(310, 0, 30, 30);
-            // thay VerticalLayout của content bằng lưới
-            Object.DestroyImmediate(bagScroll.GetComponent<VerticalLayoutGroup>());
-            var g = bagScroll.gameObject.AddComponent<GridLayoutGroup>();
-            g.cellSize = new Vector2(82, 66);
-            g.spacing = new Vector2(6, 6);
-            g.padding = new RectOffset(6, 6, 6, 6);
-            g.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-            g.constraintCount = 5;
-            _bagGrid = bagScroll;
+            _bagGrid = UIKit.ScrollGrid("BagScroll", body, new Vector2(82, 66), new Vector2(6, 6), 5);
+            ((RectTransform)_bagGrid.parent).Fill(310, 0, 30, 30);
 
             _money = UIKit.Text("Money", body, "", 15, TextAlignmentOptions.MidlineRight, new Color(1f, 0.85f, 0.3f));
             _money.rectTransform.Place(new Vector2(0, 0), new Vector2(1, 0), new Vector2(160, 0), new Vector2(-320, 26), new Vector2(0.5f, 0));
@@ -68,13 +61,23 @@ namespace Assets.Script.UI.Windows
             detailBg.rectTransform.Place(new Vector2(0, 0), new Vector2(0, 0), Vector2.zero, new Vector2(300, 236), new Vector2(0, 0));
             _detail = UIKit.Text("Text", detailBg.transform, "Chọn 1 vật phẩm", 15, TextAlignmentOptions.TopLeft);
             _detail.rectTransform.Fill(8, 8, 6, 84);
-            _btnUse = Btn(detailBg.transform, "Use", "Dùng", OnUse, 8, 44);
-            _btnEquip = Btn(detailBg.transform, "Equip", "Mặc", OnEquip, 104, 44);
-            _btnSell = Btn(detailBg.transform, "Sell", "Bán", OnSell, 200, 44);
-            _btnPut = Btn(detailBg.transform, "Put", "Cất rương", OnPut, 8, 6);
-            _btnTrade = Btn(detailBg.transform, "Trade", "Đưa vào GD", OnTrade, 104, 6);
-            _btnMarket = Btn(detailBg.transform, "Market", "Treo bán", OnMarket, 200, 6);   // GĐ9: đang mở Chợ
+            _btnUse = Btn(detailBg.transform, "Use", "Dùng", 8, 44);
+            _btnEquip = Btn(detailBg.transform, "Equip", "Mặc", 104, 44);
+            _btnSell = Btn(detailBg.transform, "Sell", "Bán", 200, 44);
+            _btnPut = Btn(detailBg.transform, "Put", "Cất rương", 8, 6);
+            _btnTrade = Btn(detailBg.transform, "Trade", "Đưa vào GD", 104, 6);
+            _btnMarket = Btn(detailBg.transform, "Market", "Treo bán", 200, 6);   // GĐ9: đang mở Chợ
+        }
 
+        protected override void Bind()
+        {
+            _btnSort.onClick.AddListener(GameActions.SortBag);
+            _btnUse.onClick.AddListener(OnUse);
+            _btnEquip.onClick.AddListener(OnEquip);
+            _btnSell.onClick.AddListener(OnSell);
+            _btnPut.onClick.AddListener(OnPut);
+            _btnTrade.onClick.AddListener(OnTrade);
+            _btnMarket.onClick.AddListener(OnMarket);
             GameData.OnChanged += k =>
             {
                 if (k == DataKind.Inventory || k == DataKind.Equipment || k == DataKind.Templates || k == DataKind.Money
@@ -82,9 +85,9 @@ namespace Assets.Script.UI.Windows
             };
         }
 
-        private static Button Btn(Transform parent, string name, string label, System.Action onClick, float x, float y)
+        private static Button Btn(Transform parent, string name, string label, float x, float y)
         {
-            var b = UIKit.Button(name, parent, label, onClick, 15);
+            var b = UIKit.Button(name, parent, label, null, 15);
             ((RectTransform)b.transform).Place(new Vector2(0, 0), new Vector2(0, 0), new Vector2(x, y), new Vector2(90, 34), Vector2.zero);
             return b;
         }
