@@ -19,6 +19,7 @@ namespace Assets.Script.Combat
             go.AddComponent<CombatNetwork>();      // Awake() tự DontDestroyOnLoad
             go.AddComponent<CombatInput>();        // phím J / R, nút AttackBtn
             go.AddComponent<Assets.Script.Network.Heartbeat>();
+            go.AddComponent<Assets.Script.Map.MapTransferNetwork>(); // đổi map / khu, FORCE_MOVE
             go.AddComponent<GroundItemNetwork>();
             go.AddComponent<ChatBox>();
             go.AddComponent<Assets.Script.Data.GameDataNetwork>(); // dữ liệu tĩnh, túi đồ, chỉ số, nhiệm vụ

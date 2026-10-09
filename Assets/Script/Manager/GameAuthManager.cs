@@ -334,10 +334,11 @@ namespace Assets.Script.Manager
             PopupAndLoad.Instance.ShowLoading();
             MapManager.Instance.LoadMap(mapId > 0 ? mapId : 1);
 
-            NetworkPlayerManager.Instance.SpawnLocalPlayer(
-                id, name, classType, level, exp, yen, xu, luong, hp, mp, maxHp, maxMp,
-                moveSpeed, jumpForce, gravity, x, y
-            );
+            NetworkPlayerManager.Instance.SpawnLocalPlayer(new PlayerData
+            {
+                id = id, name = name, class_type = classType, level = level, exp = exp, yen = yen, xu = xu, luong = luong,
+                hp = hp, mp = mp, maxHp = maxHp, maxMp = maxMp, moveSpeed = moveSpeed, jumpForce = jumpForce, gravity = gravity, x = x, y = y
+            });
 
             if (HUDCanvas != null) HUDCanvas.SetActive(true);
 
