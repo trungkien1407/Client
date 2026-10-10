@@ -58,9 +58,7 @@ namespace Assets.Script.Combat
             if (_overlayRoot != null && _overlayRoot.activeSelf != inGame) _overlayRoot.SetActive(inGame);
             if (!inGame) return;
 
-            var kb = Keyboard.current;
-            if (kb != null && !IsTyping && (kb.enterKey.wasPressedThisFrame || kb.numpadEnterKey.wasPressedThisFrame))
-                GameWindow.Get<ChatWindow>().OpenAndFocus();
+            if (Core.GameInput.Pressed(Core.GameKey.OpenChat)) GameWindow.Get<ChatWindow>().OpenAndFocus();
         }
 
         private void BuildOverlay()

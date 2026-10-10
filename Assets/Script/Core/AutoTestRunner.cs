@@ -303,7 +303,7 @@ namespace Assets.Script.Core
             wm.Hide();
             var vis = me.GetComponent<PlayerVisualController>();
             vis.PlaySkill(6);
-            Check($"Chiêu Trảm Phong → anim {vis.mainSkeleton.AnimationName}", vis.mainSkeleton.AnimationName == "Skill20");
+            Check($"Chiêu Trảm Phong → anim {vis.mainSkeleton.AnimationName}", vis.mainSkeleton.AnimationName == Assets.Script.Player.AnimNames.Slash);
             yield return new WaitForSecondsRealtime(1f);
             vis.PlaySkill(1);
             string a1 = vis.mainSkeleton.AnimationName;

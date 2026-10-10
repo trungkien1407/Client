@@ -1,3 +1,4 @@
+using Assets.Script.Constants;
 using System.Collections.Generic;
 using Assets.Script.Data;
 using Assets.Script.UI.Kit;
@@ -56,8 +57,8 @@ namespace Assets.Script.UI.Windows
                 var curLv = s.Level(cur);
                 var next = s.Level(cur + 1);
                 string info = $"<b>{s.name}</b>  <color=#fd5>Cấp {cur}/{s.maxLevel}</color>\n<size=13><color=#bbb>{s.description}</color></size>\n";
-                bool passive = s.type == 2; // Nội Công Tâm Pháp: bị động, không đánh
-                bool support = s.type == 3; // GĐ8: hồi máu / tăng sức mạnh — hiện mô tả + MP + hồi chiêu
+                bool passive = s.type == (int)SkillType.Passive; // Nội Công Tâm Pháp: không đánh
+                bool support = s.type == (int)SkillType.Support; // hồi máu / tăng sức mạnh — hiện mô tả + MP + hồi chiêu
                 bool locked = next != null && next.levelRequire > GameData.Me.level; // GĐ7: chưa đủ cấp nhân vật
                 if (curLv != null) info += passive ? $"<size=14>Hiện tại: {curLv.info}</size>\n"
                     : support ? $"<size=14>Hiện tại: {curLv.info} · {curLv.manaUse} MP · hồi {curLv.coolDown / 1000f:0.#}s</size>\n"
@@ -76,7 +77,7 @@ namespace Assets.Script.UI.Windows
                     ((RectTransform)up.transform).Place(new Vector2(1, 1), new Vector2(1, 1), new Vector2(-8, -6), new Vector2(190, 34), new Vector2(1, 1));
                     up.interactable = GameData.Me.skillPoints > 0 && !locked;
                 }
-                if (cur > 0 && (s.type == 1 || s.type == 3)) // chiêu chủ động + chiêu hỗ trợ mới gán phím (bị động thì không)
+                if (cur > 0 && (s.type == (int)SkillType.Active || support)) // chiêu chủ động + chiêu hỗ trợ mới gán phím (bị động thì không)
                 {
                     for (int k = 0; k < 5; k++)
                     {

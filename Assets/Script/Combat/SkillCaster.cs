@@ -35,9 +35,9 @@ namespace Assets.Script.Combat
             if (local == null) return;
 
             // Chiêu hỗ trợ (hồi máu / tăng sức mạnh): lên bản thân + đồng đội gần, không cần mục tiêu
-            if (Data.GameData.Skills.TryGetValue(skillId, out var tpl) && tpl.type == 3)
+            if (Data.GameData.Skills.TryGetValue(skillId, out var tpl) && tpl.type == (int)SkillType.Support)
             {
-                Data.GameActions.UseSkill(skillId, 2, LocalPlayerState.Id);   // 2 = bản thân / nhóm
+                Data.GameActions.UseSkill(skillId, AttackTarget.Self, LocalPlayerState.Id);
                 Swing(local, skillId);
                 return;
             }
@@ -45,11 +45,11 @@ namespace Assets.Script.Combat
             ITargetable target = PickTarget(local.transform.position);
             if (target == null) { Swing(local, skillId); return; }
 
-            byte targetType;
+            AttackTarget targetType;
             switch (target.GetTargetType())
             {
-                case TargetType.Mob: targetType = 0; break;
-                case TargetType.Player: targetType = 1; break;
+                case TargetType.Mob: targetType = AttackTarget.Mob; break;
+                case TargetType.Player: targetType = AttackTarget.Player; break;
                 case TargetType.NPC:
                     Data.GameActions.NpcTalk(target.GetId());   // "đánh" NPC = nói chuyện (tiện cho điện thoại)
                     return;

@@ -44,8 +44,7 @@ namespace Assets.Script.UI
             if (_v != null && _v.gameObject.activeSelf != inGame) _v.gameObject.SetActive(inGame);
             if (!inGame) return;
 
-            var kb = Keyboard.current;
-            if (kb != null && !Combat.ChatBox.IsTyping && kb.fKey.wasPressedThisFrame) NpcNetwork.TalkToNearest();
+            if (Core.GameInput.Pressed(Core.GameKey.TalkNpc)) NpcNetwork.TalkToNearest();
 
             ConfirmWindow.Pump();
             UpdateBanner();
@@ -56,7 +55,7 @@ namespace Assets.Script.UI
             {
                 _shownZone = LocalPlayerState.ZoneId;
                 _shownMap = GameData.MapName;
-                string zone = _shownZone == 255 ? "Khu riêng" : $"Khu {_shownZone + 1}";
+                string zone = _shownZone == Constants.ZoneIds.Private ? "Khu riêng" : $"Khu {_shownZone + 1}";
                 _v.zoneBtn.SetLabel(string.IsNullOrEmpty(_shownMap) ? zone + " (đổi)" : $"{_shownMap} · {zone}"); // GĐ8: tên map
             }
         }
@@ -218,8 +217,8 @@ namespace Assets.Script.UI
             {
                 if (shown >= 3) break;
                 if (!GameData.Quests.TryGetValue(kv.Key, out var q)) continue;
-                int progress = q.type == 2 ? Mathf.Min(q.targetCount, GameData.CountItem(q.targetId)) : kv.Value[0];
-                bool done = kv.Value[1] == 1 || (q.type == 2 && progress >= q.targetCount);
+                int progress = q.type == (int)Constants.QuestType.Collect ? Mathf.Min(q.targetCount, GameData.CountItem(q.targetId)) : kv.Value[0];
+                bool done = kv.Value[1] == 1 || (q.type == (int)Constants.QuestType.Collect && progress >= q.targetCount);
                 string goal = q.type switch
                 {
                     0 => $"Hạ {GameData.MobName(q.targetId)} {progress}/{q.targetCount}",

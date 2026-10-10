@@ -59,7 +59,7 @@ namespace Assets.Script.UI.Windows
         protected override void Refresh()
         {
             UIKit.Clear(_grid);
-            if (_current == 255) { _info.text = "Bạn đang ở khu riêng (phó bản / lôi đài) — không đổi khu được."; return; }
+            if (_current == Constants.ZoneIds.Private) { _info.text = "Bạn đang ở khu riêng (phó bản / lôi đài) — không đổi khu được."; return; }
             _info.text = _zones.Count == 0 ? "Đang tải danh sách khu..." : $"Bạn đang ở khu {_current + 1}. Chọn khu khác:";
             foreach (var z in _zones)
             {

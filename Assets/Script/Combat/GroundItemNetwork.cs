@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Assets.Script.Core;
+using System.Collections.Generic;
 using System.Text;
 using Assets.Script.Constants;
 using Assets.Script.Manager;
@@ -21,8 +22,6 @@ namespace Assets.Script.Combat
     {
         private const float PickRadius = 1.2f;
         private const float PickRetrySeconds = 1.0f;
-        private const int HpPotionId = 1;
-        private const int MpPotionId = 2;
 
         private class GroundItem
         {
@@ -54,10 +53,8 @@ namespace Assets.Script.Combat
 
             AutoPick(local.transform.position);
 
-            var kb = Keyboard.current;
-            if (kb == null || ChatBox.IsTyping) return;
-            if (kb.qKey.wasPressedThisFrame) UseItem(HpPotionId);
-            if (kb.eKey.wasPressedThisFrame) UseItem(MpPotionId);
+            if (GameInput.Pressed(GameKey.PotionHp)) UseItem(ItemIds.HpPotion);
+            if (GameInput.Pressed(GameKey.PotionMp)) UseItem(ItemIds.MpPotion);
         }
 
         private void AutoPick(Vector3 playerPos)
@@ -130,8 +127,8 @@ namespace Assets.Script.Combat
             go.transform.position = pos;
             var sr = go.AddComponent<SpriteRenderer>();
             sr.sprite = _squareSprite;
-            sr.color = it.templateId == HpPotionId ? new Color(1f, 0.3f, 0.3f)
-                     : it.templateId == MpPotionId ? new Color(0.3f, 0.5f, 1f)
+            sr.color = it.templateId == ItemIds.HpPotion ? new Color(1f, 0.3f, 0.3f)
+                     : it.templateId == ItemIds.MpPotion ? new Color(0.3f, 0.5f, 1f)
                      : new Color(1f, 0.85f, 0.3f);
             sr.sortingOrder = 5;
 

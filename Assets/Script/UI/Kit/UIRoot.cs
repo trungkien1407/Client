@@ -85,10 +85,9 @@ namespace Assets.Script.UI.Kit
 
         private void Update()
         {
-            var kb = Keyboard.current;
-            if (kb == null || Assets.Script.Combat.ChatBox.IsTyping) return;
+            if (Core.GameInput.Blocked) return;
 
-            if (kb.escapeKey.wasPressedThisFrame)
+            if (Core.GameInput.Pressed(Core.GameKey.CloseWindow))
             {
                 // Đóng cửa sổ trên cùng đang mở
                 for (int i = WindowLayer.childCount - 1; i >= 0; i--)
@@ -99,7 +98,7 @@ namespace Assets.Script.UI.Kit
             }
 
             foreach (var w in _windows)
-                if (w.HotKey != Key.None && kb[w.HotKey].wasPressedThisFrame) w.Toggle();
+                if (Core.GameInput.Pressed(w.HotKey)) w.Toggle();
         }
     }
 }

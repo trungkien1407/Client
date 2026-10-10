@@ -82,15 +82,8 @@ namespace Assets.Script.Skill
 
         private void Update()
         {
-            // Lắng nghe sự kiện bấm phím cứng trên PC (Phím 1 -> 5)
-            if (Input.GetKeyDown(KeyCode.Alpha1)) SelectSlotAndUse(0);
-            if (Input.GetKeyDown(KeyCode.Alpha2)) SelectSlotAndUse(1);
-            if (Input.GetKeyDown(KeyCode.Alpha3)) SelectSlotAndUse(2);
-            if (Input.GetKeyDown(KeyCode.Alpha4)) SelectSlotAndUse(3);
-            if (Input.GetKeyDown(KeyCode.Alpha5)) SelectSlotAndUse(4);
-
-            // Nếu chơi trên PC, bấm Space để đánh chiêu đang chọn
-          //  if (Input.GetKeyDown(KeyCode.Space)) OnClickMainAttackButton();
+            // Phím 1 → 5 (GameInput: đang gõ chữ thì bỏ qua)
+            for (int i = 0; i < 5; i++) if (Core.GameInput.SkillSlot(i)) SelectSlotAndUse(i);
         }
 
         // Hàm đổi vùng chọn sang ô mới và dùng luôn

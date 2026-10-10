@@ -20,9 +20,9 @@ namespace Assets.Script.Player
         
 
         [Header("Settings")]
-        public string idleAnimation = "Idle";
-        public string walkAnimation = "Run";
-        public string jumpAnimation = "Jump";
+        public string idleAnimation = AnimNames.Idle;
+        public string walkAnimation = AnimNames.Run;
+        public string jumpAnimation = AnimNames.Jump;
         public string jumpFXAnimation = "play"; // Tên anim của cái Jump FX
         public bool isdead;
 
@@ -99,14 +99,14 @@ namespace Assets.Script.Player
         private static readonly HashSet<int> BasicSkills = new HashSet<int> { 1, 2, 3 };
         private static readonly Dictionary<int, string> SkillAnim = new Dictionary<int, string>
         {
-            { 6, "Skill20" },   // Trảm Phong (Đấu sĩ)
-            { 8, "Skill20" },   // Ám Sát (Sát thủ)
-            { 7, "Jutsu2" },    // Y Thuật: Hồi Phục
-            { 9, "Jutsu1" },    // Cổ Vũ
-            { 10, "Jutsu2" },   // Thiết Thể
-            { 11, "Jutsu1" },   // Ảnh Bộ
+            { 6, AnimNames.Slash },    // Trảm Phong (Đấu sĩ)
+            { 8, AnimNames.Slash },    // Ám Sát (Sát thủ)
+            { 7, AnimNames.Jutsu2 },   // Y Thuật: Hồi Phục
+            { 9, AnimNames.Jutsu1 },   // Cổ Vũ
+            { 10, AnimNames.Jutsu2 },  // Thiết Thể
+            { 11, AnimNames.Jutsu1 },  // Ảnh Bộ
         };
-        private static readonly string[] Combo = { "Punch_Combo", "Kick_Combo" };
+        private static readonly string[] Combo = { AnimNames.Punch, AnimNames.Kick };
         private int _comboStep;
 
         /// <summary>Diễn anim của chiêu skillId (bấm đánh, kể cả khi đòn không gửi lên server).</summary>
@@ -118,7 +118,7 @@ namespace Assets.Script.Player
                 if (PlayActionOnce(name, 0.45f)) return;
             }
             else if (PlayActionOnce(name, 0.8f)) return;
-            if (!PlayActionOnce("Jutsu1", 0.8f)) PlayActionOnce("Punch_Combo", 0.45f);
+            if (!PlayActionOnce(AnimNames.Jutsu1, 0.8f)) PlayActionOnce(AnimNames.Punch, 0.45f);
         }
 
         /// <summary>

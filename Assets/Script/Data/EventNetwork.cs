@@ -43,15 +43,15 @@ namespace Assets.Script.Data
             if (effect < 1 || effect >= EffectNames.Length) return;
 
             Transform t = null;
-            if (type == 1)
+            if (type == (int)AttackTarget.Player)
             {
                 if (id == LocalPlayerState.Id)
                 {
                     t = NetworkPlayerManager.Instance != null && NetworkPlayerManager.Instance.localPlayer != null
                         ? NetworkPlayerManager.Instance.localPlayer.transform : null;
-                    if (effect == 1) LocalPlayerState.StunnedUntil = Time.time + ms / 1000f;
-                    if (effect == 2) LocalPlayerState.SlowedUntil = Time.time + ms / 1000f;
-                    if (effect == 4) LocalPlayerState.BuffedUntil = Time.time + ms / 1000f;
+                    if (effect == (int)StatusEffect.Stun) LocalPlayerState.StunnedUntil = Time.time + ms / 1000f;
+                    if (effect == (int)StatusEffect.Slow) LocalPlayerState.SlowedUntil = Time.time + ms / 1000f;
+                    if (effect == (int)StatusEffect.Buff) LocalPlayerState.BuffedUntil = Time.time + ms / 1000f;
                 }
                 else
                 {

@@ -296,18 +296,18 @@ namespace Assets.Script.Player
             {
                 isJumping = false;
 
-                if (Mathf.Abs(rb.velocity.x) > 0.1f) visualCtrl.PlayAnimation("Run", true);
-                else visualCtrl.PlayAnimation("Idle", true);
+                if (Mathf.Abs(rb.velocity.x) > 0.1f) visualCtrl.PlayAnimation(AnimNames.Run, true);
+                else visualCtrl.PlayAnimation(AnimNames.Idle, true);
             }
             else
             {
                 if (isJumping)
                 {
-                    visualCtrl.PlayAnimation("Jump_Falling", true);
+                    visualCtrl.PlayAnimation(AnimNames.Fall, true);
                 }
                 else
                 {
-                    visualCtrl.PlayAnimation("Jump_Down", true);
+                    visualCtrl.PlayAnimation(AnimNames.FallDown, true);
                 }
             }
 
@@ -320,21 +320,15 @@ namespace Assets.Script.Player
         /// <summary>Gửi PLAYER_MOVE khi đổi trạng thái/hướng, lúc lên đỉnh cú nhảy, hoặc mỗi syncInterval nếu có di chuyển.</summary>
         void HandleNetworkSync()
         {
-            byte currentState = 0;
-
-            if (!isGrounded && !isOnWaterSurface)
-            {
-                if (rb.velocity.y > 0.1f) currentState = 2;
-                else currentState = 3;
-            }
-            else if (Mathf.Abs(rb.velocity.x) > 0.1f) currentState = 1;
-            else currentState = 0;
+            MoveState currentState;
+            if (!isGrounded && !isOnWaterSurface) currentState = rb.velocity.y > 0.1f ? MoveState.JumpUp : MoveState.Fall;
+            else currentState = Mathf.Abs(rb.velocity.x) > 0.1f ? MoveState.Run : MoveState.Idle;
 
             byte currentDir = (byte)(isFacingLeft ? 1 : 0);
             bool reachedApex = (!isGrounded && !isOnWaterSurface && lastVelocityY > 0 && rb.velocity.y <= 0);
             lastVelocityY = rb.velocity.y;
 
-            bool stateOrDirChanged = (currentState != lastSentState || currentDir != lastSentDir);
+            bool stateOrDirChanged = ((int)currentState != lastSentState || currentDir != lastSentDir);
             float sqrDist = ((Vector2)transform.position - lastSentPos).sqrMagnitude;
             bool positionChanged = sqrDist > MIN_MOVE_DIST_SQR;
 
@@ -344,13 +338,13 @@ namespace Assets.Script.Player
             }
         }
 
-        void SendMovePacket(byte state, byte dir)
+        void SendMovePacket(MoveState state, byte dir)
         {
             float sendY = transform.position.y;
             if (isGrounded || isOnWaterSurface) sendY += 0.05f;   // nhấc nhẹ khỏi mặt đất để server không coi là lún
             Assets.Script.Data.GameActions.Move(transform.position.x, sendY, dir, state);
 
-            lastSentState = state;
+            lastSentState = (int)state;
             lastSentDir = dir;
             lastSentPos = transform.position;
             lastSyncTime = Time.time;

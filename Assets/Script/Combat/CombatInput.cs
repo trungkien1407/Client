@@ -1,6 +1,6 @@
+using Assets.Script.Core;
 using Assets.Script.Player;
 using UnityEngine;
-using UnityEngine.InputSystem;
 using Assets.Script.Skill;
 
 namespace Assets.Script.Combat
@@ -20,10 +20,8 @@ namespace Assets.Script.Combat
 
             if (!_attackButtonHooked && Time.unscaledTime >= _nextHookTry) HookAttackButton();
 
-            var kb = Keyboard.current;
-            if (kb == null || ChatBox.IsTyping) return;
-            if (kb.jKey.wasPressedThisFrame) CastSelected();
-            if (kb.rKey.wasPressedThisFrame && LocalPlayerState.IsDead) SkillCaster.Revive();
+            if (GameInput.Pressed(GameKey.Attack)) CastSelected();
+            if (GameInput.Pressed(GameKey.Revive) && LocalPlayerState.IsDead) SkillCaster.Revive();
         }
 
         /// <summary>Đánh bằng chiêu đang chọn trên thanh phím tắt.</summary>

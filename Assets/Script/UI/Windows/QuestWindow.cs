@@ -62,17 +62,17 @@ namespace Assets.Script.UI.Windows
             foreach (var kv in GameData.MyQuests)
             {
                 if (!GameData.Quests.TryGetValue(kv.Key, out var q)) continue;
-                int progress = q.type == 2 ? Mathf.Min(q.targetCount, GameData.CountItem(q.targetId)) : kv.Value[0];
-                bool done = kv.Value[1] == 1 || (q.type == 2 && progress >= q.targetCount);
+                int progress = q.type == (int)Constants.QuestType.Collect ? Mathf.Min(q.targetCount, GameData.CountItem(q.targetId)) : kv.Value[0];
+                bool done = kv.Value[1] == 1 || (q.type == (int)Constants.QuestType.Collect && progress >= q.targetCount);
 
                 var sb = new StringBuilder();
                 sb.Append($"<b>{q.name}</b>  {(done ? "<color=#7f7>[Hoàn thành]</color>" : "")}\n");
                 sb.Append($"<size=14><color=#bbb>{q.description}</color></size>\n");
-                sb.Append(q.type switch
+                sb.Append((Constants.QuestType)q.type switch
                 {
-                    0 => $"Hạ {GameData.MobName(q.targetId)}: {progress}/{q.targetCount}",
-                    1 => $"Gặp {GameData.NpcName(q.targetId)}",
-                    2 => $"Thu thập {GameData.ItemName(q.targetId)}: {progress}/{q.targetCount}",
+                    Constants.QuestType.Kill => $"Hạ {GameData.MobName(q.targetId)}: {progress}/{q.targetCount}",
+                    Constants.QuestType.Talk => $"Gặp {GameData.NpcName(q.targetId)}",
+                    Constants.QuestType.Collect => $"Thu thập {GameData.ItemName(q.targetId)}: {progress}/{q.targetCount}",
                     _ => ""
                 });
                 string where = WhereOf(q.id);

@@ -37,11 +37,10 @@ namespace Assets.Script.Data
         // ---- Di chuyển / khu / chiến đấu ----
         /// <param name="dir">1 quay trái · 0 quay phải</param>
         /// <param name="state">0 đứng · 1 chạy · 2 nhảy lên · 3 rơi</param>
-        public static void Move(float x, float y, byte dir, byte state) => Send(Cmd.PLAYER_MOVE, w => { w.WriteFloat(x); w.WriteFloat(y); w.WriteByte(dir); w.WriteByte(state); });
+        public static void Move(float x, float y, byte dir, MoveState state) => Send(Cmd.PLAYER_MOVE, w => { w.WriteFloat(x); w.WriteFloat(y); w.WriteByte(dir); w.WriteByte((byte)state); });
         public static void ZoneListRequest() => Send(Cmd.ZONE_LIST_REQ, null);
         public static void ChangeZone(int zoneId) => Send(Cmd.CHANGE_ZONE, w => w.WriteByte((byte)zoneId));
-        /// <param name="targetType">0 quái · 1 người · 2 bản thân / nhóm (chiêu hỗ trợ)</param>
-        public static void UseSkill(int skillId, byte targetType, int targetId) => Send(Cmd.USE_SKILL, w => { w.WriteInt(skillId); w.WriteByte(targetType); w.WriteInt(targetId); });
+        public static void UseSkill(int skillId, AttackTarget target, int targetId) => Send(Cmd.USE_SKILL, w => { w.WriteInt(skillId); w.WriteByte((byte)target); w.WriteInt(targetId); });
         public static void Revive() => Send(Cmd.REVIVE, null);
         public static void PickItem(int groundItemId) => Send(Cmd.PICK_ITEM, w => w.WriteInt(groundItemId));
 

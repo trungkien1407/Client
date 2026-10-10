@@ -1,4 +1,5 @@
-﻿using Assets.Script.Entities;
+﻿using Assets.Script.Constants;
+using Assets.Script.Entities;
 using Assets.Script.Interfaces;
 using Assets.Script.Models;
 using Assets.Script.Player;
@@ -18,7 +19,7 @@ namespace Assets.Script.Player
 
         private Vector2 targetPos;
         private float moveSpeed;
-        private byte currentState = 0;
+        private MoveState currentState = MoveState.Idle;
 
         private const float TELEPORT_SQR_THRESHOLD = 25.0f;
 
@@ -62,13 +63,7 @@ namespace Assets.Script.Player
         {
             Vector2 newTarget = new Vector2(serverX, serverY);
 
-            // Bắt sự kiện vừa mới nhảy để bật FX
-            if (state == 2 && currentState != 2)
-            {
-                // visualCtrl?.PlayJumpFX();
-            }
-
-            currentState = state;
+            currentState = (MoveState)state;
 
             // Cập nhật hướng nhìn
             bool isLeft = (dir == 1);
@@ -109,10 +104,10 @@ namespace Assets.Script.Player
         {
             if (visualCtrl == null) return;
 
-            if (currentState == 1) visualCtrl.PlayAnimation("Run", true);
-            else if (currentState == 2 || currentState == 3) visualCtrl.PlayAnimation("Jump_Falling", true);
+            if (currentState == MoveState.Run) visualCtrl.PlayAnimation(AnimNames.Run, true);
+            else if (currentState == MoveState.JumpUp || currentState == MoveState.Fall) visualCtrl.PlayAnimation(AnimNames.Fall, true);
 
-            else visualCtrl.PlayAnimation("Idle", true);
+            else visualCtrl.PlayAnimation(AnimNames.Idle, true);
         }
 
         // ==========================================
