@@ -2,7 +2,7 @@
 {
     /// <summary>
     /// Bảng opcode — PHẢI khớp 100% với server: D:\Server\Server\src\main\java\com\server\constant\Cmd.java
-    /// Payload từng lệnh: xem docs/PROTOCOL.md (repo server).
+    /// Payload từng lệnh: xem docs/ky-thuat/PROTOCOL.md (repo server).
     /// C→S = client gửi lên, S→C = server gửi xuống.
     /// </summary>
     public static class Cmd

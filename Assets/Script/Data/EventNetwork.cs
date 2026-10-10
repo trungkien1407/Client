@@ -12,7 +12,7 @@ namespace Assets.Script.Data
 {
     /// <summary>
     /// GÓI THẾ GIỚI / SỰ KIỆN: hiệu ứng (choáng, chậm...), phó bản, sự kiện, Lôi đài, thông báo server, danh sách khu,
-    /// tên map + cổng, hoạt động hằng ngày, sổ tay nhiệm vụ, mẹo theo cấp. Payload: docs/PROTOCOL.md (repo server).
+    /// tên map + cổng, hoạt động hằng ngày, sổ tay nhiệm vụ, mẹo theo cấp. Payload: docs/ky-thuat/PROTOCOL.md (repo server).
     /// </summary>
     public class EventNetwork : NetworkListener
     {

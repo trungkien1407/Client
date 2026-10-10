@@ -12,7 +12,7 @@ namespace Assets.Script.Data
 {
     /// <summary>
     /// GÓI KINH TẾ: nâng cấp, rương, giao dịch, chợ, khảm ngọc, giftcode → ghi GameData + mở cửa sổ tương ứng.
-    /// Payload: docs/PROTOCOL.md (repo server). Lời mời giao dịch hiện ConfirmWindow, KHÔNG tự đồng ý.
+    /// Payload: docs/ky-thuat/PROTOCOL.md (repo server). Lời mời giao dịch hiện ConfirmWindow, KHÔNG tự đồng ý.
     /// </summary>
     public class EconomyNetwork : NetworkListener
     {

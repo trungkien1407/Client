@@ -5,7 +5,7 @@ namespace Assets.Script.Data
 {
     /// <summary>
     /// NƠI DUY NHẤT GỬI GÓI LÊN SERVER (C→S). Mọi lớp khác chỉ gọi các hàm này, không tự viết MessageWriter
-    /// hay gọi NetworkManager.Send → muốn biết client gửi gì, định dạng ra sao: đọc file này (khớp docs/PROTOCOL.md).
+    /// hay gọi NetworkManager.Send → muốn biết client gửi gì, định dạng ra sao: đọc file này (khớp docs/ky-thuat/PROTOCOL.md).
     /// Server kiểm tra hợp lệ rồi trả kết quả (INVENTORY, CHARACTER_INFO...).
     /// </summary>
     public static class GameActions

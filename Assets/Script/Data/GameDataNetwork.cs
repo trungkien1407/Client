@@ -10,7 +10,7 @@ namespace Assets.Script.Data
     /// Nhận các gói DỮ LIỆU (không phải hình ảnh) rồi ghi vào GameData + báo UI vẽ lại:
     /// GAME_DATA_ITEMS/SKILLS/QUESTS/MOBS/NPCS/EFFECTS (gói có thể đến từ bộ đệm trên máy — GameDataCache), CHARACTER_INFO, SKILL_LIST, INVENTORY, EQUIPMENT, QUEST_LIST/UPDATE, MONEY_UPDATE.
     /// (Các gói GĐ2–GĐ4: nâng cấp, rương, giao dịch, xã hội, sự kiện → SocialNetwork.)
-    /// Payload từng gói: xem docs/PROTOCOL.md (repo server).
+    /// Payload từng gói: xem docs/ky-thuat/PROTOCOL.md (repo server).
     /// </summary>
     public class GameDataNetwork : NetworkListener
     {

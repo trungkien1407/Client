@@ -12,7 +12,7 @@ namespace Assets.Script.Data
 {
     /// <summary>
     /// GÓI XÃ HỘI: PvP / tỉ thí, nhóm, bạn bè, thư, gia tộc, xếp hạng → ghi GameData.
-    /// Payload: docs/PROTOCOL.md (repo server). Lời mời (nhóm / bạn / tỉ thí / gia tộc) hiện ConfirmWindow, KHÔNG tự đồng ý.
+    /// Payload: docs/ky-thuat/PROTOCOL.md (repo server). Lời mời (nhóm / bạn / tỉ thí / gia tộc) hiện ConfirmWindow, KHÔNG tự đồng ý.
     /// </summary>
     public class SocialNetwork : NetworkListener
     {

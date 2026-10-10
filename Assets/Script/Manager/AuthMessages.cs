@@ -1,7 +1,7 @@
 namespace Assets.Script.Manager
 {
     /// <summary>
-    /// Mã trả về của LOGIN / REGISTER / CREATE_CHARACTER → lời báo cho người chơi. Bảng mã: docs/PROTOCOL.md (repo server).
+    /// Mã trả về của LOGIN / REGISTER / CREATE_CHARACTER → lời báo cho người chơi. Bảng mã: docs/ky-thuat/PROTOCOL.md (repo server).
     /// </summary>
     public static class AuthMessages
     {

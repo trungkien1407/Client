@@ -1,7 +1,7 @@
 namespace Assets.Script.Network
 {
     /// <summary>
-    /// ĐỊNH DẠNG GÓI DÙNG CHUNG cho nhiều Cmd — mỗi định dạng đọc ở ĐÚNG 1 hàm (khớp docs/PROTOCOL.md).
+    /// ĐỊNH DẠNG GÓI DÙNG CHUNG cho nhiều Cmd — mỗi định dạng đọc ở ĐÚNG 1 hàm (khớp docs/ky-thuat/PROTOCOL.md).
     /// Gói chỉ thuộc 1 Cmd thì đọc ngay trong hàm xử lý Cmd đó.
     /// </summary>
     public static class Packets

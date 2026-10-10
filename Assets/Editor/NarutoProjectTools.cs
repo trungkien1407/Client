@@ -64,7 +64,7 @@ public static class NarutoProjectTools
         new Plan("Assets/Prefabs/SasukeUI.prefab", GroupCharacters, "CharUI_3"),
 
         // ---- Maps (key phải là Map_<id> vì MapManager tải theo mapId server gửi) ----
-        // GĐ8: prefab dựng tự động bằng Tools/Naruto/6 (MapBuilder) từ thiết kế tools/map_design.py (repo server)
+        // Prefab map là nguồn dữ liệu: chỉnh trong Unity rồi Tools → Naruto → Map → 2 để xuất cho server
         new Plan("Assets/Prefabs/Maps/Map_1.prefab", GroupMaps, AddressKeys.Map(1)),
         new Plan("Assets/Prefabs/Maps/Map_2.prefab", GroupMaps, AddressKeys.Map(2)),
         new Plan("Assets/Prefabs/Maps/Map_3.prefab", GroupMaps, AddressKeys.Map(3)),
@@ -89,15 +89,12 @@ public static class NarutoProjectTools
 
     /// <summary>
     /// Entry rác sẽ bị GỠ khỏi Addressables (file KHÔNG bị xoá):
-    ///  - map_X.json: chỉ server đọc, client không tải → nằm trong bundle là thừa.
     ///  - EmptyMapTemplate / PortalPrefab: chỉ dùng khi dựng map trong Editor (portal đã nằm sẵn trong prefab map).
     ///  - SkillDatabase: scene đã kéo thẳng vào SkillBarManager → để Addressable nữa là bị nhân đôi.
     ///  - Cả group "Image": từng ảnh lẻ đã nằm trong atlas → bị đóng gói 2 lần.
     /// </summary>
     private static readonly string[] REMOVE =
     {
-        "Assets/MapData/map_1.json",
-        "Assets/MapData/map_2.json",
         "Assets/Prefabs/EmptyMapTemplate.prefab",
         "Assets/Prefabs/PortalPrefab.prefab",
         "Assets/SO/SkillDatabase.asset",
