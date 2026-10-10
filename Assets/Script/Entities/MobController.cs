@@ -51,8 +51,15 @@ namespace Assets.Script.Entities
             if (hpBarContainer != null) hpBarContainer.SetActive(false);
         }
 
-        public void Initialize(int id, short tempId, int hp, int max)
+        /// <summary>Hạng thật của con này (server gửi): 0 thường · 1 tinh anh · 2 thủ lĩnh — có thể cao hơn hạng của mẫu.</summary>
+        public int Rank { get; private set; }
+
+        /// <summary>Tinh anh / thủ lĩnh sinh ngẫu nhiên từ quái thường → to hơn cho dễ nhận ra.</summary>
+        private float RankScale => Data.GameData.Mobs.TryGetValue(templateId, out var t) && Rank > t.rank ? (Rank >= 2 ? 1.5f : 1.25f) : 1f;
+
+        public void Initialize(int id, short tempId, int hp, int max, int rank = 0)
         {
+            Rank = rank;
             this.mobId = id;
             this.templateId = tempId;
             this.currentHp = hp;
@@ -142,7 +149,7 @@ namespace Assets.Script.Entities
             int token = ++_loadToken;
             _visualData = fallback;
             _isReady = false;
-            float s = fallback != null && fallback.scale > 0 ? fallback.scale : 1f;
+            float s = (fallback != null && fallback.scale > 0 ? fallback.scale : 1f) * RankScale;
             transform.localScale = new Vector3(s, s, 1f);
             Core.AssetSource.Load<MobAnimSO>(MobAnimSO.Address(art), "MobAnim/" + MobAnimSO.Address(art), anim =>
             {
@@ -206,7 +213,7 @@ namespace Assets.Script.Entities
             }
             Data.GameData.Mobs.TryGetValue(templateId, out var tpl);
             string name = tpl != null ? tpl.name : (_visualData != null ? _visualData.mobName : $"Quái {templateId}");
-            int rank = tpl != null ? tpl.rank : 0;
+            int rank = Mathf.Max(Rank, tpl != null ? tpl.rank : 0);
             string rankTag = rank == 2 ? " [Thủ lĩnh]" : rank == 1 ? " [Tinh anh]" : "";
             _nameLabel.text = tpl != null ? $"{name} Lv{tpl.level}{rankTag}" : name;
             _nameLabel.color = rank == 2 ? new Color(1f, 0.35f, 0.3f) : rank == 1 ? new Color(1f, 0.85f, 0.3f) : Color.white;
@@ -229,7 +236,7 @@ namespace Assets.Script.Entities
             if (_placeholderSprite == null)
                 // ô 4x4 px, 4 px/đơn vị → đúng 1x1 đơn vị world, gốc ở giữa đáy (đứng trên mặt đất)
                 _placeholderSprite = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 4, 4), new Vector2(0.5f, 0f), 4f);
-            transform.localScale = Vector3.one;
+            transform.localScale = Vector3.one * RankScale;
             _spriteRenderer.sprite = _placeholderSprite;
             _spriteRenderer.color = new Color(0.6f, 0.3f, 0.8f, 0.85f);
             _isReady = true;
@@ -242,7 +249,7 @@ namespace Assets.Script.Entities
             _isReady = false;
             UseAnim(null);
             if (_spriteRenderer != null) _spriteRenderer.color = BaseColor;
-            float s = visualData != null && visualData.scale > 0 ? visualData.scale : 1f;
+            float s = (visualData != null && visualData.scale > 0 ? visualData.scale : 1f) * RankScale;
             transform.localScale = new Vector3(s, s, 1f);
 
             // Xóa dữ liệu cũ

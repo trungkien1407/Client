@@ -40,11 +40,12 @@ namespace Assets.Script.Network
             public int id, templateId, hp, maxHp;
             public float x, y;
             public bool dead;
+            public int rank;   // hạng thật: 0 thường · 1 tinh anh · 2 thủ lĩnh (quái thường có thể hồi sinh thành bản mạnh)
 
             public static MobInfo Read(MessageReader r) => new MobInfo
             {
                 id = r.ReadInt(), templateId = r.ReadInt(), x = r.ReadFloat(), y = r.ReadFloat(),
-                hp = r.ReadInt(), maxHp = r.ReadInt(), dead = r.ReadByte() != 0,
+                hp = r.ReadInt(), maxHp = r.ReadInt(), dead = r.ReadByte() != 0, rank = r.ReadByte(),
             };
         }
     }

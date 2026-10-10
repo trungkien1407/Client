@@ -34,11 +34,12 @@ namespace Assets.Script.Data
 
         private static readonly Color[] EffectColors = { Color.white, new Color(1f, 0.9f, 0.2f), new Color(0.4f, 0.8f, 1f), new Color(1f, 0.45f, 0.1f), new Color(0.5f, 1f, 0.5f) };
 
-        /// <summary>EFFECT: byte targetType(0 quái/1 người), int targetId, byte effect(1 choáng/2 chậm/3 bỏng/4 tăng sức mạnh — GĐ8), int durationMs</summary>
+        /// <summary>EFFECT: byte targetType(0 quái/1 người), int targetId, byte effect(1 choáng/2 chậm/3 bỏng/4 tăng sức mạnh), int durationMs, byte value (% chậm)</summary>
         private void OnEffect(byte[] data)
         {
             var r = new MessageReader(data);
             int type = r.ReadByte(), id = r.ReadInt(), effect = r.ReadByte(), ms = r.ReadInt();
+            int value = r.Available() > 0 ? r.ReadByte() : 30;   // % chậm (server cũ không gửi)
             r.Cleanup();
             if (effect < 1 || effect >= EffectNames.Length) return;
 
@@ -50,7 +51,7 @@ namespace Assets.Script.Data
                     t = NetworkPlayerManager.Instance != null && NetworkPlayerManager.Instance.localPlayer != null
                         ? NetworkPlayerManager.Instance.localPlayer.transform : null;
                     if (effect == (int)StatusEffect.Stun) LocalPlayerState.StunnedUntil = Time.time + ms / 1000f;
-                    if (effect == (int)StatusEffect.Slow) LocalPlayerState.SlowedUntil = Time.time + ms / 1000f;
+                    if (effect == (int)StatusEffect.Slow) { LocalPlayerState.SlowedUntil = Time.time + ms / 1000f; LocalPlayerState.SlowPercent = value; }
                     if (effect == (int)StatusEffect.Buff) LocalPlayerState.BuffedUntil = Time.time + ms / 1000f;
                 }
                 else

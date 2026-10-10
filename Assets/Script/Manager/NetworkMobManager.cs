@@ -103,7 +103,7 @@ namespace Assets.Script.Manager
                 for (int i = 0; i < count; i++)
                 {
                     var m = Packets.MobInfo.Read(reader);
-                    if (!m.dead) SpawnMob(m.id, (short)m.templateId, m.x, m.y, m.hp, m.maxHp);
+                    if (!m.dead) SpawnMob(m.id, (short)m.templateId, m.x, m.y, m.hp, m.maxHp, m.rank);
                 }
             }
             catch (Exception e) { Debug.LogError("Lỗi MOB_LIST: " + e.Message); }
@@ -123,7 +123,7 @@ namespace Assets.Script.Manager
             {
                 var m = Packets.MobInfo.Read(reader);
                 RemoveMob(m.id); // xác cũ còn nằm đó thì dọn trước
-                if (!m.dead) SpawnMob(m.id, (short)m.templateId, m.x, m.y, m.hp, m.maxHp);
+                if (!m.dead) SpawnMob(m.id, (short)m.templateId, m.x, m.y, m.hp, m.maxHp, m.rank);
             }
             catch (Exception e) { Debug.LogError("Lỗi MOB_ADD: " + e.Message); }
             finally { reader.Cleanup(); }
@@ -160,7 +160,7 @@ namespace Assets.Script.Manager
             if (activeMobs.TryGetValue(mobId, out var current) && current == mob) RemoveMob(mobId);
         }
 
-        public void SpawnMob(int mobId, short templateId, float x, float y, int hp, int maxHp)
+        public void SpawnMob(int mobId, short templateId, float x, float y, int hp, int maxHp, int rank = 0)
         {
             if (_mobDatabase == null) return;
 
@@ -176,7 +176,7 @@ namespace Assets.Script.Manager
             if (poolObj != null)
             {
                 // Nếu Pool có sẵn, Setup ngay lập tức không cần chờ Load
-                SetupMob(poolObj, mobId, templateId, x, y, hp, maxHp, visual);
+                SetupMob(poolObj, mobId, templateId, x, y, hp, maxHp, visual, rank);
             }
             else
             {
@@ -199,14 +199,14 @@ namespace Assets.Script.Manager
 
                     if (op.Status == AsyncOperationStatus.Succeeded)
                     {
-                        SetupMob(op.Result, mobId, templateId, x, y, hp, maxHp, visual);
+                        SetupMob(op.Result, mobId, templateId, x, y, hp, maxHp, visual, rank);
                     }
                 };
             }
         }
 
         // [MỚI] Tách riêng hàm Setup để dùng chung cho cả khi lấy từ Pool lẫn lúc mới Load xong
-        private void SetupMob(GameObject obj, int mobId, short templateId, float x, float y, int hp, int maxHp, MobVisualData visual)
+        private void SetupMob(GameObject obj, int mobId, short templateId, float x, float y, int hp, int maxHp, MobVisualData visual, int rank)
         {
             obj.transform.position = new Vector3(x, y, 0);
             obj.transform.SetParent(null); // Kéo ra khỏi PoolManager Transform
@@ -214,7 +214,7 @@ namespace Assets.Script.Manager
             MobController mob = obj.GetComponent<MobController>();
             if (mob != null)
             {
-                mob.Initialize(mobId, templateId, hp, maxHp);
+                mob.Initialize(mobId, templateId, hp, maxHp, rank);
                 // GĐ12: server chỉ định bộ hình (monster_template.art) → MobAnim; không có thì dòng MobDatabase / ô màu
                 if (Assets.Script.Data.GameData.Mobs.TryGetValue(templateId, out var tpl) && tpl.art >= 0) mob.SetArt(tpl.art, visual);
                 else if (visual != null) mob.SetVisual(visual);

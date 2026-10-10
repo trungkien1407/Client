@@ -212,7 +212,7 @@ namespace Assets.Script.Player
             if (isOnWaterSurface)
             {
                 rb.gravityScale = 0f;
-                rb.velocity = new Vector2(moveInput.x * moveSpeed, 0f);
+                rb.velocity = new Vector2(moveInput.x * moveSpeed * LocalPlayerState.SpeedFactor, 0f);
 
                 float offsetToFeet = rb.position.y - col.bounds.min.y;
                 rb.position = new Vector2(rb.position.x, waterSurfaceY + offsetToFeet - 0.05f);
@@ -220,7 +220,7 @@ namespace Assets.Script.Player
             else
             {
                 rb.gravityScale = baseGravity;
-                rb.velocity = new Vector2(moveInput.x * moveSpeed, rb.velocity.y);
+                rb.velocity = new Vector2(moveInput.x * moveSpeed * LocalPlayerState.SpeedFactor, rb.velocity.y);
             }
         }
 

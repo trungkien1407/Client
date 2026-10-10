@@ -29,8 +29,11 @@ namespace Assets.Script.Player
         /// <summary>Đang bị CHOÁNG tới thời điểm này (Time.time) — server gửi EFFECT; không di chuyển/đánh được.</summary>
         public static float StunnedUntil;
         public static bool IsStunned => UnityEngine.Time.time < StunnedUntil;
-        /// <summary>Đang bị LÀM CHẬM tới thời điểm này (chỉ để hiển thị; tốc độ thật do server kiểm).</summary>
+        /// <summary>Đang bị LÀM CHẬM tới thời điểm này, chậm SlowPercent % — server cũng giới hạn tốc độ theo đúng số này.</summary>
         public static float SlowedUntil;
+        public static int SlowPercent;
+        /// <summary>Hệ số tốc độ chạy (1 = bình thường) — khớp server StatusEffects.speedFactor.</summary>
+        public static float SpeedFactor => UnityEngine.Time.time < SlowedUntil ? UnityEngine.Mathf.Max(0.2f, 1f - SlowPercent / 100f) : 1f;
         public static float BuffedUntil;   // GĐ8: đang được tăng sức mạnh (Cổ Vũ / Thiết Thể / Ảnh Bộ)
         public static bool IsBuffed => UnityEngine.Time.time < BuffedUntil;
 

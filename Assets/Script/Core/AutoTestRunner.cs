@@ -73,6 +73,18 @@ namespace Assets.Script.Core
                     if (m.AppliedArt >= 0) withArt++;
                 Check($"Quái dùng bộ hình theo server (MobAnim): {withArt} con", withArt > 0);
             }
+            // Quái thường hồi sinh thành Thủ lĩnh (ngẫu nhiên khi hạ quái; GM /tinhanh để thử) → tên đỏ "[Thủ lĩnh]", to hơn
+            GameActions.Chat(1, "/tinhanh 2");
+            Assets.Script.Entities.MobController leader = null;
+            yield return WaitUntil(() =>
+            {
+                foreach (var m in UnityEngine.Object.FindObjectsByType<Assets.Script.Entities.MobController>(FindObjectsSortMode.None))
+                    if (m.Rank == 2 && !m.IsDead) { leader = m; return true; }
+                return false;
+            }, 5);
+            Check("GM /tinhanh 2 → thấy quái Thủ lĩnh (hạng 2, phóng to)", leader != null && leader.transform.localScale.x > 1.2f);
+            yield return Shot("LeaderMob");
+
             if (GameData.Effects.Count == 0) yield break;
             var me = NetworkPlayerManager.Instance.localPlayer.transform.position;
             int shown = 0;
