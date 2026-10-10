@@ -1,4 +1,5 @@
 using Assets.Script.Core;
+using Assets.Script.Data;
 using Assets.Script.UI.Kit;
 using TMPro;
 using UnityEngine;
@@ -17,6 +18,7 @@ namespace Assets.Script.UI.Windows
         // Nút [-] / [+] của 4 dòng (0 nhạc, 1 hiệu ứng, 2 FPS, 3 đồ hoạ)
         [SerializeField] private Button[] _minus = new Button[4], _plus = new Button[4];
         [SerializeField] private Button _tutorial;
+        [SerializeField, Optional] private Button _logout;   // prefab cũ chưa có → Bind() tự tạo
 
         protected override void Configure()
         {
@@ -34,7 +36,15 @@ namespace Assets.Script.UI.Windows
             var note = UIKit.Text("Note", body, "Điện thoại yếu / tiết kiệm pin: chọn 30 FPS + đồ hoạ thấp.", 13, TextAlignmentOptions.Center, UIKit.DimText);
             note.rectTransform.Place(new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 44), new Vector2(0, 30), new Vector2(0.5f, 0));
             _tutorial = UIKit.Button("Tutorial", body, "Xem hướng dẫn tân thủ", null, 15);
-            ((RectTransform)_tutorial.transform).Place(new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0, 4), new Vector2(240, 36), new Vector2(0.5f, 0));
+            _logout = UIKit.Button("Logout", body, "Đăng xuất", null, 15);
+            PlaceBottomButtons();
+        }
+
+        /// <summary>2 nút dưới cùng: [Hướng dẫn tân thủ] [Đăng xuất].</summary>
+        private void PlaceBottomButtons()
+        {
+            ((RectTransform)_tutorial.transform).Place(new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(-105, 4), new Vector2(200, 36), new Vector2(0.5f, 0));
+            ((RectTransform)_logout.transform).Place(new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(105, 4), new Vector2(200, 36), new Vector2(0.5f, 0));
         }
 
         protected override void Bind()
@@ -48,6 +58,13 @@ namespace Assets.Script.UI.Windows
             _minus[3].onClick.AddListener(() => SetQuality(-1));
             _plus[3].onClick.AddListener(() => SetQuality(1));
             _tutorial.onClick.AddListener(() => Get<TutorialWindow>().ShowFromStart());
+            if (_logout == null)   // prefab xuất trước khi có nút này
+            {
+                _logout = UIKit.Button("Logout", Body, "Đăng xuất", null, 15);
+                PlaceBottomButtons();
+            }
+            _logout.onClick.AddListener(() =>
+                ConfirmWindow.Ask("Đăng xuất về màn hình đăng nhập?", "Đăng xuất", () => { Hide(); GameActions.Logout(); }));
         }
 
         /// <summary>Dựng 1 dòng: nhãn · [a] · giá trị · [b]. Hai nút lưu vào _minus[row] / _plus[row]; trả về ô giá trị.</summary>

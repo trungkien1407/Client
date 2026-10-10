@@ -26,6 +26,8 @@ namespace Assets.Script.Data
         public static void CreateCharacter(string name, int classId) => Send(Cmd.CREATE_CHARACTER, w => { w.WriteUTF(name); w.WriteByte((byte)classId); });
         /// <summary>Đã tải xong map / đổi khu xong → server cho vào khu và gửi người, quái, NPC.</summary>
         public static void ClientReady() => Send(Cmd.CLIENT_READY, null);
+        /// <summary>Đăng xuất: server lưu + đưa khỏi map rồi trả LOGOUT 0 → GameDisconnectHandler về màn đăng nhập.</summary>
+        public static void Logout() => Send(Cmd.LOGOUT, null);
         /// <summary>Giữ kết nối (server ngắt nếu 60 giây không nhận gói nào).</summary>
         public static void Heartbeat() => Send(Cmd.HEARTBEAT, null);
         /// <summary>Xin các gói dữ liệu tĩnh (GAME_DATA_*) chưa có / đã cũ: byte n, [short cmd] x n.</summary>

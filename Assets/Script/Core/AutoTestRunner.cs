@@ -507,6 +507,23 @@ namespace Assets.Script.Core
                 yield return new WaitForSecondsRealtime(1.5f);
                 Check("Sau khi đăng nhập lại HUD hiện lại", hudCanvas != null && hudCanvas.activeSelf);
                 yield return Shot("Relogin");
+
+                // 8. Đăng xuất (Cài đặt → Đăng xuất): server lưu + trả LOGOUT 0 → về màn đăng nhập → vào lại được
+                var settings = GameWindow.Get<SettingsWindow>();
+                settings.Show();
+                yield return null;
+                bool hasLogout = false;
+                foreach (var b in settings.GetComponentsInChildren<UnityEngine.UI.Button>(true)) if (b.name == "Logout") hasLogout = true;
+                Check("Cửa sổ Cài đặt có nút Đăng xuất", hasLogout);
+                settings.Hide();
+                GameActions.Logout();
+                yield return WaitUntil(() => LocalPlayerState.Id < 0, 10);
+                Check("Đăng xuất → dọn phiên + báo đã đăng xuất", LocalPlayerState.Id < 0 && (PopupAndLoad.Instance?.LastMessage ?? "").Contains("đăng xuất"));
+                yield return new WaitForSecondsRealtime(2f);
+                var auth3 = FindAnyObjectByType<GameAuthManager>();
+                if (auth3 != null) auth3.AutoLogin(Arg("-user", "clientbot"), Arg("-pass", "test1234"));
+                yield return WaitUntil(() => NetworkPlayerManager.Instance?.localPlayer != null && LocalPlayerState.Id >= 0, 25);
+                Check("Sau đăng xuất đăng nhập lại vào map", NetworkPlayerManager.Instance?.localPlayer != null && LocalPlayerState.Id >= 0);
             }
 
             Check("Không có Exception trong suốt phiên", _exceptions == 0);

@@ -24,10 +24,10 @@ namespace Assets.Script.Network
         public event Action<string> OnConnectionFailed;
         public event Action OnDisconnected;
 
-        // Cờ xử lý Thread-Safe
-        private bool _isConnectionSuccessPending = false;
-        private string _connectionErrorPending = "";
-        private bool _isDisconnectedPending = false;
+        // Cờ luồng mạng → luồng chính (Update đọc): volatile để luồng chính thấy ngay giá trị mới
+        private volatile bool _isConnectionSuccessPending = false;
+        private volatile string _connectionErrorPending = "";
+        private volatile bool _isDisconnectedPending = false;
 
         void Awake()
         {
