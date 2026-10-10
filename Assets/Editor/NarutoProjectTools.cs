@@ -52,7 +52,7 @@ public static class NarutoProjectTools
         new Plan("Assets/SO/MobDatabase.asset",       GroupCore, "DB/MobDatabase"),
         new Plan("Assets/SO/NpcDatabase.asset",       GroupCore, "DB/NpcDatabase"),
 
-        // ---- Characters: hệ 1 Naruto (Kiếm) · 2 Sakura (Tiêu) · 3 Sasuke (Hoả) ----
+        // ---- Characters: hệ 1 Đấu sĩ (Naruto) · 2 Hỗ trợ (Sakura) · 3 Sát thủ (Sasuke) ----
         new Plan("Assets/Character/Naruto/Naruto_SkeletonData.asset", GroupCharacters, AddressKeys.CharacterSkeleton(1)),
         new Plan("Assets/Character/Sakura/Sakura_SkeletonData.asset", GroupCharacters, AddressKeys.CharacterSkeleton(2)),
         new Plan("Assets/Character/Sasuke/Sasuke_SkeletonData.asset", GroupCharacters, AddressKeys.CharacterSkeleton(3)),

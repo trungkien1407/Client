@@ -27,7 +27,7 @@ namespace Assets.Script.Core
 
         /// <summary>
         /// Map nào mượn hình map khác thì thêm dòng ở đây (VD "15 => 2"). Từ GĐ8 mọi map 1–14 đều có prefab riêng
-        /// (Assets/Prefabs/Maps/Map_N.prefab, dựng bằng Tools/Naruto/6 từ thiết kế tools/map_design.py bên repo server).
+        /// (Assets/Prefabs/Maps/Map_N.prefab, chỉnh trong Unity rồi xuất cho server bằng Tools → Naruto → Map → 2).
         /// </summary>
         private static int MapArt(int mapId) => mapId switch
         {

@@ -4,7 +4,7 @@ namespace Assets.Script.Map
 {
     /// <summary>
     /// Chỗ sinh 1 con quái (vị trí = chân quái; quái đi tuần quanh đây nên mặt đất ±3 ô nên bằng phẳng).
-    /// templateId = id quái trong DB (mob_template). respawnTime: mili giây hồi sinh, 0 = không hồi (phó bản).
+    /// templateId = id quái trong DB (monster_template). respawnTime: mili giây hồi sinh, 0 = không hồi (phó bản).
     /// </summary>
     public class MapMobSpot : MonoBehaviour
     {

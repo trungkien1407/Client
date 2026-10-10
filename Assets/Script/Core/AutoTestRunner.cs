@@ -282,7 +282,7 @@ namespace Assets.Script.Core
             yield return new WaitForSecondsRealtime(1.5f);
             Check("Bấm đánh không lỗi", _exceptions == before);
 
-            // 5b. GĐ8 — thế giới mới (map dựng từ tools/map_design.py): tên map (MAP_INFO), chữ chỉ đường ở cổng,
+            // 5b. GĐ8 — thế giới mới (14 map prefab): tên map (MAP_INFO), chữ chỉ đường ở cổng,
             //     dịch chuyển qua vài map để chụp ảnh kiểm tra bằng mắt.
             Check($"Nhận MAP_INFO → biết tên map đang đứng ({GameData.MapName})", !string.IsNullOrEmpty(GameData.MapName));
             Check("Có chữ chỉ đường ở cổng (PortalMarker)", GameObject.Find("PortalMarker") != null);

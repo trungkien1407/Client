@@ -7,7 +7,7 @@ using UnityEngine.AddressableAssets;
 
 /// <summary>
 /// ĐỒNG BỘ CẤU HÌNH HÌNH ẢNH với nội dung server (db/patch_gd1_content.sql).
-/// Menu: Tools/Naruto/5. Cấu hình hình ảnh quái & NPC (GĐ1)
+/// Menu: Tools/Naruto/5. Cấu hình hình ảnh quái & NPC
 ///
 /// Vì client mới có 2 bộ hình quái ("0_*", "3_*") và 1 hình NPC, nhiều loại dùng chung hình.
 /// [CẦN ĐIỀN khi có art mới] vẽ sprite "<key>_0.._3" vào atlas quái rồi sửa bảng MOBS bên dưới
@@ -63,7 +63,7 @@ public static class ContentSetupTool
         (10, "Chủ Chợ", "TsunadeBody", "tsunadeLeg"),   // GĐ9 — chợ ở 3 làng
     };
 
-    [MenuItem("Tools/Naruto/5. Cấu hình hình ảnh quái & NPC (GĐ1)", priority = 5)]
+    [MenuItem("Tools/Naruto/5. Cấu hình hình ảnh quái & NPC", priority = 5)]
     public static void Apply()
     {
         var mobDb = AssetDatabase.LoadAssetAtPath<MobDatabaseSO>("Assets/SO/MobDatabase.asset");

@@ -10,7 +10,7 @@ using UnityEngine;
 using UnityEngine.Tilemaps;
 
 /// <summary>
-/// PREFAB MAP LÀ NGUỒN DỮ LIỆU (thay tools/map_design.py + tool 6). Map chỉnh tay trong Assets/Prefabs/Maps/Map_N.prefab:
+/// PREFAB MAP LÀ NGUỒN DỮ LIỆU. Map chỉnh tay trong Assets/Prefabs/Maps/Map_N.prefab:
 ///   va chạm = Tilemap Ground (đặc, 1) · Platform (bục 1 chiều, 3) · Water (nước, 2); Decor không va chạm
 ///   NPC / quái / cổng = điểm MapNpcSpot / MapMobSpot / MapPortalSpot (con của "Spots"); MapInfo ở gốc: id, tên, khung, chỗ xuất hiện
 /// Menu Tools → Naruto → Map:
@@ -141,13 +141,13 @@ public static class MapDataTool
         return n;
     }
 
-    /// <summary>Cùng định dạng tools/map_design.py — server: MapManager đọc, world/Map dựng lưới va chạm.</summary>
+    /// <summary>Định dạng data/maps/map_N.json — server: MapManager đọc, world/Map dựng lưới va chạm.</summary>
     private static JObject Export(Transform root, MapInfo info, List<string> warn)
     {
         string tag = $"map {info.mapId} {info.mapName}";
         int w = info.width, h = info.height;
         var coll = new byte[w, h];
-        // Thứ tự giống map_design: đặc / bục trước, nước sau (nước đè)
+        // Thứ tự: đặc / bục trước, nước sau (nước đè)
         Mark(root, "Ground", 1, coll, w, h, warn, tag);
         Mark(root, "Platform", 3, coll, w, h, warn, tag);
         Mark(root, "Water", 2, coll, w, h, warn, tag);

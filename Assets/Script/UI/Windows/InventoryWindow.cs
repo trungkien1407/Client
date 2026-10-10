@@ -15,7 +15,7 @@ namespace Assets.Script.UI.Windows
     ///  - Nút theo ngữ cảnh: Dùng / Mặc / Bán (đang mở shop) / Cất (đang mở rương) / Đưa vào GD (đang giao dịch).
     /// Mọi thao tác chỉ GỬI yêu cầu kèm bagIndex; server trả INVENTORY/EQUIPMENT mới → cửa sổ tự vẽ lại.
     ///
-    /// [CẦN ĐIỀN khi có icon] hiện mỗi ô chỉ ghi tên vật phẩm. Có atlas icon thì gán Image theo ItemTpl.iconId.
+    /// Mỗi ô vẽ bằng ItemIcon (hình theo số qua ImageBank, xem docs/ky-thuat/TAI_NGUYEN.md).
     /// </summary>
     public class InventoryWindow : GameWindow
     {
