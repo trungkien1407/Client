@@ -20,6 +20,17 @@ namespace Assets.Script.Manager
 
             // 2. Lắng nghe gói tin xác nhận Đăng xuất từ Server
             NetworkEventDispatcher.Instance.AddHandler(Cmd.LOGOUT, OnLogoutResponse);
+            // 3. LOGIN mã 5 = tài khoản vừa đăng nhập ở máy khác → server sắp ngắt phiên này: ghi lý do để hiện thay cho "mất kết nối"
+            NetworkEventDispatcher.Instance.AddHandler(Cmd.LOGIN, OnLoginWhileInGame);
+        }
+
+        private void OnLoginWhileInGame(byte[] data)
+        {
+            if (data == null || data.Length < 2) return;
+            var r = new MessageReader(data);
+            short status = r.ReadShort();
+            r.Cleanup();
+            if (status == 5) Assets.Script.Data.GameData.KickReason = AuthMessages.KickedByOtherLogin;
         }
 
         private void OnLogoutResponse(byte[] data)
@@ -102,6 +113,7 @@ namespace Assets.Script.Manager
             if (NetworkEventDispatcher.Instance != null)
             {
                 NetworkEventDispatcher.Instance.RemoveHandler(Cmd.LOGOUT, OnLogoutResponse);
+                NetworkEventDispatcher.Instance.RemoveHandler(Cmd.LOGIN, OnLoginWhileInGame);
             }
         }
     }

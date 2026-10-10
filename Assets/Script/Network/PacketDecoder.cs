@@ -6,6 +6,9 @@ namespace Assets.Script.Network
 {
     public class PacketDecoder
     {
+        /// <summary>Gói server → client lớn nhất chấp nhận (gói dữ liệu tĩnh lớn nhất chỉ vài chục KB).</summary>
+        public const int MaxFrame = 1024 * 1024;
+
         public struct Packet
         {
             public short cmd;
@@ -23,6 +26,12 @@ namespace Assets.Script.Network
                 byte[] lengthBytes = byteList.GetRange(0, 4).ToArray();
                 if (BitConverter.IsLittleEndian) Array.Reverse(lengthBytes); // C# đọc Big-Endian từ Java gửi về
                 int length = BitConverter.ToInt32(lengthBytes, 0);
+                if (length < 2 || length > MaxFrame)
+                {
+                    Debug.LogError($"[Network] Khung tin hỏng (độ dài {length}) — bỏ bộ đệm");
+                    byteList.Clear();
+                    break;
+                }
 
                 // Kiểm tra xem buffer đã nhận đủ độ dài gói chưa (4 byte length + số byte nội dung)
                 if (byteList.Count >= 4 + length)

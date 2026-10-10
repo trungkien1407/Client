@@ -59,8 +59,8 @@ namespace Assets.Script.Network
         // Tương đương với DataInputStream.readUTF() bên Java
         public string ReadUTF()
         {
-            short length = ReadShort();
-            if (length <= 0) return "";
+            int length = (ushort)ReadShort(); // Java ghi độ dài không dấu 0..65535 → đọc short có dấu sẽ ra số âm khi > 32767
+            if (length == 0) return "";
             byte[] stringBytes = br.ReadBytes(length);
             return Encoding.UTF8.GetString(stringBytes);
         }

@@ -11,10 +11,12 @@ namespace Assets.Script.Manager
         /// </summary>
         public static string Login(short status, int extra, string note) => status switch
         {
+            2 => "Tài khoản từ 4 ký tự và mật khẩu không được để trống.",
             3 => extra == 0 ? "Sai mật khẩu 5 lần. Tài khoản tạm khoá đăng nhập trên máy này 5 phút."
                 : extra > 0 ? $"Sai tài khoản hoặc mật khẩu. Còn {extra} lần thử."
                 : "Sai tài khoản hoặc mật khẩu",
             4 => "Tài khoản đang đăng nhập ở nơi khác",
+            5 => KickedByOtherLogin,
             6 => "Tài khoản đã bị khoá. Liên hệ quản trị viên.",
             7 => "Máy chủ đã đầy. Vui lòng thử lại sau ít phút.",
             8 => $"Mạng của bạn đăng nhập quá nhiều lần. Đợi {WaitText(extra)} rồi thử lại.",
@@ -25,12 +27,16 @@ namespace Assets.Script.Manager
             _ => "Lỗi máy chủ!"
         };
 
-        public static string Register(short status) => status switch
+        /// <summary>Phiên đang chơi bị đá vì tài khoản vừa đăng nhập ở máy khác (LOGIN mã 5 gửi cho phiên cũ).</summary>
+        public const string KickedByOtherLogin = "Tài khoản vừa đăng nhập ở nơi khác. Bạn đã bị đưa ra khỏi game.";
+
+        /// <summary>REGISTER (status ≠ 0). {extra}: số giây phải đợi (mã 4), -1 nếu server không gửi.</summary>
+        public static string Register(short status, int extra = -1) => status switch
         {
             1 => "Tài khoản từ 4 ký tự, mật khẩu từ 6 ký tự.",
             2 => "Tài khoản hoặc email đã được dùng!",
             3 => "Email không hợp lệ.",
-            4 => "Mạng của bạn thử quá nhiều lần. Đợi ít phút rồi thử lại.",
+            4 => $"Mạng của bạn thử quá nhiều lần. Đợi {WaitText(extra)} rồi thử lại.",
             5 => "Bản cài đặt đã cũ. Vui lòng cập nhật game lên phiên bản mới nhất!",
             6 => "Máy chủ đang bảo trì, tạm chưa đăng ký được. Vui lòng quay lại sau.",
             _ => "Lỗi máy chủ!"

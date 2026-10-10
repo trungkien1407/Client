@@ -39,7 +39,10 @@ namespace Assets.Script.Core
                 Addressables.Release(locs);
                 if (loc != null)
                     Addressables.LoadAssetAsync<T>(loc).Completed += h =>
-                        Finish(address, h.Status == AsyncOperationStatus.Succeeded ? h.Result : null, resourcesPath);
+                    {
+                        if (h.Status == AsyncOperationStatus.Succeeded && h.Result != null) Finish(address, h.Result);
+                        else FromResources<T>(address, resourcesPath); // có địa chỉ nhưng tải hỏng → thử Resources trước khi chịu thua
+                    };
                 else
                     FromResources<T>(address, resourcesPath);
             };
@@ -47,15 +50,13 @@ namespace Assets.Script.Core
 
         private static void FromResources<T>(string address, string resourcesPath) where T : Object
         {
-            if (string.IsNullOrEmpty(resourcesPath)) { Finish(address, null, null); return; }
+            if (string.IsNullOrEmpty(resourcesPath)) { Finish(address, null); return; }
             var req = Resources.LoadAsync<T>(resourcesPath);
-            req.completed += _ => Finish(address, req.asset, null);
+            req.completed += _ => Finish(address, req.asset);
         }
 
-        private static void Finish(string address, Object asset, string retryResources)
+        private static void Finish(string address, Object asset)
         {
-            // Addressables có địa chỉ nhưng tải hỏng → thử Resources trước khi chịu thua
-            if (asset == null && retryResources != null) { var req = Resources.LoadAsync(retryResources); req.completed += _ => Finish(address, req.asset, null); return; }
             if (asset != null) Loaded[address] = asset; else Missing.Add(address);
             if (Pending.TryGetValue(address, out var cb)) { Pending.Remove(address); cb?.Invoke(asset); }
         }

@@ -17,6 +17,7 @@ namespace Assets.Script.Manager
         private static bool _hasAppBooted = false;
 
         private bool _isServerConnected = false;
+        private bool _connectFailed;   // đã báo lỗi kết nối (từ NetworkManager) → khỏi chờ hết giờ
 
         void Awake()
         {
@@ -153,10 +154,11 @@ namespace Assets.Script.Manager
                 NetworkManager.Instance.OnConnectedSuccessfully += HandleServerConnected;
                 NetworkManager.Instance.OnConnectionFailed += HandleConnectionFailed;
 
+                _connectFailed = false;
                 NetworkManager.Instance.Connect(GameConfig.SocketHost, GameConfig.SocketPort);
 
                 float timer = 0;
-                while (!_isServerConnected && timer < GameConfig.ConnectionTimeout)
+                while (!_isServerConnected && !_connectFailed && timer < GameConfig.ConnectionTimeout)
                 {
                     timer += Time.deltaTime;
                     yield return null;
@@ -164,7 +166,7 @@ namespace Assets.Script.Manager
 
                 if (!_isServerConnected)
                 {
-                    HandleConnectionFailed("Không thể kết nối tới máy chủ (Timeout)");
+                    if (!_connectFailed) HandleConnectionFailed("Không thể kết nối tới máy chủ (Timeout)");
                     yield break;
                 }
             }
@@ -187,6 +189,7 @@ namespace Assets.Script.Manager
         private void HandleConnectionFailed(string error)
         {
             _isServerConnected = false;
+            _connectFailed = true;
             PopupAndLoad.Instance.HidePopup();
             PopupAndLoad.Instance.ShowPopup("Lỗi kết nối: " + error);
         }

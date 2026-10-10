@@ -264,9 +264,10 @@ namespace Assets.Script.Manager
             PopupAndLoad.Instance.HidePopup();
             var r = new MessageReader(data);
             short status = r.ReadShort();
+            int extra = status == 4 && r.Available() >= 4 ? r.ReadInt() : -1; // mã 4 kèm số giây phải đợi
             r.Cleanup();
             if (status == 0) PopupAndLoad.Instance.ShowPopup("Đăng ký thành công!", () => SwitchPanel(loginPanel));
-            else PopupAndLoad.Instance.ShowPopup(AuthMessages.Register(status));
+            else PopupAndLoad.Instance.ShowPopup(AuthMessages.Register(status, extra));
         }
 
         private void Enter(MessageReader r)

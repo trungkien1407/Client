@@ -86,7 +86,7 @@ namespace Assets.Script.Player
 
             this.baseMoveSpeed = myData.moveSpeed > 0 ? myData.moveSpeed : 6f;
             this.jumpForce = myData.jumpForce > 0 ? myData.jumpForce : 15f;
-            this.baseGravity = myData.gravity > 0 ? myData.gravity : 3.5f;
+            this.baseGravity = myData.gravity > 0 ? myData.gravity : 3f; // khớp GamePlayConfig.DEFAULT_GRAVITY bên server
 
             this.moveSpeed = baseMoveSpeed;
 
@@ -190,7 +190,7 @@ namespace Assets.Script.Player
 
         void OnJump()
         {
-            if (isDead || Assets.Script.Combat.ChatBox.IsTyping) return;
+            if (isDead || Assets.Script.Combat.ChatBox.IsTyping || Assets.Script.Player.LocalPlayerState.IsStunned) return;
             if (isGrounded || isOnWaterSurface || isInWater)
             {
                 if (isOnWaterSurface)

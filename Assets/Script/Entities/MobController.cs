@@ -213,10 +213,13 @@ namespace Assets.Script.Entities
             }
             Data.GameData.Mobs.TryGetValue(templateId, out var tpl);
             string name = tpl != null ? tpl.name : (_visualData != null ? _visualData.mobName : $"Quái {templateId}");
-            int rank = Mathf.Max(Rank, tpl != null ? tpl.rank : 0);
-            string rankTag = rank == 2 ? " [Thủ lĩnh]" : rank == 1 ? " [Tinh anh]" : "";
+            int tplRank = tpl != null ? tpl.rank : 0;
+            int rank = Mathf.Max(Rank, tplRank);
+            // Boss của mẫu (Cóc Chúa, Nhện Chúa...) ghi [Boss]; quái thường được nâng ngẫu nhiên ghi [Thủ lĩnh] / [Tinh anh]
+            bool boss = tplRank >= 2;
+            string rankTag = boss ? " [Boss]" : rank == 2 ? " [Thủ lĩnh]" : rank == 1 ? " [Tinh anh]" : "";
             _nameLabel.text = tpl != null ? $"{name} Lv{tpl.level}{rankTag}" : name;
-            _nameLabel.color = rank == 2 ? new Color(1f, 0.35f, 0.3f) : rank == 1 ? new Color(1f, 0.85f, 0.3f) : Color.white;
+            _nameLabel.color = boss ? new Color(0.85f, 0.45f, 1f) : rank == 2 ? new Color(1f, 0.35f, 0.3f) : rank == 1 ? new Color(1f, 0.85f, 0.3f) : Color.white;
 
             _nameLabel.transform.localPosition = new Vector3(0, TopY + 0.35f, 0);
         }
