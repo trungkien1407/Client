@@ -12,9 +12,9 @@ namespace Assets.Script.Models
         public int level;
         public long exp;
 
-        public int yen;
-        public int xu;
-        public int luong;
+        public long yen;
+        public long xu;
+        public long luong;
 
         public int hp;
         public int mp;

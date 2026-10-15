@@ -15,6 +15,7 @@
         public const short LOGOUT = 3;
         public const short HEARTBEAT = 4;           // C→S giữ kết nối (server kick nếu im > 60s)
         public const short CREATE_CHARACTER = 5;
+        public const short CHANGE_PASSWORD = 8;     // C→S UTF cũ, UTF mới · S→C short status (0 xong · 1 mới sai độ dài · 2 sai cũ + int còn thử · 3 đợi + int giây · -1 lỗi)
         public const short CLIENT_ERROR = 6;        // C→S UTF version, UTF platform, UTF message, UTF stack — Core/ErrorReporter gửi khi game gặp lỗi
         public const short SERVER_NOTICE = 7;       // S→C byte type(1 thông báo/2 đếm ngược bảo trì/3 huỷ bảo trì/4 bị đưa ra vì bảo trì), int secs, UTF text
 
@@ -69,9 +70,9 @@
         public const short OPEN_SHOP = 308;
         public const short SHOP_DATA = 309;         // S→C int npcId, short n, [int itemId, int price, byte currency(0 yên/1 xu/2 lượng)]
         public const short BUY_ITEM = 310;          // C→S int npcId, int itemId, int qty
-        public const short SELL_ITEM = 311;         // C→S int bagIndex, int qty
-        public const short PLAYER_STATS = 312;      // S→C int maxHp, int maxMp, int hp, int mp, int bonusDamage, int yen
-        public const short MONEY_UPDATE = 313;      // S→C int yen, int xu, int luong
+        public const short SELL_ITEM = 311;         // C→S int npcId, int bagIndex, int qty (phải đứng gần NPC)
+        public const short PLAYER_STATS = 312;      // S→C int maxHp, int maxMp, int hp, int mp, int bonusDamage, long yen
+        public const short MONEY_UPDATE = 313;      // S→C long yen, long xu, long luong
         public const short BAG_SORT = 314;          // C→S (rỗng) sắp xếp + gộp túi
         // ---- GĐ2: nâng cấp / rương / giao dịch ----
         public const short UPGRADE_OPEN = 320;      // S→C bảng tỉ lệ (xem EconomyNetwork.OnUpgradeOpen)

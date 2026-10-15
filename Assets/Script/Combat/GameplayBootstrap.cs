@@ -28,6 +28,7 @@ namespace Assets.Script.Combat
             go.AddComponent<Assets.Script.Data.SocialNetwork>();   // PvP, nhóm, bạn bè, thư, gia tộc, xếp hạng
             go.AddComponent<Assets.Script.Data.EventNetwork>();    // hiệu ứng, phó bản, sự kiện, khu, tên map, hoạt động, mẹo
             go.AddComponent<Assets.Script.Data.NpcNetwork>();      // nói chuyện NPC: hộp thoại, cửa hàng
+            go.AddComponent<Assets.Script.Data.AccountNetwork>();  // đổi mật khẩu
             go.AddComponent<Assets.Script.UI.GameHud>();           // thanh EXP, nút menu, tiền, banner, khung sự kiện
             go.AddComponent<Assets.Script.UI.MobileControls>();    // joystick + nút ảo (chỉ hiện trên máy cảm ứng)
         }

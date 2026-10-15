@@ -234,7 +234,7 @@ namespace Assets.Script.UI.Windows
             else if (GameData.BagAt(SelectedIndex) != null) { GameActions.Equip(SelectedIndex); SelectedIndex = -1; }
         }
 
-        private void OnSell() { if (GameData.BagAt(SelectedIndex) != null) GameActions.Sell(SelectedIndex, 1); }
+        private void OnSell() { if (OpenShopNpc >= 0 && GameData.BagAt(SelectedIndex) != null) GameActions.Sell(OpenShopNpc, SelectedIndex, 1); }
 
         private void OnPut()
         {

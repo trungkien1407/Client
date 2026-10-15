@@ -183,7 +183,7 @@ namespace Assets.Script.Data
             c.sucManh = r.ReadShort(); c.thanPhap = r.ReadShort(); c.chakra = r.ReadShort(); c.theLuc = r.ReadShort();
             c.maxHp = r.ReadInt(); c.maxMp = r.ReadInt(); c.bonusDamage = r.ReadInt();
             c.dodge = r.ReadFloat(); c.crit = r.ReadFloat(); c.moveSpeed = r.ReadFloat();
-            c.yen = r.ReadInt(); c.xu = r.ReadInt(); c.luong = r.ReadInt(); c.pkPoint = r.ReadShort();
+            c.yen = r.ReadLong(); c.xu = r.ReadLong(); c.luong = r.ReadLong(); c.pkPoint = r.ReadShort();
             if (r.Available() >= 8) { c.defense = r.ReadInt(); c.reduction = r.ReadFloat(); } // GĐ7 (server cũ không gửi)
             r.Cleanup();
 
@@ -232,11 +232,11 @@ namespace Assets.Script.Data
             GameData.Notify(DataKind.Equipment);
         }
 
-        /// <summary>MONEY_UPDATE: int yen, int xu, int luong (sau mua/bán/giao dịch/nạp...).</summary>
+        /// <summary>MONEY_UPDATE: long yen, long xu, long luong (sau mua/bán/giao dịch/nạp...).</summary>
         private void OnMoney(byte[] data)
         {
             var r = new MessageReader(data);
-            GameData.Me.yen = r.ReadInt(); GameData.Me.xu = r.ReadInt(); GameData.Me.luong = r.ReadInt();
+            GameData.Me.yen = r.ReadLong(); GameData.Me.xu = r.ReadLong(); GameData.Me.luong = r.ReadLong();
             r.Cleanup();
             GameData.Notify(DataKind.Money);
             GameData.Notify(DataKind.Character);

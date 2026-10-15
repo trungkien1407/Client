@@ -21,6 +21,8 @@ namespace Assets.Script.Data
         // ---- Kết nối / tài khoản ----
         public static void CheckVersion(string version) => Send(Cmd.CHECK_VERSION, w => w.WriteUTF(version));
         public static void Login(string user, string pass) => Send(Cmd.LOGIN, w => { w.WriteUTF(user); w.WriteUTF(pass); });
+        /// <summary>Đổi mật khẩu khi đang đăng nhập (Cài đặt → Đổi mật khẩu). Kết quả: AccountNetwork.</summary>
+        public static void ChangePassword(string oldPass, string newPass) => Send(Cmd.CHANGE_PASSWORD, w => { w.WriteUTF(oldPass); w.WriteUTF(newPass); });
         public static void Register(string user, string pass, string email) => Send(Cmd.REGISTER, w => { w.WriteUTF(user); w.WriteUTF(pass); w.WriteUTF(email); });
         /// <param name="classId">1 Đấu sĩ · 2 Hỗ trợ · 3 Sát thủ</param>
         public static void CreateCharacter(string name, int classId) => Send(Cmd.CREATE_CHARACTER, w => { w.WriteUTF(name); w.WriteByte((byte)classId); });
@@ -52,7 +54,8 @@ namespace Assets.Script.Data
         public static void Equip(int bagIndex) => Send(Cmd.EQUIP_ITEM, w => w.WriteInt(bagIndex));
         public static void Unequip(int slot) => Send(Cmd.UNEQUIP_ITEM, w => w.WriteInt(slot));
         public static void Buy(int npcId, int templateId, int qty) => Send(Cmd.BUY_ITEM, w => { w.WriteInt(npcId); w.WriteInt(templateId); w.WriteInt(qty); });
-        public static void Sell(int bagIndex, int qty) => Send(Cmd.SELL_ITEM, w => { w.WriteInt(bagIndex); w.WriteInt(qty); });
+        /// <summary>Bán cho NPC đang mở cửa hàng (server kiểm phải đứng gần NPC đó).</summary>
+        public static void Sell(int npcId, int bagIndex, int qty) => Send(Cmd.SELL_ITEM, w => { w.WriteInt(npcId); w.WriteInt(bagIndex); w.WriteInt(qty); });
         public static void SortBag() => Send(Cmd.BAG_SORT, null);
 
         // ---- Nâng cấp / rương (GĐ2) ----

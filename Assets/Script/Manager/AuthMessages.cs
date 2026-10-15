@@ -33,7 +33,7 @@ namespace Assets.Script.Manager
         /// <summary>REGISTER (status ≠ 0). {extra}: số giây phải đợi (mã 4), -1 nếu server không gửi.</summary>
         public static string Register(short status, int extra = -1) => status switch
         {
-            1 => "Tài khoản từ 4 ký tự, mật khẩu từ 6 ký tự.",
+            1 => "Tài khoản 4–32 ký tự (chữ không dấu, số, _), mật khẩu 6–64 ký tự.",
             2 => "Tài khoản hoặc email đã được dùng!",
             3 => "Email không hợp lệ.",
             4 => $"Mạng của bạn thử quá nhiều lần. Đợi {WaitText(extra)} rồi thử lại.",
@@ -49,7 +49,17 @@ namespace Assets.Script.Manager
             3 => "Phiên đăng nhập đã hết, vui lòng đăng nhập lại.",
             4 => "Hệ phái không hợp lệ.",
             5 => "Tài khoản đã có nhân vật.",
+            6 => "Tên chỉ gồm chữ, số, dấu cách, _ và không chứa từ không phù hợp.",
             _ => "Lỗi tạo nhân vật!"
+        };
+
+        /// <summary>CHANGE_PASSWORD (status ≠ 0). {extra}: số lần còn thử (mã 2) / số giây phải đợi (mã 3).</summary>
+        public static string ChangePassword(short status, int extra) => status switch
+        {
+            1 => "Mật khẩu mới 6–64 ký tự và khác mật khẩu cũ.",
+            2 => extra > 0 ? $"Sai mật khẩu cũ. Còn {extra} lần thử." : "Sai mật khẩu cũ 5 lần. Đợi 5 phút rồi thử lại.",
+            3 => $"Sai quá nhiều lần. Đợi {WaitText(extra)} rồi thử lại.",
+            _ => "Máy chủ bận, thử lại sau."
         };
 
         /// <summary>Số giây → "45 giây" / "5 phút".</summary>

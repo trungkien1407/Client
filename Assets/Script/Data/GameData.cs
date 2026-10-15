@@ -66,7 +66,8 @@ namespace Assets.Script.Data
     {
         public int level, potential, skillPoints, sucManh, thanPhap, chakra, theLuc;
         public long exp, expToNext;
-        public int maxHp, maxMp, bonusDamage, yen, xu, luong, pkPoint;
+        public int maxHp, maxMp, bonusDamage, pkPoint;
+        public long yen, xu, luong;   // tiền là long (server gửi int64)
         public float dodge, crit, moveSpeed;
         public int defense; public float reduction; // GĐ7: phòng thủ + % giảm sát thương (quái / người cùng cấp)
 
@@ -74,7 +75,8 @@ namespace Assets.Script.Data
         {
             level = potential = skillPoints = sucManh = thanPhap = chakra = theLuc = 0;
             exp = expToNext = 0;
-            maxHp = maxMp = bonusDamage = yen = xu = luong = pkPoint = defense = 0;
+            maxHp = maxMp = bonusDamage = pkPoint = defense = 0;
+            yen = xu = luong = 0;
             dodge = crit = moveSpeed = reduction = 0f;
         }
     }
@@ -278,7 +280,7 @@ namespace Assets.Script.Data
 
         /// <summary>Tên đơn vị tiền theo mã currency (0 yên/1 xu/2 lượng).</summary>
         public static string CurrencyName(int c) => c == 1 ? "xu" : c == 2 ? "lượng" : "yên";
-        public static int Money(int c) => c == 1 ? Me.xu : c == 2 ? Me.luong : Me.yen;
+        public static long Money(int c) => c == 1 ? Me.xu : c == 2 ? Me.luong : Me.yen;
 
         /// <summary>Màu chữ cấp cường hoá (+N) kiểu NSO: trắng → xanh lá → xanh dương → tím → cam → đỏ.</summary>
         public static string LevelColor(int lv) =>

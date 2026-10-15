@@ -515,7 +515,26 @@ namespace Assets.Script.Core
                 bool hasLogout = false;
                 foreach (var b in settings.GetComponentsInChildren<UnityEngine.UI.Button>(true)) if (b.name == "Logout") hasLogout = true;
                 Check("Cửa sổ Cài đặt có nút Đăng xuất", hasLogout);
+                bool hasPw = false;
+                foreach (var b in settings.GetComponentsInChildren<UnityEngine.UI.Button>(true)) if (b.name == "Password") hasPw = true;
+                Check("Cửa sổ Cài đặt có nút Đổi mật khẩu", hasPw);
                 settings.Hide();
+
+                // Đổi mật khẩu rồi đổi lại (server kiểm mật khẩu cũ bằng bcrypt)
+                ChangePasswordWindow.LastStatus = -99;
+                GameActions.ChangePassword("test1234", "test12345");
+                yield return WaitUntil(() => ChangePasswordWindow.LastStatus != -99, 8);
+                int st1 = ChangePasswordWindow.LastStatus;
+                ChangePasswordWindow.LastStatus = -99;
+                GameActions.ChangePassword("test12345", "test1234");
+                yield return WaitUntil(() => ChangePasswordWindow.LastStatus != -99, 8);
+                Check($"Đổi mật khẩu rồi đổi lại ({st1}, {ChangePasswordWindow.LastStatus})", st1 == 0 && ChangePasswordWindow.LastStatus == 0);
+
+                // Tiền 64-bit: vượt 2,1 tỉ (giới hạn int cũ) vẫn đúng
+                long yen0 = GameData.Me.yen;
+                ChatBox.Send(1, "", "/yen 3000000000");
+                yield return WaitUntil(() => GameData.Me.yen >= yen0 + 3000000000L, 5);
+                Check($"Yên vượt 2,1 tỉ ({GameData.Me.yen:N0})", GameData.Me.yen >= yen0 + 3000000000L && GameData.Me.yen > int.MaxValue);
                 GameActions.Logout();
                 yield return WaitUntil(() => LocalPlayerState.Id < 0, 10);
                 Check("Đăng xuất → dọn phiên + báo đã đăng xuất", LocalPlayerState.Id < 0 && (PopupAndLoad.Instance?.LastMessage ?? "").Contains("đăng xuất"));

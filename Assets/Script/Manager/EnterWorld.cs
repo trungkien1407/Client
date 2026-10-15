@@ -28,7 +28,7 @@ namespace Assets.Script.Manager
         }
 
         /// <summary>
-        /// int id, UTF tên, short hệ phái, int cấp, long exp, int yên, int xu, int lượng, int hp, int mp, int maxHp, int maxMp,
+        /// int id, UTF tên, short hệ phái, int cấp, long exp, long yên, long xu, long lượng, int hp, int mp, int maxHp, int maxMp,
         /// float tốc chạy, float lực nhảy, float trọng lực, int mapId, int zoneId, float x, float y, UTF trang bị, UTF chiêu, UTF phím tắt
         /// </summary>
         public static Info Read(MessageReader r)
@@ -36,7 +36,7 @@ namespace Assets.Script.Manager
             var p = new PlayerData
             {
                 id = r.ReadInt(), name = r.ReadUTF(), class_type = r.ReadShort(), level = r.ReadInt(), exp = r.ReadLong(),
-                yen = r.ReadInt(), xu = r.ReadInt(), luong = r.ReadInt(),
+                yen = r.ReadLong(), xu = r.ReadLong(), luong = r.ReadLong(),
                 hp = r.ReadInt(), mp = r.ReadInt(), maxHp = r.ReadInt(), maxMp = r.ReadInt(),
                 moveSpeed = r.ReadFloat(), jumpForce = r.ReadFloat(), gravity = r.ReadFloat()
             };

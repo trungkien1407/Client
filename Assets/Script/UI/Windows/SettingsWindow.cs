@@ -19,6 +19,7 @@ namespace Assets.Script.UI.Windows
         [SerializeField] private Button[] _minus = new Button[4], _plus = new Button[4];
         [SerializeField] private Button _tutorial;
         [SerializeField, Optional] private Button _logout;   // prefab cũ chưa có → Bind() tự tạo
+        [SerializeField, Optional] private Button _password; // Đổi mật khẩu — như trên
 
         protected override void Configure()
         {
@@ -35,16 +36,23 @@ namespace Assets.Script.UI.Windows
             _quality = Line(body, 3, "Đồ hoạ");
             var note = UIKit.Text("Note", body, "Điện thoại yếu / tiết kiệm pin: chọn 30 FPS + đồ hoạ thấp.", 13, TextAlignmentOptions.Center, UIKit.DimText);
             note.rectTransform.Place(new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 44), new Vector2(0, 30), new Vector2(0.5f, 0));
-            _tutorial = UIKit.Button("Tutorial", body, "Xem hướng dẫn tân thủ", null, 15);
+            _tutorial = UIKit.Button("Tutorial", body, "Hướng dẫn tân thủ", null, 15);
             _logout = UIKit.Button("Logout", body, "Đăng xuất", null, 15);
+            _password = UIKit.Button("Password", body, "Đổi mật khẩu", null, 15);
             PlaceBottomButtons();
         }
 
-        /// <summary>2 nút dưới cùng: [Hướng dẫn tân thủ] [Đăng xuất].</summary>
+        /// <summary>3 nút dưới cùng: [Hướng dẫn tân thủ] [Đổi mật khẩu] [Đăng xuất].</summary>
         private void PlaceBottomButtons()
         {
-            ((RectTransform)_tutorial.transform).Place(new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(-105, 4), new Vector2(200, 36), new Vector2(0.5f, 0));
-            ((RectTransform)_logout.transform).Place(new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(105, 4), new Vector2(200, 36), new Vector2(0.5f, 0));
+            Bottom(_tutorial, -144);
+            Bottom(_password, 0);
+            Bottom(_logout, 144);
+        }
+
+        private static void Bottom(Button b, float x)
+        {
+            if (b != null) ((RectTransform)b.transform).Place(new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(x, 4), new Vector2(138, 36), new Vector2(0.5f, 0));
         }
 
         protected override void Bind()
@@ -58,11 +66,14 @@ namespace Assets.Script.UI.Windows
             _minus[3].onClick.AddListener(() => SetQuality(-1));
             _plus[3].onClick.AddListener(() => SetQuality(1));
             _tutorial.onClick.AddListener(() => Get<TutorialWindow>().ShowFromStart());
-            if (_logout == null)   // prefab xuất trước khi có nút này
+            if (_logout == null || _password == null)   // prefab xuất trước khi có các nút này
             {
-                _logout = UIKit.Button("Logout", Body, "Đăng xuất", null, 15);
+                if (_logout == null) _logout = UIKit.Button("Logout", Body, "Đăng xuất", null, 15);
+                if (_password == null) _password = UIKit.Button("Password", Body, "Đổi mật khẩu", null, 15);
+                _tutorial.SetLabel("Hướng dẫn tân thủ");   // 3 nút 1 hàng → nhãn ngắn hơn
                 PlaceBottomButtons();
             }
+            _password.onClick.AddListener(() => { Hide(); Get<ChangePasswordWindow>().Open(); });
             _logout.onClick.AddListener(() =>
                 ConfirmWindow.Ask("Đăng xuất về màn hình đăng nhập?", "Đăng xuất", () => { Hide(); GameActions.Logout(); }));
         }

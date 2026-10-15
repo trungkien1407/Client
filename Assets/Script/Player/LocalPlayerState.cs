@@ -23,7 +23,7 @@ namespace Assets.Script.Player
         public static int MaxMp => Me.maxMp;
         public static int Level => Me.level;
         public static long Exp => Me.exp;
-        public static int Yen => Me.yen;
+        public static long Yen => Me.yen;
         public static int BonusDamage => Me.bonusDamage;
 
         /// <summary>Đang bị CHOÁNG tới thời điểm này (Time.time) — server gửi EFFECT; không di chuyển/đánh được.</summary>
@@ -41,7 +41,7 @@ namespace Assets.Script.Player
         public static event Action OnChanged;
 
         /// <summary>Vào game (gói LOGIN / CREATE_CHARACTER). Gọi SAU GameData.ClearSession.</summary>
-        public static void Init(int id, string name, int level, long exp, int yen, int xu, int luong, int hp, int maxHp, int mp, int maxMp)
+        public static void Init(int id, string name, int level, long exp, long yen, long xu, long luong, int hp, int maxHp, int mp, int maxMp)
         {
             Id = id; Name = name;
             Me.level = level; Me.exp = exp; Me.yen = yen; Me.xu = xu; Me.luong = luong;

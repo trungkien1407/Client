@@ -158,7 +158,7 @@ namespace Assets.Script.Combat
             Debug.Log($"[EXP] Level {level} — EXP {exp}");
         }
 
-        /// <summary>PLAYER_STATS: int maxHp, int maxMp, int hp, int mp, int bonusDamage, int yen (sau khi mặc đồ / mua bán / thưởng)</summary>
+        /// <summary>PLAYER_STATS: int maxHp, int maxMp, int hp, int mp, int bonusDamage, long yen (sau khi mặc đồ / mua bán / thưởng)</summary>
         private void OnPlayerStats(byte[] data)
         {
             var r = new MessageReader(data);
@@ -167,7 +167,7 @@ namespace Assets.Script.Combat
             int hp = r.ReadInt();
             int mp = r.ReadInt();
             Data.GameData.Me.bonusDamage = r.ReadInt();
-            Data.GameData.Me.yen = r.ReadInt();
+            Data.GameData.Me.yen = r.ReadLong();
             r.Cleanup();
             LocalPlayerState.SetHpMp(hp, maxHp, mp, maxMp);
             Data.GameData.Notify(Data.DataKind.Character);
