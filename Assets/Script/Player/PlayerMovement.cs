@@ -38,6 +38,11 @@ namespace Assets.Script.Player
 
         private PlayerControls controls;
         private Vector2 moveInput;
+        /// <summary>Tự chạy (ActionInput — Enter khi mục tiêu ở xa): -1 trái · 0 tắt · 1 phải. Bấm phím di chuyển là thôi tự chạy.</summary>
+        [System.NonSerialized] public float AutoMoveX;
+        /// <summary>Hướng người chơi đang tự bấm (phím / joystick) — ActionInput đọc để huỷ tự chạy.</summary>
+        public Vector2 ManualInput { get; private set; }
+        public bool IsGrounded => isGrounded;
         // Chết → khoá điều khiển + ngừng gửi PLAYER_MOVE. Đọc cờ chung (CombatNetwork đặt khi PLAYER_DIE / REVIVE).
         private static bool isDead => Assets.Script.Player.LocalPlayerState.IsDead;
         private bool isGrounded;
@@ -117,7 +122,10 @@ namespace Assets.Script.Player
 
             // Chết hoặc đang gõ chat -> không nhận phím di chuyển
             bool blocked = isDead || Assets.Script.Combat.ChatBox.IsTyping || Assets.Script.Player.LocalPlayerState.IsStunned;
-            moveInput = blocked ? Vector2.zero : controls.Player.Move.ReadValue<Vector2>();
+            ManualInput = blocked ? Vector2.zero : controls.Player.Move.ReadValue<Vector2>();
+            moveInput = ManualInput;
+            if (blocked) AutoMoveX = 0f;
+            else if (Mathf.Abs(moveInput.x) < 0.01f && AutoMoveX != 0f) moveInput.x = AutoMoveX;   // không tự bấm → đi theo tự chạy
 
             if (isOnWaterSurface)
             {
@@ -187,6 +195,9 @@ namespace Assets.Script.Player
             if (dead && rb != null) rb.velocity = new Vector2(0f, rb.velocity.y);
             if (!dead) lastSentState = -1; // ép gửi 1 gói trạng thái mới sau khi sống lại
         }
+
+        /// <summary>Nhảy từ code (tự chạy gặp bậc / bục cao).</summary>
+        public void Jump() => OnJump();
 
         void OnJump()
         {

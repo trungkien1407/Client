@@ -18,6 +18,7 @@ namespace Assets.Script.Combat
             var go = new GameObject("[GameplayNetwork]");
             go.AddComponent<CombatNetwork>();      // Awake() tự DontDestroyOnLoad
             go.AddComponent<CombatInput>();        // phím J / R, nút AttackBtn
+            go.AddComponent<ActionInput>();        // Enter: đánh quái / nói NPC / tương tác người, xa thì tự chạy lại
             go.AddComponent<Assets.Script.Network.Heartbeat>();
             go.AddComponent<Assets.Script.Map.MapTransferNetwork>(); // đổi map / khu, FORCE_MOVE
             go.AddComponent<GroundItemNetwork>();

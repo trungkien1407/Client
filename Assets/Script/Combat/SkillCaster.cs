@@ -92,7 +92,7 @@ namespace Assets.Script.Combat
         }
 
         /// <summary>Tầm chiêu ở cấp đang có (dữ liệu GAME_DATA_SKILLS).</summary>
-        private static float SkillRange(int skillId)
+        public static float SkillRange(int skillId)
         {
             if (!Data.GameData.Skills.TryGetValue(skillId, out var tpl)) return DefaultRange;
             Data.GameData.MySkills.TryGetValue(skillId, out int point);

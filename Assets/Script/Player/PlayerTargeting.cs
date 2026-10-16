@@ -28,6 +28,8 @@ namespace Assets.Script.Player
         private void Awake()
         {
             controls = new PlayerControls();
+            // Enter khi mục tiêu ở xa thì tự chạy lại (ActionInput) → giữ mục tiêu xa hơn trước (giá trị cũ 6 có thể nằm trong prefab)
+            maxTargetDistance = Mathf.Max(maxTargetDistance, 12f);
         }
 
         private void Start()

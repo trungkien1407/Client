@@ -282,6 +282,24 @@ namespace Assets.Script.Core
             yield return new WaitForSecondsRealtime(1.5f);
             Check("Bấm đánh không lỗi", _exceptions == before);
 
+            // 5a. Enter (ActionInput): chọn quái ở xa → tự chạy tới rồi đánh
+            var meMove = NetworkPlayerManager.Instance?.localPlayer;
+            var farMob = meMove != null ? NetworkMobManager.Instance?.FindNearestAlive(meMove.transform.position, 30f) : null;
+            if (farMob != null)
+            {
+                var ci = System.Globalization.CultureInfo.InvariantCulture;   // máy tiếng Việt viết "1,5" — server cần "1.5"
+                ChatBox.Send(1, "", "/go " + (farMob.transform.position.x - 5f).ToString("0.0", ci) + " " + (farMob.transform.position.y + 0.5f).ToString("0.0", ci));
+                yield return new WaitForSecondsRealtime(1.2f);
+                FindAnyObjectByType<PlayerTargeting>()?.SelectTarget(farMob);
+                float d0 = farMob.DistanceFrom(meMove.transform.position);
+                ActionInput.Act();
+                bool started = ActionInput.IsRunning;
+                yield return WaitUntil(() => !ActionInput.IsRunning, 10);
+                float d1 = farMob.DistanceFrom(meMove.transform.position);
+                Check($"Enter: quái ở xa → tự chạy lại gần ({d0:0.0} → {d1:0.0})", started && d1 < d0 - 1f);
+                yield return Shot("AutoRun");
+            }
+
             // 5b. GĐ8 — thế giới mới (14 map prefab): tên map (MAP_INFO), chữ chỉ đường ở cổng,
             //     dịch chuyển qua vài map để chụp ảnh kiểm tra bằng mắt.
             Check($"Nhận MAP_INFO → biết tên map đang đứng ({GameData.MapName})", !string.IsNullOrEmpty(GameData.MapName));

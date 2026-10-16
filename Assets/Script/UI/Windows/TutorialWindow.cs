@@ -33,10 +33,10 @@ namespace Assets.Script.UI.Windows
             : new[]
             {
                 "<b>1. Di chuyển</b>\n\n<b>A / D</b> (hoặc phím mũi tên trái / phải) để đi, <b>W</b> (hoặc mũi tên lên) để nhảy.",
-                "<b>2. Đánh quái</b>\n\n<b>Click</b> vào quái hoặc <b>Tab</b> để chọn mục tiêu, <b>J</b> để đánh.\nPhím <b>1–5</b> đổi kỹ năng. <b>Q / E</b> uống bình máu / chakra. <b>R</b> hồi sinh khi chết.",
-                "<b>3. Nhận nhiệm vụ</b>\n\nĐến gần <b>Hokage</b> và bấm <b>F</b> để nói chuyện.\nLàm theo bảng <b>Nhiệm vụ</b> bên trái màn hình (phím <b>L</b> xem chi tiết) — xong quay lại trả để nhận thưởng.",
+                "<b>2. Đánh quái</b>\n\n<b>Click</b> vào quái hoặc <b>Tab</b> để chọn mục tiêu, <b>Enter</b> để đánh (ở xa tự chạy lại, giữ Enter đánh liên tục).\nPhím <b>1–5</b> đổi kỹ năng. <b>Q / E</b> uống bình máu / chakra. <b>R</b> hồi sinh khi chết.",
+                "<b>3. Nhận nhiệm vụ</b>\n\nChọn <b>Hokage</b> rồi bấm <b>Enter</b> (hoặc đứng gần bấm <b>F</b>) để nói chuyện.\nLàm theo bảng <b>Nhiệm vụ</b> bên trái màn hình (phím <b>L</b> xem chi tiết) — xong quay lại trả để nhận thưởng.",
                 "<b>4. Mạnh lên</b>\n\n<b>C</b> nhân vật (cộng điểm tiềm năng) · <b>K</b> kỹ năng · <b>I</b> túi đồ (mặc trang bị).\nGặp <b>Thợ Rèn</b> để <b>nâng cấp</b> trang bị lên +16 và cất đồ vào <b>rương</b>.",
-                "<b>5. Chơi cùng mọi người</b>\n\n<b>Enter</b> để chat (/a thế giới, /g gia tộc, /w Tên nhắn riêng).\nClick 1 người chơi → <b>Tương tác</b>: mời nhóm, giao dịch, kết bạn, tỉ thí.\n<b>O</b> xã hội · <b>M</b> thư.\n<b>H</b> hoạt động hằng ngày (việc nên làm + lịch boss) · <b>G</b> cẩm nang (tra cứu mọi tính năng).",
+                "<b>5. Chơi cùng mọi người</b>\n\n<b>T</b> để chat (/a thế giới, /g gia tộc, /w Tên nhắn riêng).\nClick 1 người chơi rồi <b>Enter</b> → <b>Tương tác</b>: mời nhóm, giao dịch, kết bạn, tỉ thí.\n<b>O</b> xã hội · <b>M</b> thư.\n<b>H</b> hoạt động hằng ngày (việc nên làm + lịch boss) · <b>G</b> cẩm nang (tra cứu mọi tính năng).",
             };
 
         protected override void Configure()

@@ -22,6 +22,8 @@ namespace Assets.Script.UI.Windows
         [SerializeField] private TMP_InputField _input, _target;
         [SerializeField] private Button _send;
         private int _channel = 1;
+        private int _openFrame = -10;   // khung hình bấm phím mở chat (T) — chữ "t" của chính phím đó không được lọt vào ô
+        private string _textAtOpen = "";
 
         protected override void Configure()
         {
@@ -61,6 +63,11 @@ namespace Assets.Script.UI.Windows
                 _tabs[i].onClick.AddListener(() => { _channel = ch; RefreshTabs(); });
             }
             _input.onSubmit.AddListener(OnSubmit);
+            _input.onValueChanged.AddListener(v =>
+            {
+                if (Time.frameCount - _openFrame <= 2 && v.Length == _textAtOpen.Length + 1 && v.StartsWith(_textAtOpen) && char.ToLower(v[v.Length - 1]) == 't')
+                    _input.text = _textAtOpen;
+            });
             _send.onClick.AddListener(() => OnSubmit(_input.text));
 
             ChatBox.OnNewLine += () => RefreshIfOpen();
@@ -70,6 +77,8 @@ namespace Assets.Script.UI.Windows
         /// <summary>Mở cửa sổ và đặt con trỏ vào ô nhập (bàn phím ảo tự hiện trên điện thoại).</summary>
         public void OpenAndFocus()
         {
+            _openFrame = Time.frameCount;
+            _textAtOpen = _input.text ?? "";
             if (!IsOpen) Show();
             _input.Select();
             _input.ActivateInputField();
