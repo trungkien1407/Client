@@ -1,4 +1,6 @@
-﻿using Assets.Script.Interfaces;
+﻿using Assets.Script.Entities;
+using Assets.Script.Interfaces;
+using Assets.Script.Manager;
 using Assets.Script.UI;
 using System.Collections.Generic;
 using UnityEngine;
@@ -22,6 +24,19 @@ namespace Assets.Script.Player
 
         [Tooltip("Bán kính tìm kiếm mục tiêu khi ấn Tab")]
         public float tabSearchRadius = 5f;
+
+        // ---- TỰ CHỌN MỤC TIÊU (kiểu NSO) ----
+        // Chưa chọn ai / quái đang chọn chết / ra khỏi tầm → tự chuyển sang quái sống gần nhất.
+        [Tooltip("Tự chọn quái gần nhất trong bán kính này")]
+        public float autoTargetRadius = 6f;
+        public bool autoTarget = true;
+        private const float AutoScanInterval = 0.25f;   // không quét mỗi khung hình
+        private const float CancelPause = 5f;           // bấm bỏ chọn → tạm ngừng tự chọn chừng này giây
+        private bool _autoPicked;                       // mục tiêu hiện tại do máy chọn (người bấm chọn thì giữ xa hơn)
+        private float _nextAutoScan, _autoPausedUntil;
+
+        /// <summary>Mục tiêu hiện tại do máy tự chọn (AutoTestRunner đọc).</summary>
+        public bool IsAutoPicked => currentTarget != null && _autoPicked;
 
         private PlayerControls controls;
 
@@ -70,6 +85,7 @@ namespace Assets.Script.Player
             if (controls.Player.CancelTarget.WasPerformedThisFrame())
             {
                 ClearTarget();
+                _autoPausedUntil = Time.time + CancelPause;   // vừa bỏ chọn thì đừng chọn lại ngay
             }
 
             if (controls.Player.TabTarget.WasPerformedThisFrame())
@@ -78,6 +94,35 @@ namespace Assets.Script.Player
             }
 
             CheckTargetDistance();
+            AutoTargetTick();
+        }
+
+        // ==========================================
+        // TỰ CHỌN / TỰ CHUYỂN MỤC TIÊU
+        // ==========================================
+        /// <summary>
+        /// Quái do máy chọn: ra ngoài autoTargetRadius → đổi sang con gần hơn. Quái người chơi tự chọn: giữ tới maxTargetDistance
+        /// (để Enter còn tự chạy lại). Đang chọn NPC / người → để yên. Không còn con nào khác → giữ con cũ (quá 12 ô thì CheckTargetDistance bỏ).
+        /// </summary>
+        private void AutoTargetTick()
+        {
+            if (!autoTarget || Time.time < _nextAutoScan) return;
+            _nextAutoScan = Time.time + AutoScanInterval;
+            if (Time.time < _autoPausedUntil || LocalPlayerState.IsDead || NetworkMobManager.Instance == null) return;
+            if (Combat.ActionInput.IsRunning) return;   // đang tự chạy tới mục tiêu → không đổi giữa đường
+
+            Vector3 me = playerTransform.position;
+            if (currentTarget != null)
+            {
+                if (!(currentTarget is MobController mob)) return;
+                float keep = _autoPicked ? autoTargetRadius : maxTargetDistance;
+                if (mob != null && !mob.IsDead && mob.DistanceFrom(me) <= keep) return;   // vẫn ổn → giữ
+            }
+
+            var next = NetworkMobManager.Instance.FindNearestAlive(me, autoTargetRadius);
+            if (next == null || ReferenceEquals(next, currentTarget)) return;
+            SetTarget(next);
+            _autoPicked = true;
         }
 
         // ==========================================
@@ -194,8 +239,9 @@ namespace Assets.Script.Player
         // ==========================================
         private void SetTarget(ITargetable newTarget)
         {
-            if (currentTarget == newTarget) return;
+            if (currentTarget == newTarget) { _autoPicked = false; return; }   // bấm lại đúng con máy chọn = người chọn
             ClearTarget();
+            _autoPicked = false;   // AutoTargetTick đặt lại true sau khi gọi
 
             currentTarget = newTarget;
             currentTarget.OnTargeted();
@@ -248,10 +294,10 @@ namespace Assets.Script.Player
             if (t != null) SetTarget(t);
         }
 
-        /// <summary>Mục tiêu đang chọn vừa chết/biến mất -> bỏ chọn.</summary>
+        /// <summary>Mục tiêu đang chọn vừa chết/biến mất -> bỏ chọn (lần quét kế tiếp tự chọn con gần nhất).</summary>
         public void ClearIfTarget(ITargetable t)
         {
-            if (currentTarget != null && ReferenceEquals(currentTarget, t)) ClearTarget();
+            if (currentTarget != null && ReferenceEquals(currentTarget, t)) { ClearTarget(); _nextAutoScan = 0f; }
         }
 
         private void HandleTargetHpChanged(int currentHp, int maxHp)

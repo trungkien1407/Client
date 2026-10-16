@@ -27,6 +27,8 @@ namespace Assets.Script.Manager
 
         // Quản lý Entity
         private Dictionary<int, MobController> activeMobs = new Dictionary<int, MobController>();
+        /// <summary>Mọi quái đang hiện trong khu (chỉ đọc).</summary>
+        public IEnumerable<MobController> All => activeMobs.Values;
 
         // Hàng rào bảo vệ chống lỗi quái ma (Ghost Spawn)
         private HashSet<int> pendingSpawns = new HashSet<int>();

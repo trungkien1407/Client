@@ -18,8 +18,8 @@ namespace Assets.Script.UI.Windows
         public static readonly (string title, string body)[] Topics =
         {
             ("Điều khiển",
-             "<b>Máy tính:</b> A/D hoặc ← → để đi, W/↑ để nhảy. Click hoặc Tab để chọn mục tiêu. <b>Enter</b>: quái → đánh (giữ để đánh liên tục), NPC → nói chuyện, người → tương tác; " +
-             "ở xa thì nhân vật tự chạy lại. J đánh (cả người khi bật Đồ sát), phím 1–5 đổi chiêu. Q/E uống bình máu/chakra. F nói chuyện với NPC gần nhất. T để chat.\n\n" +
+             "<b>Máy tính:</b> A/D hoặc ← → để đi, W/↑ để nhảy. Đến gần quái là <b>tự chọn</b> con gần nhất (ra xa thì tự đổi con khác); Click / Tab để chọn tay, Esc bỏ chọn. <b>Enter</b>: quái → đánh (giữ để đánh liên tục), NPC → nói chuyện, người → tương tác; " +
+             "ở xa thì nhân vật tự chạy lại. J đánh (cả người khi bật Đồ sát), phím 1–5 đổi chiêu. Q/E uống bình máu/chakra. F nói chuyện với NPC gần nhất. T để chat. R hồi sinh — về điểm đã lưu ở Trưởng làng / Hiệu trưởng (\"Lưu điểm hồi sinh\"), chưa lưu thì về Làng Lá.\n\n" +
              "<b>Điện thoại:</b> cần điều khiển góc trái, nút Nhảy/Đánh bên phải; chạm quái để chọn, chạm NPC rồi bấm Nói.\n\n" +
              "<b>Phím tắt cửa sổ:</b> C nhân vật · I túi · K kỹ năng · L nhiệm vụ · H hoạt động · G cẩm nang · O xã hội · M thư."),
             ("Nhiệm vụ",

@@ -300,6 +300,40 @@ namespace Assets.Script.Core
                 yield return Shot("AutoRun");
             }
 
+            // 5a2. Tự chọn mục tiêu (Đồi Hoa Cúc — quái rải khắp map): đứng cạnh quái A → máy tự chọn A;
+            //      B cách A 7,5–11 ô: ngoài tầm tự chọn (6) nhưng chưa tới mức bỏ chọn (12) → chỉ luật "tự chuyển" mới đổi
+            //      dịch tới cạnh quái B ở xa → A ra khỏi tầm → tự chuyển sang quái khác
+            GameActions.Chat(1, "/tele 2");
+            yield return WaitUntil(() => GameData.MapName == "Đồi Hoa Cúc", 8);
+            yield return new WaitForSecondsRealtime(1.5f);
+            var tg = FindAnyObjectByType<PlayerTargeting>();
+            meMove = NetworkPlayerManager.Instance?.localPlayer;
+            Entities.MobController tgA = null, tgB = null;
+            if (tg != null && meMove != null && NetworkMobManager.Instance != null)
+                foreach (var m1 in NetworkMobManager.Instance.All)
+                {
+                    if (m1 == null || m1.IsDead) continue;
+                    foreach (var m2 in NetworkMobManager.Instance.All)
+                        if (m2 != null && !m2.IsDead && Mathf.Abs(m2.transform.position.x - m1.transform.position.x) is > 7.5f and < 11f) { tgA = m1; tgB = m2; break; }
+                    if (tgA != null) break;
+                }
+            Check("Đồi Hoa Cúc có 2 quái cách nhau 7,5–11 ô để thử tự chọn mục tiêu", tgA != null);
+            if (tgA != null)
+            {
+                var ci2 = System.Globalization.CultureInfo.InvariantCulture;
+                tg.ClearTarget();
+                ChatBox.Send(1, "", "/go " + tgA.transform.position.x.ToString("0.0", ci2) + " " + (tgA.transform.position.y + 0.5f).ToString("0.0", ci2));
+                yield return WaitUntil(() => tg.currentTarget is Entities.MobController && tg.IsAutoPicked, 4);
+                var picked = tg.currentTarget as Entities.MobController;
+                Check($"Tự chọn mục tiêu: đứng cạnh quái → chọn quái gần nhất ({(picked != null ? picked.GetTargetName() : "không có")})", picked != null && tg.IsAutoPicked);
+                yield return Shot("AutoTarget");
+                ChatBox.Send(1, "", "/go " + tgB.transform.position.x.ToString("0.0", ci2) + " " + (tgB.transform.position.y + 0.5f).ToString("0.0", ci2));
+                yield return WaitUntil(() => tg.currentTarget is Entities.MobController cc && cc != picked, 4);
+                var c2 = tg.currentTarget as Entities.MobController;
+                float dc = c2 != null ? c2.DistanceFrom(meMove.transform.position) : -1f;
+                Check($"Ra khỏi tầm → tự chuyển sang quái khác ({(c2 != null ? c2.GetTargetName() : "không có")}, cách {dc:0.0})", c2 != null && c2 != picked && tg.IsAutoPicked);
+            }
+
             // 5b. GĐ8 — thế giới mới (14 map prefab): tên map (MAP_INFO), chữ chỉ đường ở cổng,
             //     dịch chuyển qua vài map để chụp ảnh kiểm tra bằng mắt.
             Check($"Nhận MAP_INFO → biết tên map đang đứng ({GameData.MapName})", !string.IsNullOrEmpty(GameData.MapName));
