@@ -128,6 +128,7 @@
         public const short PARTY_LEAVE = 713;
         public const short PARTY_INFO = 714;
         public const short PARTY_KICK = 715;
+        public const short PARTY_HP = 716;          // S→C short n, [int id, int hp, int maxHp, int mp, int maxMp, short level]×n — đồng đội vừa đổi máu / chakra / cấp
         public const short QUEST_ACCEPT = 720;
         public const short QUEST_COMPLETE = 721;
         public const short QUEST_UPDATE = 722;      // S→C int questId, int progress, byte done

@@ -23,6 +23,7 @@ namespace Assets.Script.Data
             Listen(Cmd.DUEL_STATE, OnDuelState);
             Listen(Cmd.PARTY_INVITE_RECV, OnPartyInvite);
             Listen(Cmd.PARTY_INFO, OnPartyInfo);
+            Listen(Cmd.PARTY_HP, OnPartyHp);
             Listen(Cmd.FRIEND_LIST, OnFriendList);
             Listen(Cmd.FRIEND_INVITE, OnFriendInvite);
             Listen(Cmd.MAIL_LIST, OnMailList);
@@ -85,6 +86,25 @@ namespace Assets.Script.Data
             GameData.PartyLeader = r.Available() >= 4 ? r.ReadInt() : 0;
             r.Cleanup();
             GameData.Notify(DataKind.Party);
+        }
+
+        /// <summary>
+        /// PARTY_HP: short n, [int id, int hp, int maxHp, int mp, int maxMp, short level] × n — chỉ những thành viên VỪA ĐỔI
+        /// (server quét 0,2 giây, không ai đổi thì không gửi) → thanh máu đồng đội gần như tức thời.
+        /// </summary>
+        private void OnPartyHp(byte[] data)
+        {
+            var r = new MessageReader(data);
+            int n = r.ReadShort();
+            for (int i = 0; i < n; i++)
+            {
+                int id = r.ReadInt(), hp = r.ReadInt(), maxHp = r.ReadInt(), mp = r.ReadInt(), maxMp = r.ReadInt(), level = r.ReadShort();
+                var m = GameData.Party.Find(x => x.id == id);
+                if (m == null) continue;   // PARTY_INFO (danh sách) chưa tới / người đã rời
+                m.hp = hp; m.maxHp = maxHp; m.mp = mp; m.maxMp = maxMp; m.level = level;
+            }
+            r.Cleanup();
+            GameData.Notify(DataKind.PartyHp);
         }
 
         /// <summary>FRIEND_LIST: short n, [int id, UTF name, short level, byte online]</summary>

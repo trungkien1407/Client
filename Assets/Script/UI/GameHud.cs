@@ -108,7 +108,7 @@ namespace Assets.Script.UI
                 if (k == DataKind.Character || k == DataKind.Money) { UpdateExp(); UpdateMoney(); }
                 if (k == DataKind.Pvp) UpdatePk();
                 if (k == DataKind.Mails) _v.menu[GameHudView.MenuMail].SetLabel(GameData.MailUnread > 0 ? $"Thư ({GameData.MailUnread})" : "Thư");
-                if (k == DataKind.Party) UpdateParty();
+                if (k == DataKind.Party || k == DataKind.PartyHp) UpdateParty();
                 if (k == DataKind.Quests || k == DataKind.Inventory || k == DataKind.Templates) UpdateQuests();
                 if (k == DataKind.Activity) _v.menu[GameHudView.MenuActivity].image.color = GameData.ActivityClaimable ? UIKit.ButtonHot : UIKit.ButtonColor; // có rương chưa nhận → nút cam
             };
@@ -244,7 +244,8 @@ namespace Assets.Script.UI
                 if (m.id == LocalPlayerState.Id) continue;
                 float pct = m.maxHp > 0 ? (float)m.hp / m.maxHp : 0;
                 string col = pct > 0.5f ? "#6f6" : pct > 0.2f ? "#fd5" : "#f55";
-                sb.Append($"{m.name} <color=#9aa>Lv{m.level}</color>  <color={col}>{Mathf.RoundToInt(pct * 100)}%</color>\n");
+                string mp = m.maxMp > 0 ? $"  <color=#7bf>{Mathf.RoundToInt(100f * m.mp / m.maxMp)}%</color>" : "";   // chakra (có sau PARTY_HP đầu)
+                sb.Append($"{m.name} <color=#9aa>Lv{m.level}</color>  <color={col}>{Mathf.RoundToInt(pct * 100)}%</color>{mp}\n");
             }
             _v.partyText.text = sb.ToString();
         }

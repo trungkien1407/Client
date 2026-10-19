@@ -124,7 +124,7 @@ namespace Assets.Script.Data
         }
     }
 
-    public class PartyMember { public int id, hp, maxHp, level; public string name; }
+    public class PartyMember { public int id, hp, maxHp, mp, maxMp, level; public string name; }   // mp / maxMp: chỉ có sau PARTY_HP đầu tiên
     public class FriendInfo { public int id, level; public string name; public bool online; }
     public class MailHeader { public long id, createdMs; public string from, title; public bool read, claimed, hasAttach; }
     public class MailBody { public long id; public string from, title, content; public int yen, xu, luong; public List<BagSlot> items = new List<BagSlot>(); public bool claimed; }
@@ -316,6 +316,7 @@ namespace Assets.Script.Data
     {
         Templates, Character, Inventory, Equipment, Skills, Quests,
         Money, Storage, Upgrade, Trade, Party, Friends, Mails, Guild, Top, Pvp, Event,
-        Activity, QuestGuide, Market, Gem
+        Activity, QuestGuide, Market, Gem,
+        PartyHp   // chỉ máu / chakra / cấp đồng đội đổi (PARTY_HP, tới 5 lần/giây) — Party = danh sách nhóm đổi
     }
 }

@@ -19,6 +19,7 @@ namespace Assets.Script.UI.Windows
     {
         private enum Tab { Party, Friends, Guild }
         private Tab _tab = Tab.Party;
+        private float _nextHpRedraw;
         [SerializeField] private Button[] _tabs = new Button[3];
 
         [SerializeField] private RectTransform _partyHead, _friendHead, _guildNone, _guildHead, _list;
@@ -114,6 +115,12 @@ namespace Assets.Script.UI.Windows
             GameData.OnChanged += k =>
             {
                 if (k == DataKind.Party || k == DataKind.Friends || k == DataKind.Guild || k == DataKind.Character) RefreshIfOpen();
+                // Máu đồng đội đổi tới 5 lần/giây: vẽ lại danh sách tối đa 1 lần/giây (dựng lại liên tục thì nút "Đá" khó bấm)
+                else if (k == DataKind.PartyHp && _tab == Tab.Party && Time.unscaledTime >= _nextHpRedraw)
+                {
+                    _nextHpRedraw = Time.unscaledTime + 1f;
+                    RefreshIfOpen();
+                }
             };
         }
 
