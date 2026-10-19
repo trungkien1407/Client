@@ -300,6 +300,29 @@ namespace Assets.Script.Core
                 yield return Shot("AutoRun");
             }
 
+            // 5a1. Hồi chiêu do CLIENT tự đếm: đánh → bắt đầu đếm + ô kỹ năng tối lại; bấm lại khi chưa hồi → KHÔNG gửi USE_SKILL
+            int cdSkill = SkillBarManager.Instance != null ? SkillBarManager.Instance.GetSelectedSkillId() : -1;
+            float cdLen = SkillCooldowns.CooldownOf(cdSkill);
+            Check($"Chiêu đang chọn có thời gian hồi ({cdLen:0.0} giây)", cdSkill >= 0 && cdLen > 0);
+            if (cdSkill >= 0 && cdLen > 0)
+            {
+                yield return new WaitForSecondsRealtime(cdLen + 0.3f);   // hết hồi đòn trước
+                int sent0 = GameActions.UseSkillSent;
+                ActionInput.Act();                                      // quái gần → đánh (xa thì tự chạy rồi đánh)
+                yield return WaitUntil(() => GameActions.UseSkillSent > sent0, 6);
+                Check("Đánh → gửi USE_SKILL + client bắt đầu đếm hồi chiêu", GameActions.UseSkillSent == sent0 + 1 && !SkillCooldowns.Ready(cdSkill));
+                yield return null; yield return null;   // SkillSlotUI.Update vẽ lớp tối
+                bool shown = false;
+                foreach (var slot in FindObjectsByType<SkillSlotUI>(FindObjectsSortMode.None)) if (slot.assignedSkillId == cdSkill && slot.ShowingCooldown) shown = true;
+                Check("Ô kỹ năng hiện lớp hồi chiêu", shown);
+                yield return new WaitForSecondsRealtime(0.32f);         // qua nhịp chống spam 0,3 giây, vẫn trong thời gian hồi
+                int sent1 = GameActions.UseSkillSent;
+                if (!SkillCooldowns.Ready(cdSkill)) SkillCaster.TryCast(cdSkill);
+                Check($"Bấm lại khi chưa hồi (còn {SkillCooldowns.Remaining(cdSkill):0.00} giây) → không gửi USE_SKILL", GameActions.UseSkillSent == sent1);
+                yield return WaitUntil(() => SkillCooldowns.Ready(cdSkill), cdLen + 1);
+                Check("Hết thời gian hồi → dùng được lại", SkillCooldowns.Ready(cdSkill));
+            }
+
             // 5a2. Tự chọn mục tiêu (Đồi Hoa Cúc — quái rải khắp map): đứng cạnh quái A → máy tự chọn A;
             //      B cách A 7,5–11 ô: ngoài tầm tự chọn (6) nhưng chưa tới mức bỏ chọn (12) → chỉ luật "tự chuyển" mới đổi
             //      dịch tới cạnh quái B ở xa → A ra khỏi tầm → tự chuyển sang quái khác

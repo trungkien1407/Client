@@ -54,6 +54,7 @@
         public const short DUEL_ACCEPT = 214;       // C→S int fromId
         public const short DUEL_STATE = 215;        // S→C byte state(0 kết thúc/1 đếm ngược/2 đang đấu), int opponentId, UTF msg
         // ---- GĐ4: hiệu ứng ----
+        public const short SKILL_COOLDOWN = 217;    // S→C short n, [int skillId, int remainingMs]×n — 1 lần lúc vào game (chiêu còn đang hồi)
         public const short EFFECT = 216;            // S→C byte targetType(0 quái/1 người), int targetId, byte effect(1 choáng/2 chậm/3 bỏng), int ms
 
         // ==========================================

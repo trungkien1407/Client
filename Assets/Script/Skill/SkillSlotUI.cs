@@ -102,6 +102,58 @@ namespace Assets.Script.Skill
             return h;
         }
 
+        // ---------------------------------------------------------------- HỒI CHIÊU
+        // Lớp tối quay ngược kim đồng hồ + số giây còn lại (tạo bằng code, không cần sửa prefab). Đếm ở Combat.SkillCooldowns.
+        private Image _cdMask;
+        private TMPro.TextMeshProUGUI _cdText;
+        private static Sprite _white;   // Image kiểu Filled cần có sprite mới vẽ được phần quạt
+
+        /// <summary>Ô đang hiện lớp hồi chiêu (AutoTestRunner đọc).</summary>
+        public bool ShowingCooldown => _cdMask != null && _cdMask.enabled;
+
+        private void Update()
+        {
+            float left = assignedSkillId >= 0 ? Combat.SkillCooldowns.Remaining(assignedSkillId) : 0f;
+            if (left <= 0f)
+            {
+                if (ShowingCooldown) { _cdMask.enabled = false; _cdText.text = ""; }
+                return;
+            }
+            EnsureCooldownMask();
+            _cdMask.enabled = true;
+            _cdMask.fillAmount = Combat.SkillCooldowns.Fraction(assignedSkillId);
+            _cdText.text = left >= 1f ? Mathf.CeilToInt(left).ToString() : left.ToString("0.0");
+        }
+
+        private void EnsureCooldownMask()
+        {
+            if (_cdMask != null) return;
+            if (_white == null) _white = Sprite.Create(Texture2D.whiteTexture, new Rect(0, 0, 4, 4), new Vector2(0.5f, 0.5f));
+            var go = new GameObject("CooldownMask", typeof(RectTransform));
+            go.transform.SetParent(transform, false);
+            var rt = (RectTransform)go.transform;
+            rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one; rt.offsetMin = rt.offsetMax = Vector2.zero;
+            _cdMask = go.AddComponent<Image>();
+            _cdMask.sprite = _white;
+            _cdMask.color = new Color(0f, 0f, 0f, 0.6f);
+            _cdMask.type = Image.Type.Filled;
+            _cdMask.fillMethod = Image.FillMethod.Radial360;
+            _cdMask.fillOrigin = (int)Image.Origin360.Top;
+            _cdMask.fillClockwise = false;   // phần tối thu dần theo chiều kim đồng hồ
+            _cdMask.raycastTarget = false;   // vẫn bấm được ô (bấm khi chưa hồi → nhắc trong chat)
+
+            var tgo = new GameObject("CooldownText", typeof(RectTransform));
+            tgo.transform.SetParent(go.transform, false);
+            var trt = (RectTransform)tgo.transform;
+            trt.anchorMin = Vector2.zero; trt.anchorMax = Vector2.one; trt.offsetMin = trt.offsetMax = Vector2.zero;
+            _cdText = tgo.AddComponent<TMPro.TextMeshProUGUI>();
+            _cdText.fontSize = 20;
+            _cdText.fontStyle = TMPro.FontStyles.Bold;
+            _cdText.alignment = TMPro.TextAlignmentOptions.Center;
+            _cdText.color = Color.white;
+            _cdText.raycastTarget = false;
+        }
+
         // Bật/tắt viền sáng
         public void SetSelected(bool isSelected)
         {

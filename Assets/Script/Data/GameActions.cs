@@ -44,7 +44,13 @@ namespace Assets.Script.Data
         public static void Move(float x, float y, byte dir, MoveState state) => Send(Cmd.PLAYER_MOVE, w => { w.WriteFloat(x); w.WriteFloat(y); w.WriteByte(dir); w.WriteByte((byte)state); });
         public static void ZoneListRequest() => Send(Cmd.ZONE_LIST_REQ, null);
         public static void ChangeZone(int zoneId) => Send(Cmd.CHANGE_ZONE, w => w.WriteByte((byte)zoneId));
-        public static void UseSkill(int skillId, AttackTarget target, int targetId) => Send(Cmd.USE_SKILL, w => { w.WriteInt(skillId); w.WriteByte((byte)target); w.WriteInt(targetId); });
+        /// <summary>Số gói USE_SKILL đã gửi trong phiên (AutoTestRunner kiểm: chưa hồi chiêu thì không gửi).</summary>
+        public static int UseSkillSent { get; private set; }
+        public static void UseSkill(int skillId, AttackTarget target, int targetId)
+        {
+            UseSkillSent++;
+            Send(Cmd.USE_SKILL, w => { w.WriteInt(skillId); w.WriteByte((byte)target); w.WriteInt(targetId); });
+        }
         public static void Revive() => Send(Cmd.REVIVE, null);
         public static void PickItem(int groundItemId) => Send(Cmd.PICK_ITEM, w => w.WriteInt(groundItemId));
 

@@ -36,6 +36,7 @@ namespace Assets.Script.Combat
             Listen(Cmd.PLAYER_STATS, OnPlayerStats);
             Listen(Cmd.PLAYER_DIE, OnPlayerDie);
             Listen(Cmd.REVIVE, OnRevive);
+            Listen(Cmd.SKILL_COOLDOWN, OnSkillCooldown);
         }
 
         /// <summary>BROADCAST_ATTACK: int attackerId, byte targetType (0 quái · 1 người · 2 chiêu hỗ trợ), int targetId, int skillId, int damage, int hpRemain, byte dead</summary>
@@ -100,6 +101,15 @@ namespace Assets.Script.Combat
             if (rp == null) return;
             rp.UpdateHp(hpRemain);
             DamagePopup.Show(rp.transform.position, DamageText(damage), OtherHitColor);
+        }
+
+        /// <summary>SKILL_COOLDOWN: short n, [int skillId, int remainingMs] × n — chiêu còn đang hồi lúc vào game.</summary>
+        private void OnSkillCooldown(byte[] data)
+        {
+            var r = new MessageReader(data);
+            int n = r.ReadShort();
+            for (int i = 0; i < n; i++) SkillCooldowns.Set(r.ReadInt(), r.ReadInt());
+            r.Cleanup();
         }
 
         /// <summary>PLAYER_HEAL: int id, int hpHeal, int mpHeal, int hp, int maxHp, int mp, int maxMp (hồi máu mỗi giây / dùng bình)</summary>

@@ -142,7 +142,7 @@ namespace Assets.Script.Combat
             var me = Me();
             if (me == null || LocalPlayerState.IsDead || LocalPlayerState.IsStunned) return;
             var t = _targeting != null ? _targeting.currentTarget : null;
-            if (Alive(t) && t.GetTargetType() == TargetType.Mob && InRange(me, t)) CombatInput.CastSelected();
+            if (Alive(t) && t.GetTargetType() == TargetType.Mob && InRange(me, t) && SkillCooldowns.Ready(SelectedSkill())) CombatInput.CastSelected();   // chưa hồi thì chờ, không nhắc
         }
 
         // ---------------------------------------------------------------- tự chạy

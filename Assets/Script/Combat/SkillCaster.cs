@@ -9,7 +9,8 @@ using Assets.Script.Skill;
 namespace Assets.Script.Combat
 {
     /// <summary>
-    /// RA CHIÊU phía client: chọn mục tiêu, kiểm tầm, gửi USE_SKILL, diễn anim ngay.
+    /// RA CHIÊU phía client: kiểm hồi chiêu + chakra, chọn mục tiêu, kiểm tầm, gửi USE_SKILL, diễn anim ngay.
+    /// Hồi chiêu do CLIENT tự đếm (SkillCooldowns) — chưa hồi thì không gửi; server chỉ xác thực, không trả lời.
     /// Client KHÔNG tự trừ máu — server là trọng tài, kết quả về bằng BROADCAST_ATTACK (CombatNetwork vẽ).
     /// Gọi từ: phím J (CombatInput), nút "Đánh" (MobileControls), bấm ô chiêu (SkillBarManager).
     /// </summary>
@@ -21,7 +22,7 @@ namespace Assets.Script.Combat
         private const float DefaultRange = 5f;       // tầm 0 trong dữ liệu = 5 (giống server)
 
         private static float _nextAttackTime;
-        private static float _nextRangeWarn;
+        private static float _nextWarn;
         private static PlayerTargeting _targeting;
 
         /// <summary>Dùng chiêu {skillId} lên mục tiêu đang chọn; chưa chọn → tự chọn quái gần nhất.</summary>
@@ -30,6 +31,9 @@ namespace Assets.Script.Combat
             if (skillId < 0 || LocalPlayerState.IsDead) return;
             if (LocalPlayerState.IsStunned) { ChatBox.AddSystem("Đang bị choáng!"); return; }
             if (Time.time < _nextAttackTime) return;
+            if (!SkillCooldowns.Ready(skillId)) { Warn($"Chiêu chưa hồi ({SkillCooldowns.Remaining(skillId):0.0} giây)."); return; }
+            var lv = LevelOf(skillId);
+            if (lv != null && LocalPlayerState.Mp < lv.manaUse) { Warn($"Không đủ chakra (cần {lv.manaUse})."); return; }
 
             var local = NetworkPlayerManager.Instance != null ? NetworkPlayerManager.Instance.localPlayer : null;
             if (local == null) return;
@@ -38,6 +42,7 @@ namespace Assets.Script.Combat
             if (Data.GameData.Skills.TryGetValue(skillId, out var tpl) && tpl.type == (int)SkillType.Support)
             {
                 Data.GameActions.UseSkill(skillId, AttackTarget.Self, LocalPlayerState.Id);
+                SkillCooldowns.Start(skillId);
                 Swing(local, skillId);
                 return;
             }
@@ -63,16 +68,13 @@ namespace Assets.Script.Combat
                        : tt != null ? Vector2.Distance(local.transform.position, tt.position) : 0f;
             if (dist > range + 0.3f)
             {
-                if (Time.time >= _nextRangeWarn)
-                {
-                    ChatBox.AddSystem($"Quá xa (tầm chiêu {range:0.#}) — lại gần mục tiêu.");
-                    _nextRangeWarn = Time.time + 1.5f;
-                }
+                Warn($"Quá xa (tầm chiêu {range:0.#}) — lại gần mục tiêu.");
                 Swing(local, skillId);
                 return;
             }
 
             Data.GameActions.UseSkill(skillId, targetType, target.GetId());
+            SkillCooldowns.Start(skillId);   // tự đếm, không chờ server
             Swing(local, skillId);   // diễn ngay, không đợi server (bị từ chối thì chỉ là anim suông)
         }
 
@@ -91,13 +93,27 @@ namespace Assets.Script.Combat
             return nearest;
         }
 
-        /// <summary>Tầm chiêu ở cấp đang có (dữ liệu GAME_DATA_SKILLS).</summary>
+        /// <summary>Dữ liệu cấp chiêu đang có (tầm, chakra, hồi chiêu...) — GAME_DATA_SKILLS; chưa có → null.</summary>
+        public static Data.SkillLevel LevelOf(int skillId)
+        {
+            if (!Data.GameData.Skills.TryGetValue(skillId, out var tpl)) return null;
+            Data.GameData.MySkills.TryGetValue(skillId, out int point);
+            return tpl.Level(point) ?? (tpl.levels.Count > 0 ? tpl.levels[0] : null);
+        }
+
+        /// <summary>Tầm chiêu ở cấp đang có.</summary>
         public static float SkillRange(int skillId)
         {
-            if (!Data.GameData.Skills.TryGetValue(skillId, out var tpl)) return DefaultRange;
-            Data.GameData.MySkills.TryGetValue(skillId, out int point);
-            var lv = tpl.Level(point) ?? (tpl.levels.Count > 0 ? tpl.levels[0] : null);
+            var lv = LevelOf(skillId);
             return lv != null && lv.range > 0 ? lv.range : DefaultRange;
+        }
+
+        /// <summary>Nhắc trong khung chat, tối đa 1 lần / 1,5 giây (bấm liên tục không bị tràn chat).</summary>
+        private static void Warn(string msg)
+        {
+            if (Time.time < _nextWarn) return;
+            ChatBox.AddSystem(msg);
+            _nextWarn = Time.time + 1.5f;
         }
 
         private static void Swing(Component local, int skillId)
