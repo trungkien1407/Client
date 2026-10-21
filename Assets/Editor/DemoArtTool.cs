@@ -77,6 +77,21 @@ public static class DemoArtTool
         ("fx_3", "IconMenu/6.png", Vector4.zero),    // bỏng: lửa
         ("fx_4", "IconMenu/31.png", Vector4.zero),   // tăng sức mạnh: mũ giáp
         ("fx_5", "IconMenu/43.png", Vector4.zero),   // phân thân: người + vệt chuyển động
+        // 12 nút menu HUD (HudMenuIcons, theo thứ tự GameHudView.MenuLabels) + nền tròn + icon Đồ sát
+        ("menu_bg", "imggame/sprBgSkill0.png", Vector4.zero),          // nền tròn tối viền vàng
+        ("menu_char", "imggame/sprIconChangeChar0.png", Vector4.zero),  // Nhân vật: đầu ninja
+        ("menu_bag", "IconMenu/menuLeft1.png", Vector4.zero),           // Túi
+        ("menu_skill", "IconMenu/menuLeft15.png", Vector4.zero),        // Kỹ năng: kiếm chéo
+        ("menu_quest", "IconMenu/menuLeft0.png", Vector4.zero),         // Nhiệm vụ: bảng check
+        ("menu_talk", "imggame/sprChat.png", Vector4.zero),             // Nói (F)
+        ("menu_activity", "imggame/sprGiftIcon0.png", Vector4.zero),    // Hoạt động: quà
+        ("menu_social", "imggame/sprPk1.png", Vector4.zero),            // Xã hội: 2 người
+        ("menu_mail", "imggame/sprMail0.png", Vector4.zero),            // Thư
+        ("menu_top", "imggame/sprRankIcon0.png", Vector4.zero),         // Xếp hạng: cúp hạng 1
+        ("menu_guide", "IconMenu/menuLeft8.png", Vector4.zero),         // Cẩm nang: cuộn giấy
+        ("menu_settings", "IconMenu/menuLeft5.png", Vector4.zero),      // Cài đặt: bánh răng
+        ("menu_peace", "IconMenu/menuLeft11.png", Vector4.zero),        // Hoà bình: khiên khoá
+        ("menu_pk", "IconMenu/menuLeft13.png", Vector4.zero),           // Đồ sát: mặt quỷ
     };
 
     private static List<(string path, Vector4 border)> CopyUiSkin(string uiDir)

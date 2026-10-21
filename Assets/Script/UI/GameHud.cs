@@ -64,7 +64,8 @@ namespace Assets.Script.UI
         {
             _v = HudPanel.Create<GameHudView>(UIRoot.Instance.HudLayer);
             HudPanel.Create<MinimapHud>(_v.transform);   // phím B = bản đồ lớn
-            StatusIconsHud.Create(_v.transform, new Vector2(252, -86));   // icon choáng / chậm / bỏng / tăng sức mạnh / phân thân (cạnh ô cấp)
+            StatusIconsHud.Create(_v.transform, new Vector2(252, -86));
+            HudMenuIcons.Apply(_v, MinimapWidth);   // có hình kho → 12 nút menu thành icon (không có → giữ nút chữ)   // icon choáng / chậm / bỏng / tăng sức mạnh / phân thân (cạnh ô cấp)
 
             // Hành động nút menu — cùng thứ tự GameHudView.MenuLabels
             System.Action[] actions =
@@ -154,6 +155,7 @@ namespace Assets.Script.UI
             bool on = GameData.MyPkMode == 1;
             _v.menu[GameHudView.MenuPk].SetLabel(on ? "Đồ sát" : "Hoà bình");
             _v.menu[GameHudView.MenuPk].image.color = on ? new Color(0.75f, 0.2f, 0.15f, 1f) : UIKit.ButtonColor;
+            HudMenuIcons.SetPk(_v, on);
             UpdateMoney();
         }
 

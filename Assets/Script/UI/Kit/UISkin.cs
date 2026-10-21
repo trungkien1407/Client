@@ -99,6 +99,12 @@ namespace Assets.Script.UI.Kit
                 b.gameObject.AddComponent<LabelContrast>().Init(b.image, label);
         }
 
+        /// <summary>Nút có chữ nằm NGOÀI nền (nút icon HUD): bỏ tự đổi màu chữ theo nền.</summary>
+        public static void KeepLabelColor(UnityEngine.UI.Button b)
+        {
+            if (b != null && b.TryGetComponent(out LabelContrast lc)) Object.Destroy(lc);
+        }
+
         /// <summary>
         /// Chữ trên nút đổi theo ĐỘ SÁNG nền nút: nền kem / vàng → chữ nâu, nền tối (ô túi, nút đỏ...) → chữ trắng.
         /// Kiểm mỗi khung hình nhưng chỉ làm khi màu nền đổi (code cũ đổi image.color lúc chọn / bỏ chọn).

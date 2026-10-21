@@ -318,6 +318,17 @@ namespace Assets.Script.Core
             if (cdSkill >= 0 && cdLen > 0)
             {
                 yield return new WaitForSecondsRealtime(cdLen + 0.3f);   // hết hồi đòn trước
+                // Đứng cạnh 1 con quái CÒN SỐNG (ca trước có thể đã hạ con kia → Enter chỉ vung suông, không gửi gói)
+                var cdMob = NetworkMobManager.Instance?.FindNearestAlive(meMove.transform.position, 40f);
+                if (cdMob != null)
+                {
+                    var ciCd = System.Globalization.CultureInfo.InvariantCulture;
+                    ChatBox.Send(1, "", "/go " + (cdMob.transform.position.x - 1.2f).ToString("0.0", ciCd) + " " + (cdMob.transform.position.y + 0.5f).ToString("0.0", ciCd));
+                    yield return new WaitForSecondsRealtime(1.2f);
+                    FindAnyObjectByType<PlayerTargeting>()?.SelectTarget(cdMob);
+                }
+                // quái (có thể là Thủ lĩnh — mỗi lần hồi sinh đều có cơ hội) đánh trả, 20% choáng 1 giây → chờ hết choáng mới bấm
+                yield return WaitUntil(() => !LocalPlayerState.IsStunned, 3);
                 int sent0 = GameActions.UseSkillSent;
                 ActionInput.Act();                                      // quái gần → đánh (xa thì tự chạy rồi đánh)
                 yield return WaitUntil(() => GameActions.UseSkillSent > sent0, 6);
@@ -667,6 +678,13 @@ namespace Assets.Script.Core
                 Check("Sau đăng xuất đăng nhập lại vào map", NetworkPlayerManager.Instance?.localPlayer != null && LocalPlayerState.Id >= 0);
             }
 
+            // Skin bằng hình kho (chỉ khi máy có Resources/UISkin — demo nội bộ): khung cửa sổ, nút menu HUD thành icon
+            if (Assets.Script.UI.Kit.UISkin.Enabled)
+            {
+                var hudMenu = GameObject.Find("Menu0");
+                var menuIcon = hudMenu != null ? hudMenu.transform.Find("Icon") : null;
+                Check("Nút menu HUD dùng icon trong kho (không còn nút chữ)", menuIcon != null && menuIcon.GetComponent<UnityEngine.UI.Image>().sprite != null);
+            }
             Check("Không có Exception trong suốt phiên", _exceptions == 0);
             Debug.Log($"[AutoTest] KẾT QUẢ: {_pass} PASS, {_fail} FAIL");
             yield return new WaitForSecondsRealtime(0.5f);
