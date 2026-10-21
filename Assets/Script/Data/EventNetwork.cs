@@ -30,9 +30,9 @@ namespace Assets.Script.Data
             Listen(Cmd.GUIDE_TIP, OnGuideTip);
         }
 
-        private static readonly string[] EffectNames = { "", "Choáng", "Chậm", "Bỏng", "Tăng sức mạnh" };
+        private static readonly string[] EffectNames = { "", "Choáng", "Chậm", "Bỏng", "Tăng sức mạnh", "Phân thân" };
 
-        private static readonly Color[] EffectColors = { Color.white, new Color(1f, 0.9f, 0.2f), new Color(0.4f, 0.8f, 1f), new Color(1f, 0.45f, 0.1f), new Color(0.5f, 1f, 0.5f) };
+        private static Color[] EffectColors => UI.StatusIconsHud.Colors;   // cùng màu với icon trên HUD
 
         /// <summary>EFFECT: byte targetType(0 quái/1 người), int targetId, byte effect(1 choáng/2 chậm/3 bỏng/4 tăng sức mạnh), int durationMs, byte value (% chậm)</summary>
         private void OnEffect(byte[] data)
@@ -53,6 +53,7 @@ namespace Assets.Script.Data
                     if (effect == (int)StatusEffect.Stun) LocalPlayerState.StunnedUntil = Time.time + ms / 1000f;
                     if (effect == (int)StatusEffect.Slow) { LocalPlayerState.SlowedUntil = Time.time + ms / 1000f; LocalPlayerState.SlowPercent = value; }
                     if (effect == (int)StatusEffect.Buff) LocalPlayerState.BuffedUntil = Time.time + ms / 1000f;
+                    LocalPlayerState.SetEffect((StatusEffect)effect, ms / 1000f);   // icon + đồng hồ trên HUD
                 }
                 else
                 {
@@ -65,7 +66,9 @@ namespace Assets.Script.Data
                 var mob = NetworkMobManager.Instance != null ? NetworkMobManager.Instance.GetMob(id) : null;
                 if (mob != null) t = mob.transform;
             }
-            // [CẦN ĐIỀN khi có art] thay chữ nổi bằng hiệu ứng hình (sao quay trên đầu = choáng, băng = chậm, lửa = bỏng)
+            // Phân thân: nhân vật mờ / nhấp nháy tới hết hiệu ứng (mình và người khác đều thấy)
+            if (t != null && effect == (int)StatusEffect.Dodge && t.TryGetComponent(out PlayerVisualController pvc)) pvc.Ghost(ms / 1000f);
+            // Chữ nổi báo lúc dính hiệu ứng; mình thì có thêm icon + đồng hồ trên HUD (StatusIconsHud)
             if (t != null) DamagePopup.Show(t.position + Vector3.up * 1.4f, EffectNames[effect], EffectColors[effect], 4f);
         }
 

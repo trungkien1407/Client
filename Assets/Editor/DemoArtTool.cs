@@ -71,6 +71,12 @@ public static class DemoArtTool
         (UISkin.Input, "KhungTrongGame/3/bgdlPer0.png", null),                    // ô nhập chữ: nền tối
         (UISkin.List, "KhungTrongGame/3/popupbgInfo_0.png", null),                // khung danh sách cuộn
         (UISkin.Slot, "KhungTrongGame/3/sprCellQS0.png", null),                   // ô / hàng (nhân màu ô của theme)
+        // Icon trạng thái (StatusIconsHud, fx_<mã StatusEffect>) — hình nhạt trên nền tối, game nhuộm màu hiệu ứng
+        ("fx_1", "IconMenu/3.png", Vector4.zero),    // choáng: vòng xoáy
+        ("fx_2", "IconMenu/5.png", Vector4.zero),    // chậm: tinh thể băng
+        ("fx_3", "IconMenu/6.png", Vector4.zero),    // bỏng: lửa
+        ("fx_4", "IconMenu/31.png", Vector4.zero),   // tăng sức mạnh: mũ giáp
+        ("fx_5", "IconMenu/43.png", Vector4.zero),   // phân thân: người + vệt chuyển động
     };
 
     private static List<(string path, Vector4 border)> CopyUiSkin(string uiDir)

@@ -64,6 +64,7 @@ namespace Assets.Script.UI
         {
             _v = HudPanel.Create<GameHudView>(UIRoot.Instance.HudLayer);
             HudPanel.Create<MinimapHud>(_v.transform);   // phím B = bản đồ lớn
+            StatusIconsHud.Create(_v.transform, new Vector2(252, -86));   // icon choáng / chậm / bỏng / tăng sức mạnh / phân thân (cạnh ô cấp)
 
             // Hành động nút menu — cùng thứ tự GameHudView.MenuLabels
             System.Action[] actions =

@@ -56,7 +56,7 @@ namespace Assets.Script.Player
             if (!obj.TryGetComponent(out PlayerMovement pm)) pm = obj.AddComponent<PlayerMovement>();
             if (spine != null && obj.TryGetComponent(out PlayerVisualController vc))
             {
-                vc.SetupVisual(spine, null);
+                vc.SetupVisual(spine, null, p.class_type);
                 obj.GetComponentInChildren<MeshRenderer>().sortingOrder = 2;   // mình vẽ đè lên người khác
             }
             pm.Initialize(p, 1);
@@ -73,7 +73,7 @@ namespace Assets.Script.Player
             if (!obj.TryGetComponent(out RemotePlayer rp)) rp = obj.AddComponent<RemotePlayer>();
             rp.poolKey = BasePrefab;
             rp.Initialize(p);
-            if (spine != null && obj.TryGetComponent(out PlayerVisualController vc)) vc.SetupVisual(spine, null);
+            if (spine != null && obj.TryGetComponent(out PlayerVisualController vc)) vc.SetupVisual(spine, null, p.class_type);
 
             // Người khác chỉ đi theo vị trí server gửi (RemotePlayer nội suy) → không chịu vật lý:
             // body Kinematic (không rơi), collider Trigger (không đẩy nhân vật mình, vẫn bấm chọn được)

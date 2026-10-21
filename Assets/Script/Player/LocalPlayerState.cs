@@ -37,6 +37,28 @@ namespace Assets.Script.Player
         public static float BuffedUntil;   // GĐ8: đang được tăng sức mạnh (Cổ Vũ / Thiết Thể / Ảnh Bộ)
         public static bool IsBuffed => UnityEngine.Time.time < BuffedUntil;
 
+        // Mọi hiệu ứng đang có trên mình (mã 1..5 = StatusEffect) — HUD vẽ icon + đồng hồ (UI/StatusIconsHud)
+        private static readonly float[] _effUntil = new float[6], _effTotal = new float[6];
+
+        /// <summary>EventNetwork gọi khi nhận EFFECT cho chính mình.</summary>
+        public static void SetEffect(Constants.StatusEffect e, float seconds)
+        {
+            int k = (int)e;
+            if (k <= 0 || k >= _effUntil.Length) return;
+            float until = UnityEngine.Time.time + seconds;
+            if (until > _effUntil[k]) { _effUntil[k] = until; _effTotal[k] = seconds; }
+        }
+
+        public static float EffectLeft(Constants.StatusEffect e) => (int)e < _effUntil.Length ? UnityEngine.Mathf.Max(0f, _effUntil[(int)e] - UnityEngine.Time.time) : 0f;
+        public static float EffectTotal(Constants.StatusEffect e) => (int)e < _effTotal.Length ? _effTotal[(int)e] : 0f;
+
+        /// <summary>Chết / đăng xuất: mất hết hiệu ứng (server cũng xoá).</summary>
+        public static void ClearEffects()
+        {
+            System.Array.Clear(_effUntil, 0, _effUntil.Length);
+            StunnedUntil = SlowedUntil = BuffedUntil = 0f;
+        }
+
         /// <summary>Bắn ra mỗi khi có chỉ số thay đổi (UI khác muốn nghe thì đăng ký).</summary>
         public static event Action OnChanged;
 

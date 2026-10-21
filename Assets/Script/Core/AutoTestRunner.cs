@@ -406,14 +406,18 @@ namespace Assets.Script.Core
             yield return Shot("WorldMap");
             wm.Hide();
             var vis = me.GetComponent<PlayerVisualController>();
-            vis.PlaySkill(6);
-            Check($"Chiêu Trảm Phong → anim {vis.mainSkeleton.AnimationName}", vis.mainSkeleton.AnimationName == Assets.Script.Player.AnimNames.Slash);
+            int bigSkill = vis.ClassType == 2 ? 7 : vis.ClassType == 3 ? 8 : 6;   // chiêu cấp 5 của hệ
+            string want = PlayerVisualController.SkillAnimFor(vis.ClassType, bigSkill);
+            vis.PlaySkill(bigSkill);
+            Check($"Chiêu {bigSkill} → anim chiêu trong Spine ({vis.mainSkeleton.AnimationName}, cần {want}) — hiệu ứng vẽ sẵn, không phát thêm fxCast",
+                want != null && vis.mainSkeleton.AnimationName == want && vis.HasSkillAnim(bigSkill));
             yield return new WaitForSecondsRealtime(1f);
             vis.PlaySkill(1);
             string a1 = vis.mainSkeleton.AnimationName;
             yield return new WaitForSecondsRealtime(0.6f);
             vis.PlaySkill(1);
             Check($"Đòn cơ bản đấm – đá luân phiên ({a1} → {vis.mainSkeleton.AnimationName})", a1 != vis.mainSkeleton.AnimationName);
+
             yield return Shot("Platform");
 
             GameActions.Chat(1, "/tele 1");
@@ -454,6 +458,32 @@ namespace Assets.Script.Core
             Check("Lên cấp mở tính năng → hiện khung Mẹo", tip.IsOpen);
             yield return Shot("Tip");
             tip.Hide();
+
+            // Phân Thân Chi Thuật (mọi hệ, cấp 12) — sau ca khung Mẹo (ca đó cần vượt cấp 12 bằng /exp): học → dùng → server gửi EFFECT 5 → icon + đồng hồ trên HUD, nhân vật mờ đi
+            var meVis = NetworkPlayerManager.Instance.localPlayer.GetComponent<PlayerVisualController>();   // lấy lại (đã đổi map)
+            if (!GameData.MySkills.ContainsKey(4) && GameData.Skills.ContainsKey(4))
+            {
+                if (GameData.Me.level < 12) { GameActions.Chat(1, "/lv 12"); yield return new WaitForSecondsRealtime(0.5f); }
+                GameActions.Chat(1, "/sp 1");
+                yield return new WaitForSecondsRealtime(0.4f);
+                GameActions.UpgradeSkill(4);
+                yield return WaitUntil(() => GameData.MySkills.ContainsKey(4), 4);
+            }
+            Check("Học được Phân Thân Chi Thuật", GameData.MySkills.ContainsKey(4));
+            if (GameData.MySkills.ContainsKey(4))
+            {
+                yield return new WaitForSecondsRealtime(1f);   // anim chiêu trước chạy xong
+                SkillCaster.TryCast(4);
+                Check($"Phân Thân → anim chiêu trong Spine ({meVis.mainSkeleton.AnimationName}, cần {PlayerVisualController.SkillAnimFor(meVis.ClassType, 4)})",
+                    meVis.mainSkeleton.AnimationName == PlayerVisualController.SkillAnimFor(meVis.ClassType, 4));
+                yield return WaitUntil(() => LocalPlayerState.EffectLeft(Assets.Script.Constants.StatusEffect.Dodge) > 0, 4);
+                yield return null;
+                var icons = FindAnyObjectByType<Assets.Script.UI.StatusIconsHud>();
+                var icon = icons != null ? icons.transform.Find("Fx5") : null;
+                Check($"Server báo phân thân ({LocalPlayerState.EffectLeft(Assets.Script.Constants.StatusEffect.Dodge):0.0} giây) → icon trên HUD + nhân vật mờ (alpha {meVis.mainSkeleton.Skeleton.A:0.00})",
+                    LocalPlayerState.EffectLeft(Assets.Script.Constants.StatusEffect.Dodge) > 5f && icon != null && icon.gameObject.activeSelf && meVis.mainSkeleton.Skeleton.A < 0.9f);
+                yield return Shot("PhanThan");
+            }
 
             var hok = NetworkNpcManager.Instance != null ? NetworkNpcManager.Instance.FindByTemplate(1) : null;
             if (hok != null)
