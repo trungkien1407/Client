@@ -73,6 +73,7 @@ namespace Assets.Script.UI.Kit
         {
             var img = FromKit<Image>("Panel", name, parent) ?? BuildPanel(name, parent);
             img.color = color;
+            UISkin.SkinPanel(img);   // màu ô / hàng → hình bo góc (khi có skin)
             return img;
         }
 
@@ -95,6 +96,7 @@ namespace Assets.Script.UI.Kit
             var t = btn.GetComponentInChildren<TextMeshProUGUI>(true);
             if (t != null) { t.text = label; t.fontSize = fontSize; }
             if (onClick != null) btn.onClick.AddListener(() => onClick());
+            UISkin.SkinButton(btn);
             return btn;
         }
 
@@ -111,6 +113,7 @@ namespace Assets.Script.UI.Kit
             input.contentType = type;
             input.characterLimit = charLimit;
             input.pointSize = fontSize;
+            UISkin.SkinInput(input);
             return input;
         }
 

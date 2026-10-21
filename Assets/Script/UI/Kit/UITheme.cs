@@ -20,6 +20,7 @@ namespace Assets.Script.UI.Kit
         [Tooltip("Chữ xấu (lỗi, thiếu điều kiện)")] public Color badText = new Color(1f, 0.45f, 0.45f, 1f);
 
         private static UITheme _current;
+        private static bool _restyled;
 
         /// <summary>Asset trong Resources/UI; chưa tạo thì dùng màu mặc định ở trên.</summary>
         public static UITheme Current
@@ -28,6 +29,7 @@ namespace Assets.Script.UI.Kit
             {
                 if (_current == null) _current = Resources.Load<UITheme>(UIPrefabs.ThemePath);
                 if (_current == null) _current = CreateInstance<UITheme>();
+                if (_current != null && !_restyled) { _restyled = true; _current = UISkin.Restyle(_current); }   // có hình skin → màu hợp hình
                 return _current;
             }
         }

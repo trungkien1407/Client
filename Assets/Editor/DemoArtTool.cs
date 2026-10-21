@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Assets.Script.Models;
+using Assets.Script.UI.Kit;
 using Newtonsoft.Json.Linq;
 using UnityEditor;
 using UnityEngine;
@@ -12,6 +13,7 @@ using UnityEngine;
 /// NHẬP HÌNH DEMO NỘI BỘ (tài nguyên rip đã giải mã, thư mục TaiNguyen) vào Assets/_Demo/Resources — gitignore, KHÔNG commit:
 ///   1. Kho ảnh   07_VatPham_IconNho/imgN.png → _Demo/Resources/ImageBank/imgN.png    (icon vật phẩm / chiêu, khung hiệu ứng)
 ///   2. Hình quái 02_Quai/data_N/img_K.png + anim.json → _Demo/Resources/MobArt/N/ + MobAnim/MobAnim_N.asset
+///   3. Skin UI   08_UI/... (khung cửa sổ, nút, ô...) → _Demo/Resources/UISkin/&lt;tên&gt;.png + viền 9-slice (UISkin dùng lúc chạy)
 /// Code tải theo tên qua AssetSource: Addressables trước (hình chính thức), không có mới lấy _Demo → thay hình thật
 /// = đưa ảnh cùng tên vào Addressables (address "imgN", "MobAnim_N"), không sửa code.
 /// Không mở Editor: -executeMethod DemoArtTool.BatchImport -demoArt &lt;thư mục TaiNguyen&gt;
@@ -22,6 +24,7 @@ public static class DemoArtTool
     public const string BankDir = Root + "/ImageBank";
     public const string MobArtDir = Root + "/MobArt";
     public const string MobAnimDir = Root + "/MobAnim";
+    public const string SkinDir = Root + "/UISkin";
     private const string DirKey = "Naruto.DemoArtDir";
 
     [MenuItem("Tools/Naruto/Demo art/1. Nhập kho ảnh + hình quái từ TaiNguyen", priority = 40)]
@@ -29,8 +32,8 @@ public static class DemoArtTool
     {
         string dir = SourceDir(true);
         if (dir == null) return;
-        var (icons, mobs) = ImportAll(dir);
-        EditorUtility.DisplayDialog("Demo art", $"Kho ảnh: {icons} ảnh\nHình quái: {mobs} bộ\n→ {Root} (không commit)", "OK");
+        var (icons, mobs, ui) = ImportAll(dir);
+        EditorUtility.DisplayDialog("Demo art", $"Kho ảnh: {icons} ảnh\nHình quái: {mobs} bộ\nSkin UI: {ui} hình\n→ {Root} (không commit)", "OK");
     }
 
     [MenuItem("Tools/Naruto/Demo art/2. Đổi thư mục TaiNguyen", priority = 41)]
@@ -38,19 +41,75 @@ public static class DemoArtTool
 
     public static void BatchImport()
     {
-        var (icons, mobs) = ImportAll(SourceDir(false));
-        Debug.Log($"[DemoArt] kho ảnh {icons}, hình quái {mobs}");
+        var (icons, mobs, ui) = ImportAll(SourceDir(false));
+        Debug.Log($"[DemoArt] kho ảnh {icons}, hình quái {mobs}, skin UI {ui}");
     }
 
-    public static (int icons, int mobs) ImportAll(string src)
+    public static (int icons, int mobs, int ui) ImportAll(string src)
     {
         int icons = CopyBank(Path.Combine(src, "07_VatPham_IconNho"));
         var mobDirs = CopyMobArt(Path.Combine(src, "02_Quai"));
+        var skins = CopyUiSkin(Path.Combine(src, "08_UI"));
         AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
         int mobs = 0;
         foreach (var (art, anim) in mobDirs) if (BuildMobAnim(art, anim)) mobs++;
+        foreach (var (path, border) in skins) SetupSkinSprite(path, border);
         AssetDatabase.SaveAssets();
-        return (icons, mobs);
+        return (icons, mobs, skins.Count);
+    }
+
+    // ==================== SKIN UI ====================
+
+    // Tên hình UISkin → ảnh trong 08_UI. Viền 9-slice: null = lấy từ _sprites.json cùng thư mục (game gốc ghi sẵn), có giá trị = đặt tay
+    // (Vector4 = trái, dưới, phải, trên — điểm ảnh). KhungTrongGame/3 = bản 3× (vừa khung 1280x720 khi UISkin thu viền ×2).
+    private static readonly (string key, string file, Vector4? border)[] SkinFiles =
+    {
+        (UISkin.Window, "KhungTrongGame/3/bagBG_2.png", null),                    // nền cửa sổ tím mận, hoa văn góc
+        (UISkin.Header, "imggame/sprTabTitle1.png", new Vector4(40, 0, 40, 0)),   // thanh tiêu đề
+        (UISkin.Close, "imggame/sprClosePopup.png", Vector4.zero),                // nút đóng (hình X)
+        (UISkin.Button, "KhungTrongGame/3/sprCellQS0.png", null),                 // nút: kem bo góc (nhân màu theme)
+        (UISkin.Input, "KhungTrongGame/3/bgdlPer0.png", null),                    // ô nhập chữ: nền tối
+        (UISkin.List, "KhungTrongGame/3/popupbgInfo_0.png", null),                // khung danh sách cuộn
+        (UISkin.Slot, "KhungTrongGame/3/sprCellQS0.png", null),                   // ô / hàng (nhân màu ô của theme)
+    };
+
+    private static List<(string path, Vector4 border)> CopyUiSkin(string uiDir)
+    {
+        var list = new List<(string, Vector4)>();
+        if (!Directory.Exists(uiDir)) { Debug.LogWarning("[DemoArt] thiếu " + uiDir); return list; }
+        Directory.CreateDirectory(SkinDir);
+        foreach (var (key, file, border) in SkinFiles)
+        {
+            string from = Path.Combine(uiDir, file);
+            if (!File.Exists(from)) { Debug.LogWarning("[DemoArt] thiếu hình skin " + from); continue; }
+            string to = $"{SkinDir}/{key}.png";
+            if (!File.Exists(to) || new FileInfo(to).Length != new FileInfo(from).Length) File.Copy(from, to, true);
+            list.Add((to, border ?? BorderFromJson(from)));
+        }
+        return list;
+    }
+
+    /// <summary>Viền 9-slice của ảnh trong _sprites.json cùng thư mục (giải mã từ game gốc): "border": [trái, dưới, phải, trên].</summary>
+    private static Vector4 BorderFromJson(string png)
+    {
+        string json = Path.Combine(Path.GetDirectoryName(png) ?? "", "_sprites.json");
+        if (!File.Exists(json)) return Vector4.zero;
+        var b = JObject.Parse(File.ReadAllText(json))[Path.GetFileNameWithoutExtension(png)]?["border"] as JArray;
+        return b != null && b.Count == 4 ? new Vector4((float)b[0], (float)b[1], (float)b[2], (float)b[3]) : Vector4.zero;
+    }
+
+    private static void SetupSkinSprite(string path, Vector4 border)
+    {
+        if (!(AssetImporter.GetAtPath(path) is TextureImporter ti)) return;
+        ti.textureType = TextureImporterType.Sprite;
+        ti.spriteImportMode = SpriteImportMode.Single;
+        ti.spritePixelsPerUnit = 100;
+        ti.spriteBorder = border;
+        ti.mipmapEnabled = false;
+        ti.alphaIsTransparency = true;
+        ti.filterMode = FilterMode.Bilinear;
+        ti.textureCompression = TextureImporterCompression.Uncompressed;
+        ti.SaveAndReimport();
     }
 
     // ==================== KHO ẢNH ====================

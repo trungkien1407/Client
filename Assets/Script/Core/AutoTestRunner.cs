@@ -73,7 +73,7 @@ namespace Assets.Script.Core
                     if (m.AppliedArt >= 0) withArt++;
                 Check($"Quái dùng bộ hình theo server (MobAnim): {withArt} con", withArt > 0);
             }
-            // Quái thường hồi sinh thành Thủ lĩnh (ngẫu nhiên khi hạ quái; GM /tinhanh để thử) → tên đỏ "[Thủ lĩnh]", to hơn
+            // Quái thường hồi sinh thành Thủ lĩnh (ngẫu nhiên khi hồi sinh; GM /tinhanh để thử) → tên đỏ "[Thủ lĩnh]", CÙNG kích cỡ quái thường
             GameActions.Chat(1, "/tinhanh 2");
             Assets.Script.Entities.MobController leader = null;
             yield return WaitUntil(() =>
@@ -82,7 +82,12 @@ namespace Assets.Script.Core
                     if (m.Rank == 2 && !m.IsDead) { leader = m; return true; }
                 return false;
             }, 5);
-            Check("GM /tinhanh 2 → thấy quái Thủ lĩnh (hạng 2, phóng to)", leader != null && leader.transform.localScale.x > 1.2f);
+            Assets.Script.Entities.MobController normal = null;   // cùng loại quái, hạng thường → so kích cỡ
+            if (leader != null)
+                foreach (var m in UnityEngine.Object.FindObjectsByType<Assets.Script.Entities.MobController>(FindObjectsSortMode.None))
+                    if (m != leader && m.Rank == 0 && m.templateId == leader.templateId) { normal = m; break; }
+            Check($"GM /tinhanh 2 → thấy quái Thủ lĩnh (hạng 2), cùng kích cỡ quái thường ({(leader != null ? leader.transform.localScale.x : 0):0.00} / {(normal != null ? normal.transform.localScale.x : 0):0.00})",
+                leader != null && (normal == null || Mathf.Abs(leader.transform.localScale.x - normal.transform.localScale.x) < 0.01f));
             yield return Shot("LeaderMob");
 
             if (GameData.Effects.Count == 0) yield break;
@@ -288,15 +293,21 @@ namespace Assets.Script.Core
             if (farMob != null)
             {
                 var ci = System.Globalization.CultureInfo.InvariantCulture;   // máy tiếng Việt viết "1,5" — server cần "1.5"
-                ChatBox.Send(1, "", "/go " + (farMob.transform.position.x - 5f).ToString("0.0", ci) + " " + (farMob.transform.position.y + 0.5f).ToString("0.0", ci));
-                yield return new WaitForSecondsRealtime(1.2f);
+                // Quái đi lang thang: chờ xong mà nó đã tới quá gần (Enter đánh luôn, không cần chạy) → dịch ra xa lại, tối đa 3 lần
+                for (int tries = 0; tries < 3; tries++)
+                {
+                    ChatBox.Send(1, "", "/go " + (farMob.transform.position.x - 5f).ToString("0.0", ci) + " " + (farMob.transform.position.y + 0.5f).ToString("0.0", ci));
+                    yield return new WaitForSecondsRealtime(1.2f);
+                    if (farMob.DistanceFrom(meMove.transform.position) > 3.5f) break;
+                }
                 FindAnyObjectByType<PlayerTargeting>()?.SelectTarget(farMob);
                 float d0 = farMob.DistanceFrom(meMove.transform.position);
+                string where0 = $"người x={meMove.transform.position.x:0.0} y={meMove.transform.position.y:0.0}, quái x={farMob.transform.position.x:0.0}";
                 ActionInput.Act();
                 bool started = ActionInput.IsRunning;
                 yield return WaitUntil(() => !ActionInput.IsRunning, 10);
                 float d1 = farMob.DistanceFrom(meMove.transform.position);
-                Check($"Enter: quái ở xa → tự chạy lại gần ({d0:0.0} → {d1:0.0})", started && d1 < d0 - 1f);
+                Check($"Enter: quái ở xa → tự chạy lại gần ({d0:0.0} → {d1:0.0}; lúc đầu {where0})", started && d1 < d0 - 1f);
                 yield return Shot("AutoRun");
             }
 
@@ -321,6 +332,12 @@ namespace Assets.Script.Core
                 Check($"Bấm lại khi chưa hồi (còn {SkillCooldowns.Remaining(cdSkill):0.00} giây) → không gửi USE_SKILL", GameActions.UseSkillSent == sent1);
                 yield return WaitUntil(() => SkillCooldowns.Ready(cdSkill), cdLen + 1);
                 Check("Hết thời gian hồi → dùng được lại", SkillCooldowns.Ready(cdSkill));
+                // Chụp liên tiếp lúc nhân vật ra chiêu thật (chỉ khi chạy -shots): xem hiệu ứng ra chiêu / trúng đòn đúng chỗ, đúng hướng
+                if (!string.IsNullOrEmpty(Arg("-shots", null)))
+                {
+                    ActionInput.Act();
+                    for (int k = 0; k < 5; k++) { yield return Shot("Cast_" + k); yield return new WaitForSecondsRealtime(0.1f); }
+                }
             }
 
             // 5a2. Tự chọn mục tiêu (Đồi Hoa Cúc — quái rải khắp map): đứng cạnh quái A → máy tự chọn A;

@@ -23,6 +23,7 @@ namespace Assets.Script.UI.Kit
             }
             else p = (T)CreateByCode(typeof(T), parent);
             p.Bind();
+            UISkin.SkinTree(p.transform);
             return p;
         }
 

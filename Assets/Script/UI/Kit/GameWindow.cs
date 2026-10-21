@@ -51,6 +51,7 @@ namespace Assets.Script.UI.Kit
             w.Frame.close.onClick.AddListener(w.Hide);
             w.Bind();
             w.Frame.title.text = w.Title;
+            UISkin.SkinTree(w.transform);   // khung, nút, ô... dùng hình kho (khi có)
             w.gameObject.SetActive(false);
             root.Register(w);
             return w;

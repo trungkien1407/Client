@@ -249,7 +249,11 @@ namespace Assets.Script.Combat
         private int _lastCastAttacker, _lastCastSkill;
         private float _lastCastTime;
 
-        /// <summary>Hiệu ứng chiêu (SkillTpl.fxCast ở người ra chiêu, fxHit ở mục tiêu) — số hiệu ứng do server cấu hình.</summary>
+        /// <summary>
+        /// Hiệu ứng chiêu (SkillTpl.fxCast ở người ra chiêu, fxHit ở mục tiêu) — số hiệu ứng do server cấu hình.
+        /// GỐC = GIỮA THÂN (không phải chân): dữ liệu hiệu ứng của game gốc chỉ lệch vài điểm quanh tâm thân — đặt ở chân thì
+        /// đường chém / vụ nổ chìm xuống đất. Hiệu ứng ra chiêu bám theo người ra chiêu (chạy vẫn theo).
+        /// </summary>
         private void PlaySkillFx(int attackerId, AttackTarget targetType, int targetId, int skillId)
         {
             if (!Data.GameData.Skills.TryGetValue(skillId, out var tpl) || (tpl.fxCast < 0 && tpl.fxHit < 0)) return;
@@ -259,9 +263,17 @@ namespace Assets.Script.Combat
             bool flip = from != null && to != null && to.position.x < from.position.x;
 
             bool sameCast = attackerId == _lastCastAttacker && skillId == _lastCastSkill && Time.time - _lastCastTime < 0.2f;
-            if (from != null && tpl.fxCast >= 0 && !sameCast) Fx.EffectPlayer.Play(tpl.fxCast, Vector3.zero, flip, from);
+            if (from != null && tpl.fxCast >= 0 && !sameCast) Fx.EffectPlayer.Play(tpl.fxCast, BodyCenter(from) - from.position, flip, from);
             _lastCastAttacker = attackerId; _lastCastSkill = skillId; _lastCastTime = Time.time;
-            if (to != null && tpl.fxHit >= 0 && targetType != AttackTarget.Self) Fx.EffectPlayer.Play(tpl.fxHit, to.position, flip);
+            if (to != null && tpl.fxHit >= 0 && targetType != AttackTarget.Self) Fx.EffectPlayer.Play(tpl.fxHit, BodyCenter(to), flip);
+        }
+
+        /// <summary>Giữa thân (world): quái → nửa khung va chạm; người → tâm BoxCollider2D; không biết → cao hơn chân 0,6 ô.</summary>
+        public static Vector3 BodyCenter(Transform t)
+        {
+            if (t.TryGetComponent(out Entities.MobController mob)) return mob.BodyCenter;
+            if (t.TryGetComponent(out BoxCollider2D box)) return new Vector3(t.position.x, box.bounds.center.y, t.position.z);
+            return t.position + Vector3.up * 0.6f;
         }
 
         private static Transform GetPlayerTransform(int playerId) => NetworkPlayerManager.Instance?.GetPlayerTransform(playerId);
