@@ -55,19 +55,19 @@
         public const short DUEL_STATE = 215;        // S→C byte state(0 kết thúc/1 đếm ngược/2 đang đấu), int opponentId, UTF msg
         // ---- GĐ4: hiệu ứng ----
         public const short SKILL_COOLDOWN = 217;    // S→C short n, [int skillId, int remainingMs]×n — 1 lần lúc vào game (chiêu còn đang hồi)
-        public const short EFFECT = 216;            // S→C byte targetType(0 quái/1 người), int targetId, byte effect(1 choáng/2 chậm/3 bỏng), int ms
+        public const short EFFECT = 216;            // S→C byte targetType(0 quái/1 người), int targetId, byte effect(1 choáng/2 chậm/3 bỏng/4 tăng sức mạnh/5 phân thân), int ms, byte value (% chậm)
 
         // ==========================================
         // 4. VẬT PHẨM & TÚI ĐỒ (300 - 399)
         // ==========================================
         public const short USE_ITEM = 300;          // C→S int templateId (server dùng ô đầu tiên có món đó)
         public const short PICK_ITEM = 301;         // C→S int groundItemId
-        public const short INVENTORY = 302;         // S→C short capacity, short n, [int templateId, int qty, byte level, byte locked] x n
+        public const short INVENTORY = 302;         // S→C short capacity, short n, [int templateId, int qty, byte level, byte locked + EXTRAS] x n
         public const short ITEM_DROP = 303;         // S→C int groundId, int templateId, int qty, float x, float y
         public const short ITEM_REMOVE = 304;       // S→C int groundId
         public const short EQUIP_ITEM = 305;        // C→S int bagIndex
         public const short UNEQUIP_ITEM = 306;      // C→S int slot
-        public const short EQUIPMENT = 307;         // S→C short n, [int slot, int templateId, byte level] x n
+        public const short EQUIPMENT = 307;         // S→C short n, [int slot, int templateId, byte level + EXTRAS] x n
         public const short OPEN_SHOP = 308;
         public const short SHOP_DATA = 309;         // S→C int npcId, short n, [int itemId, int price, byte currency(0 yên/1 xu/2 lượng)]
         public const short BUY_ITEM = 310;          // C→S int npcId, int itemId, int qty
@@ -143,7 +143,7 @@
         public const short MAIL_LIST_REQ = 740;     // C→S
         public const short MAIL_LIST = 741;         // S→C short n, [long id, UTF from, UTF title, byte read, byte claimed, byte hasAttach, long createdMs]
         public const short MAIL_READ = 742;         // C→S long id
-        public const short MAIL_CONTENT = 743;      // S→C long id, UTF from, UTF title, UTF content, int yen, [ô đồ], byte claimed
+        public const short MAIL_CONTENT = 743;      // S→C long id, UTF from, UTF title, UTF content, int yen, [ô đồ], byte claimed, int xu, int luong
         public const short MAIL_CLAIM = 744;        // C→S long id
         public const short MAIL_SEND = 745;         // C→S UTF to, UTF title, UTF content, int yen, int bagIndex(-1), int qty
         public const short MAIL_DELETE = 746;       // C→S long id
@@ -174,7 +174,7 @@
         // ---- GĐ4: phó bản / sự kiện ----
         public const short DUNGEON_STATE = 850;     // S→C byte state(2 đang chơi/3 thắng/4 thua/0 rời), int secs, short mobsLeft, UTF name
         public const short EVENT_STATE = 851;       // S→C byte type(1 boss/2 lôi đài), byte state(0 hết/1 báo trước/2 đang diễn ra), int secs, UTF text
-        public const short ARENA_SCORE = 852;
+        public const short ARENA_SCORE = 852;      // S→C short n, [UTF name, short kills]
         // GĐ9 — CHỢ ("ô đồ" = BagSlot.Read)
         public const short MARKET_SEARCH = 340;     // C→S byte loại(0 tất cả/1 vũ khí/2 trang phục/3 bình/4 nguyên liệu), byte sắp xếp(0 mới/1 rẻ), short trang, UTF từ khoá
         public const short MARKET_LIST = 341;       // S→C short tổng, short trang, short n, [long id, ô đồ, int giá, UTF người bán, int giây còn lại]
@@ -197,10 +197,10 @@
         public const short ACTIVITY_REQ = 860;      // C→S rỗng
         public const short ACTIVITY_INFO = 861;     // S→C short điểm, byte bit mốc đã nhận, byte n,[UTF tên, short tiến độ, short đích, byte điểm có, byte điểm tối đa], byte m,[short cần, UTF thưởng], byte k,[UTF dòng lịch]
         public const short ACTIVITY_CLAIM = 862;    // C→S byte chỉ số mốc
-        public const short GUIDE_TIP = 863;
+        public const short GUIDE_TIP = 863;        // S→C UTF tiêu đề, UTF nội dung, byte mục cẩm nang
         public const short ONLINE_CLAIM = 864;      // C→S byte chỉ số mốc quà online
         public const short GIFTCODE_USE = 865;      // C→S UTF mã
-        public const short GIFTCODE_RESULT = 866;   // S→C byte ok, UTF lời báo         // S→C UTF tiêu đề, UTF nội dung, byte mục cẩm nang       // S→C short n, [UTF name, short kills]
+        public const short GIFTCODE_RESULT = 866;   // S→C byte ok, UTF lời báo
 
         public const short PLAYER_HEAL = 901;       // S→C int id, int hpHeal, int mpHeal, int hp, int maxHp, int mp, int maxMp
     }

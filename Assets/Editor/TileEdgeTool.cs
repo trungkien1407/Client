@@ -26,7 +26,7 @@ public static class TileEdgeTool
         public HashSet<int> members;
     }
 
-    // Số ô lấy từ bảng tra tileset (xem docs/ky-thuat/CLIENT.md — Map). 35 là mép phải thứ hai của cỏ.
+    // Số ô lấy từ bảng tra tileset (xem docs/noi-dung/NOI_DUNG.md §2 — bảng ô tileset). 35 là mép phải thứ hai của cỏ.
     private static readonly Family[] Families =
     {
         new Family { left = 12, mid = 9, right = 18, single = 0, members = new HashSet<int> { 0, 9, 12, 18, 35 } },     // cỏ
