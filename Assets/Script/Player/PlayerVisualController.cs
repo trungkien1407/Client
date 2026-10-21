@@ -131,6 +131,14 @@ namespace Assets.Script.Player
             return n != null && mainSkeleton != null && mainSkeleton.Skeleton?.Data?.FindAnimation(n) != null;
         }
 
+        /// <summary>
+        /// Người ra chiêu đã có hiệu ứng vẽ sẵn trong Spine → KHÔNG phát hiệu ứng ra chiêu (fxCast) theo dữ liệu:
+        /// chiêu có anim riêng, hoặc đòn cơ bản (đấm / đá — fxCast của đòn cơ bản là đường chém kiếm xanh, không hợp nắm đấm).
+        /// Hiệu ứng trúng đòn ở mục tiêu (fxHit) vẫn phát.
+        /// </summary>
+        public bool HasBuiltInCastFx(int skillId) => HasSkillAnim(skillId)
+            || (BasicSkills.Contains(skillId) && mainSkeleton != null && mainSkeleton.Skeleton?.Data?.FindAnimation(AnimNames.Punch) != null);
+
         /// <summary>Diễn anim của chiêu skillId (bấm đánh, kể cả khi đòn không gửi lên server).</summary>
         public void PlaySkill(int skillId)
         {

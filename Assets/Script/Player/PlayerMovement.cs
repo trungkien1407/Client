@@ -61,7 +61,8 @@ namespace Assets.Script.Player
         private Collider2D groundCollider;
         private Collider2D droppingThrough;
         private float dropUntil;
-        private const float DROP_TIME = 0.35f;
+        private const float DROP_TIME = 0.35f;      // bỏ va chạm tối thiểu
+        private const float DROP_MAX_TIME = 1.5f;   // tối đa (còn kẹt trong bục quá lâu thì vẫn bật lại)
 
         // Input tạo 1 lần, bật/tắt theo object, Dispose khi huỷ (tránh rò bộ nhớ)
         private void Awake()
@@ -151,7 +152,8 @@ namespace Assets.Script.Player
 
         private void HandleDropThrough()
         {
-            if (droppingThrough != null && Time.time >= dropUntil)
+            // Chỉ bật lại va chạm khi thân đã RA KHỎI bục (bật lại lúc còn đè lên bục → vật lý đẩy ngược lên mặt bục)
+            if (droppingThrough != null && Time.time >= dropUntil && (!StillInside(droppingThrough) || Time.time >= dropUntil + DROP_MAX_TIME))
             {
                 Physics2D.IgnoreCollision(col, droppingThrough, false);
                 droppingThrough = null;
@@ -170,7 +172,22 @@ namespace Assets.Script.Player
             Physics2D.IgnoreCollision(col, droppingThrough, true);
             isGrounded = false;
             groundCollider = null;
+            // Đứng yên lâu thì Rigidbody2D "ngủ": bỏ va chạm xong vẫn treo trên bục, không rơi (lỗi "không nhảy xuống được").
+            // Đánh thức + đẩy nhẹ xuống để rơi ngay.
+            if (rb != null)
+            {
+                rb.WakeUp();
+                rb.velocity = new Vector2(rb.velocity.x, Mathf.Min(rb.velocity.y, -2f));
+            }
             return true;
+        }
+
+        /// <summary>Thân nhân vật còn đè lên collider c không.</summary>
+        private bool StillInside(Collider2D c)
+        {
+            if (c == null || col == null) return false;
+            var d = col.Distance(c);
+            return d.isValid && d.isOverlapped;
         }
 
         /// <summary>
@@ -202,6 +219,8 @@ namespace Assets.Script.Player
         void OnJump()
         {
             if (isDead || Assets.Script.Combat.ChatBox.IsTyping || Assets.Script.Player.LocalPlayerState.IsStunned) return;
+            // Giữ xuống + nhảy trên bục 1 chiều = nhảy xuống (kiểu NSO)
+            if (ManualInput.y < -0.5f && TryDropThrough()) return;
             if (isGrounded || isOnWaterSurface || isInWater)
             {
                 if (isOnWaterSurface)

@@ -408,7 +408,10 @@ namespace Assets.Script.Core
             me.GetComponent<Rigidbody2D>().velocity = new Vector2(0, 15f);      // nhảy thẳng lên từ dưới bục
             yield return new WaitForSecondsRealtime(2f);
             Check($"Nhảy xuyên bục từ dưới lên và đứng trên bục (y = {me.transform.position.y:0.00}, cần ~7)", Mathf.Abs(me.transform.position.y - 7f) < 0.3f);
-            Check("Bấm xuống trên bục → rơi xuyên", me.TryDropThrough());
+            // Đứng yên lâu → Rigidbody2D ngủ; trước đây bấm xuống lúc này không rơi (bỏ va chạm nhưng thân vẫn treo)
+            me.GetComponent<Rigidbody2D>().Sleep();
+            yield return new WaitForSecondsRealtime(0.2f);
+            Check("Bấm xuống trên bục (đang đứng yên lâu) → rơi xuyên", me.TryDropThrough());
             yield return new WaitForSecondsRealtime(1.5f);
             Check($"Rơi về mặt đất dưới bục (y = {me.transform.position.y:0.00}, cần ~4)", Mathf.Abs(me.transform.position.y - 4f) < 0.3f);
             Check($"Minimap vẽ từ tilemap ({MapImage.Width}x{MapImage.Height})", MapImage.Texture != null && MapImage.Width == 76 && GameObject.Find("Minimap") != null);
@@ -428,6 +431,8 @@ namespace Assets.Script.Core
             yield return new WaitForSecondsRealtime(0.6f);
             vis.PlaySkill(1);
             Check($"Đòn cơ bản đấm – đá luân phiên ({a1} → {vis.mainSkeleton.AnimationName})", a1 != vis.mainSkeleton.AnimationName);
+            Check("Đòn cơ bản không phát thêm hiệu ứng ra chiêu (đường chém xanh) — đấm / đá đã có hiệu ứng trong Spine",
+                vis.HasBuiltInCastFx(1) && vis.HasBuiltInCastFx(2) && vis.HasBuiltInCastFx(3));
 
             yield return Shot("Platform");
 

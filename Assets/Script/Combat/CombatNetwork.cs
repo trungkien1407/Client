@@ -264,8 +264,8 @@ namespace Assets.Script.Combat
             bool flip = from != null && to != null && to.position.x < from.position.x;
 
             bool sameCast = attackerId == _lastCastAttacker && skillId == _lastCastSkill && Time.time - _lastCastTime < 0.2f;
-            // Người ra chiêu có anim chiêu riêng trong Spine (hiệu ứng vẽ sẵn) → không phát thêm fxCast theo dữ liệu (tránh chồng 2 hiệu ứng)
-            bool spineFx = from != null && from.TryGetComponent(out PlayerVisualController pvc) && pvc.HasSkillAnim(skillId);
+            // Người ra chiêu có anim chiêu riêng / đấm – đá trong Spine (hiệu ứng vẽ sẵn) → không phát thêm fxCast theo dữ liệu (tránh chồng 2 hiệu ứng)
+            bool spineFx = from != null && from.TryGetComponent(out PlayerVisualController pvc) && pvc.HasBuiltInCastFx(skillId);
             if (from != null && tpl.fxCast >= 0 && !sameCast && !spineFx) Fx.EffectPlayer.Play(tpl.fxCast, BodyCenter(from) - from.position, flip, from);
             _lastCastAttacker = attackerId; _lastCastSkill = skillId; _lastCastTime = Time.time;
             if (to != null && tpl.fxHit >= 0 && targetType != AttackTarget.Self) Fx.EffectPlayer.Play(tpl.fxHit, BodyCenter(to), flip);
