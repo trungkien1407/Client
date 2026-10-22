@@ -3,7 +3,9 @@ using UnityEngine;
 namespace Assets.Script.Network
 {
     /// <summary>
-    /// HEARTBEAT 20 giây/lần khi đang trong game: server ngắt kết nối nếu 60 giây không nhận gói nào (vd đứng AFK).
+    /// HEARTBEAT 20 giây/lần mỗi khi đang kết nối: server ngắt kết nối nếu 60 giây không nhận gói nào (vd đứng AFK).
+    /// Gửi cả lúc CHƯA vào game: trước đây chỉ gửi trong game → chọn hệ / đặt tên quá 60 giây ở màn tạo nhân vật là bị ngắt,
+    /// bấm Tạo thì kẹt "Đang tạo nhân vật..." (gói không đi đâu cả).
     /// </summary>
     public class Heartbeat : MonoBehaviour
     {
@@ -12,8 +14,8 @@ namespace Assets.Script.Network
 
         private void Update()
         {
-            bool inGame = Player.LocalPlayerState.Id >= 0 && NetworkManager.Instance != null && NetworkManager.Instance.IsConnected;
-            if (!inGame || Time.unscaledTime - _last < Interval) return;
+            bool connected = NetworkManager.Instance != null && NetworkManager.Instance.IsConnected;
+            if (!connected || Time.unscaledTime - _last < Interval) return;
             _last = Time.unscaledTime;
             Data.GameActions.Heartbeat();
         }

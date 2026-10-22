@@ -305,6 +305,8 @@ namespace Assets.Script.Data
             Me.Reset();
             Inventory.Clear(); Equipment.Clear(); EquipLevel.Clear(); EquipSlots.Clear(); GemNpc = -1; MySkills.Clear(); MyQuests.Clear();
             Storage.Clear(); StorageNpc = -1; Upgrade = null; TradeWith = 0;
+            MapName = ""; GemMessage = ""; BagCapacity = 40;
+            foreach (var side in new[] { TradeMine, TradeTheirs }) { side.locked = side.confirmed = false; side.yen = 0; side.items.Clear(); }
             MyPkMode = 0; Pvp.Clear(); Party.Clear(); PartyLeader = 0; Friends.Clear(); Mails.Clear(); OpenMail = null; MailUnread = 0;
             Guild.id = 0; Guild.members.Clear(); Tops.Clear();
             DungeonState = 0; EventState = 0; ArenaScore.Clear(); MaintEndTime = 0;

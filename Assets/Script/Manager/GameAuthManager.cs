@@ -162,6 +162,9 @@ namespace Assets.Script.Manager
                     PopupAndLoad.Instance.ShowPopup("Không thể kết nối tới máy chủ!");
                     yield break;
                 }
+                // Kết nối MỚI chưa kiểm phiên bản → gửi lại (không thì bản game cũ đăng nhập được sau mỗi lần mất mạng)
+                Data.GameActions.CheckVersion(GameConfig.ClientVersion);
+                PopupAndLoad.Instance.HidePopup();
             }
             onReady?.Invoke();
         }

@@ -168,6 +168,7 @@ namespace Assets.Script.Manager
 
         public void RemoveRemotePlayer(int id)
         {
+            loadingPlayers.Remove(id);   // đang tải dở → SpawnAsync thấy đã huỷ, trả thân về pool
             if (!remotePlayers.TryGetValue(id, out var rp)) return;
             remotePlayers.Remove(id);
             if (rp != null) PlayerSpawner.Release(rp.gameObject, false);

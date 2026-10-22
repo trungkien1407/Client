@@ -86,11 +86,13 @@ namespace Assets.Script.Map
         {
             PopupAndLoad.Instance?.ShowLoading();
             Fx.EffectPlayer.StopAll();   // hiệu ứng chiêu đang bay / bám người: bỏ, không mang sang map mới
+            LocalPlayerState.ClearHarmfulEffects();   // server xoá choáng / chậm / bỏng khi rời khu (Zone.leave)
             if (Players == null) return;
             if (Players.localPlayer != null)
             {
                 // Ẩn nhân vật làm anim Spine dừng giữa chừng → bỏ ngang động tác trước, không thì hiện lại ở map mới diễn tiếp chiêu cũ
                 if (Players.localPlayer.TryGetComponent(out PlayerVisualController vc)) vc.CancelAction();
+                Fx.BodyAura.ClearHarmfulOn(Players.localPlayer);
                 Players.localPlayer.gameObject.SetActive(false);
             }
             Players.ClearAllRemotePlayers();

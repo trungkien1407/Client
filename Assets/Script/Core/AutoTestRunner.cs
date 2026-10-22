@@ -514,6 +514,30 @@ namespace Assets.Script.Core
             GameData.EquipLevel.TryGetValue(1, out int oldLv);
             Check("Trả vũ khí cũ → hào quang về đúng bậc của nó", GameData.Pvp.TryGetValue(LocalPlayerState.Id, out var pv1) && pv1.glow == GameData.GlowTier(oldLv));
 
+            // 5j. Bình thuốc (GĐ18): Đan Hồi Chakra (type 3) + Đan Hồi Phục (type 2) có hồi chiêu RIÊNG → dùng liền nhau đều ăn;
+            //     phím Q / icon "HP" tự chọn bình (trước đây chỉ Bình Nhỏ id 1); icon HP / MP trên HUD là nút thật.
+            GameActions.Chat(1, "/item 24 2"); GameActions.Chat(1, "/item 3 2"); GameActions.Chat(1, "/item 5 1");   // Bình Máu Lớn (cấp 10)
+            yield return WaitUntil(() => GameData.CountItem(24) >= 2 && GameData.CountItem(3) >= 2 && GameData.CountItem(5) >= 1, 5);
+            int dan24 = GameData.CountItem(24), dan3 = GameData.CountItem(3);
+            GameActions.UseItem(24);
+            yield return WaitUntil(() => GameData.CountItem(24) == dan24 - 1, 5);
+            GameActions.UseItem(3);
+            yield return WaitUntil(() => GameData.CountItem(3) == dan3 - 1, 5);
+            Check($"Đan Hồi Chakra rồi Đan Hồi Phục liền nhau → cả 2 được dùng (đan chakra {dan24}→{GameData.CountItem(24)}, đan máu {dan3}→{GameData.CountItem(3)})",
+                GameData.CountItem(24) == dan24 - 1 && GameData.CountItem(3) == dan3 - 1);
+            GameActions.Chat(1, "/hp");
+            yield return new WaitForSecondsRealtime(0.5f);
+            int pickFull = QuickPotion.Pick(true);
+            Check($"Máu đầy → phím Q chọn bình nhỏ nhất ({GameData.ItemName(pickFull)})", pickFull == ItemIds.HpPotion);
+            LocalPlayerState.Hp = 100;   // giả máu còn ít (chỉ phía client) → phải chọn bình to nhất hiện có
+            int pickLow = QuickPotion.Pick(true);
+            LocalPlayerState.Hp = LocalPlayerState.MaxHp;
+            Check($"Máu thiếu nhiều → chọn bình to ({GameData.ItemName(pickLow)})", GameData.Items.TryGetValue(pickLow, out var pt) && pt.hpRestore >= 300);
+            GameObject hpIcon = null;
+            var hudCv = GameObject.Find("HUDCanvas");
+            if (hudCv != null) foreach (var b in hudCv.GetComponentsInChildren<UnityEngine.UI.Button>(true)) if (b.name == "HP") hpIcon = b.gameObject;
+            Check("Icon bình HP trên HUD là nút bấm được (có số lượng)", hpIcon != null && hpIcon.GetComponent<UnityEngine.UI.Button>() != null && hpIcon.GetComponentInChildren<TMPro.TextMeshProUGUI>() != null);
+
             // 5c. GĐ9 — hoạt động hằng ngày, sổ tay nhiệm vụ, cẩm nang, mẹo theo cấp, hội thoại nhiều trang
             GameActions.Chat(1, "/daily");
             yield return new WaitForSecondsRealtime(0.5f);

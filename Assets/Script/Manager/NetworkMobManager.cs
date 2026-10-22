@@ -32,6 +32,7 @@ namespace Assets.Script.Manager
 
         // Hàng rào bảo vệ chống lỗi quái ma (Ghost Spawn)
         private HashSet<int> pendingSpawns = new HashSet<int>();
+        private int _clearGen;   // tăng mỗi lần ClearAllMobs (đổi khu / map): lệnh xoá xác hẹn giờ của đợt cũ tự bỏ
 
         private bool _isDatabaseReady = false;
 
@@ -149,17 +150,19 @@ namespace Assets.Script.Manager
             int mobId = reader.ReadInt();
             reader.Cleanup();
 
-            if (!activeMobs.TryGetValue(mobId, out var mob)) return;
+            // Quái còn đang tải hình: huỷ luôn (không thì tải xong hiện ra "sống" tới lần hồi sinh)
+            if (!activeMobs.TryGetValue(mobId, out var mob)) { pendingSpawns.Remove(mobId); return; }
             mob.PlayDeath();
             FindAnyObjectByType<Assets.Script.Player.PlayerTargeting>()?.ClearIfTarget(mob);
-            StartCoroutine(RemoveCorpseLater(mobId, mob, 1.0f));
+            StartCoroutine(RemoveCorpseLater(mobId, mob, 1.0f, _clearGen));
         }
 
-        private System.Collections.IEnumerator RemoveCorpseLater(int mobId, MobController mob, float delay)
+        private System.Collections.IEnumerator RemoveCorpseLater(int mobId, MobController mob, float delay, int gen)
         {
             yield return new WaitForSeconds(delay);
-            // Chỉ xoá nếu id này vẫn đang là đúng con quái đó (chưa bị thay bằng con hồi sinh)
-            if (activeMobs.TryGetValue(mobId, out var current) && current == mob) RemoveMob(mobId);
+            // Chỉ xoá nếu id này vẫn đang là đúng con quái đó (chưa bị thay bằng con hồi sinh) VÀ chưa đổi khu:
+            // các khu cùng map dùng chung id quái + object lấy lại từ pool → so tham chiếu vẫn có thể trùng con đang sống ở khu mới
+            if (gen == _clearGen && activeMobs.TryGetValue(mobId, out var current) && current == mob && mob.IsDead) RemoveMob(mobId);
         }
 
         public void SpawnMob(int mobId, short templateId, float x, float y, int hp, int maxHp, int rank = 0)
@@ -258,6 +261,7 @@ namespace Assets.Script.Manager
         {
             // 1. Xóa hàng chờ để hủy tải dở dang
             pendingSpawns.Clear();
+            _clearGen++;
 
             // 2. Thu hồi toàn bộ quái trên map cất vào Pool (Thay vì ReleaseInstance)
             foreach (var mob in activeMobs.Values)

@@ -52,7 +52,7 @@ namespace Assets.Script.UI
 
         protected override void Bind()
         {
-            _attack.onClick.AddListener(CombatInput.CastSelected);
+            _attack.onClick.AddListener(ActionInput.Act);   // như phím Enter: xa thì tự chạy tới rồi đánh, NPC thì nói chuyện
             _talk.onClick.AddListener(Data.NpcNetwork.TalkToNearest);
         }
     }

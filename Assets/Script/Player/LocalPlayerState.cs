@@ -59,6 +59,13 @@ namespace Assets.Script.Player
             StunnedUntil = SlowedUntil = BuffedUntil = 0f;
         }
 
+        /// <summary>Đổi map / khu: hết choáng / chậm / bỏng (server xoá lúc rời khu — Zone.leave); tăng sức mạnh, phân thân giữ.</summary>
+        public static void ClearHarmfulEffects()
+        {
+            for (int k = (int)Constants.StatusEffect.Stun; k <= (int)Constants.StatusEffect.Burn; k++) _effUntil[k] = 0f;
+            StunnedUntil = SlowedUntil = 0f;
+        }
+
         /// <summary>Bắn ra mỗi khi có chỉ số thay đổi (UI khác muốn nghe thì đăng ký).</summary>
         public static event Action OnChanged;
 

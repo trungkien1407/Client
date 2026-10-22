@@ -53,8 +53,9 @@ namespace Assets.Script.Combat
 
             AutoPick(local.transform.position);
 
-            if (GameInput.Pressed(GameKey.PotionHp)) UseItem(ItemIds.HpPotion);
-            if (GameInput.Pressed(GameKey.PotionMp)) UseItem(ItemIds.MpPotion);
+            // Q / E: tự chọn bình hợp nhất trong túi (trước đây chỉ Bình Nhỏ id 1 / 2)
+            if (GameInput.Pressed(GameKey.PotionHp)) QuickPotion.Use(true);
+            if (GameInput.Pressed(GameKey.PotionMp)) QuickPotion.Use(false);
         }
 
         private void AutoPick(Vector3 playerPos)
@@ -67,12 +68,6 @@ namespace Assets.Script.Combat
                 it.lastPickTry = Time.time;
                 Data.GameActions.PickItem(it.id);
             }
-        }
-
-        private void UseItem(int templateId)
-        {
-            if (Data.GameData.CountItem(templateId) <= 0) return;
-            Data.GameActions.UseItem(templateId);
         }
 
         /// <summary>ITEM_DROP: int groundId, int templateId, int qty, float x, float y</summary>

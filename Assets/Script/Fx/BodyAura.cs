@@ -62,6 +62,13 @@ namespace Assets.Script.Fx
             a.ApplyTint(Color.white);
         }
 
+        /// <summary>Đổi map / khu: bỏ choáng / chậm / bỏng (khớp server Zone.leave), giữ tăng sức mạnh + hào quang.</summary>
+        public static void ClearHarmfulOn(Component c)
+        {
+            if (c == null || !c.TryGetComponent(out BodyAura a)) return;
+            for (int k = (int)StatusEffect.Stun; k <= (int)StatusEffect.Burn; k++) a._until[k] = 0f;
+        }
+
         /// <summary>Dính hiệu ứng {e} thêm {seconds} giây (lần dính sau dài hơn thì nối dài).</summary>
         public void Add(StatusEffect e, float seconds)
         {

@@ -97,6 +97,7 @@ namespace Assets.Script.UI.Kit
                 }
             }
 
+            if (Player.LocalPlayerState.Id < 0) return;   // chưa vào game (màn đăng nhập / tạo nhân vật)
             foreach (var w in _windows)
                 if (Core.GameInput.Pressed(w.HotKey)) w.Toggle();
         }

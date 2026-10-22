@@ -59,6 +59,8 @@ namespace Assets.Script.Map
             else
             {
                 Debug.LogError($"[Client] LỖI: Không tìm thấy Prefab '{prefabKey}' trong Addressables! Bạn đã tick Addressable cho prefab chưa?");
+                Manager.PopupAndLoad.Instance?.HideLoading();
+                Manager.PopupAndLoad.Instance?.ShowPopup("Không tải được bản đồ. Hãy cập nhật game hoặc đăng nhập lại.");
             }
         }
 
