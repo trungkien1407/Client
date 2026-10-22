@@ -10,6 +10,8 @@ using Assets.Script.UI.Kit;
 using Assets.Script.UI.Windows;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using Assets.Script.Constants;
+using Assets.Script.Fx;
 using Assets.Script.Skill;
 
 namespace Assets.Script.Core
@@ -462,8 +464,55 @@ namespace Assets.Script.Core
             me.AutoMoveX = 0f;
             Check($"Nhảy + chạy → lên bờ bên kia (x = {me.transform.position.x:0.0}, y = {me.transform.position.y:0.00})", me.transform.position.x > 47f && Mathf.Abs(me.transform.position.y - 4f) < 0.3f);
 
+            // Ra chiêu (anim Spine có vẽ sẵn hiệu ứng) rồi đổi map ngay → sang map mới KHÔNG diễn tiếp chiêu cũ
+            // (lỗi cũ: nhân vật bị ẩn lúc tải map, anim dừng giữa chừng → lốc xoáy đỏ Trảm Phong "đi theo" sang map mới)
+            var pvc5 = me.GetComponent<PlayerVisualController>();
+            bool castAnim = pvc5 != null && pvc5.PlayActionOnce("Skill10", 2f);
             GameActions.Chat(1, "/tele 1");
             yield return WaitUntil(() => GameData.MapName == "Làng Lá", 8);
+            yield return new WaitForSecondsRealtime(0.3f);
+            var track5 = pvc5 != null ? pvc5.mainSkeleton.AnimationState.GetCurrent(0) : null;
+            Check($"Ra chiêu rồi đổi map → map mới không diễn tiếp chiêu cũ (anim: {track5?.Animation?.Name})",
+                castAnim && track5 != null && track5.Animation.Name != "Skill10");
+
+            // 5i. Hình trên thân (Fx.BodyAura, vẽ bằng code): /effect tự dính choáng / bỏng → sao trên đầu, tàn lửa.
+            //     Mặc vũ khí +15 → server tính hào quang bậc 3 (PLAYER_PVP_INFO) → vòng đỏ dưới chân + viền sáng ô đồ. Xong trả vũ khí cũ.
+            yield return new WaitForSecondsRealtime(1f);
+            me = NetworkPlayerManager.Instance.localPlayer;
+            GameActions.Chat(1, "/effect 1 3");
+            yield return WaitUntil(() => me.TryGetComponent(out BodyAura a1) && a1.Has(StatusEffect.Stun), 5);
+            me.TryGetComponent(out BodyAura aura5i);
+            Check("/effect 1 → sao choáng xoay trên đầu (BodyAura)", aura5i != null && aura5i.Has(StatusEffect.Stun));
+            GameActions.Chat(1, "/effect 3 3");
+            yield return WaitUntil(() => aura5i != null && aura5i.Has(StatusEffect.Burn), 5);
+            yield return new WaitForSecondsRealtime(0.4f);
+            yield return Shot("StatusAura");
+            Check("/effect 3 → bỏng: thân nhấp nháy cam + tàn lửa", aura5i != null && aura5i.Has(StatusEffect.Burn));
+
+            int wpn = -1, wpnReq = int.MaxValue;   // vũ khí cấp thấp nhất hệ mình mặc được
+            foreach (var it in GameData.Items.Values)
+                if (it.slot == 1 && (it.classRequire == 0 || it.classRequire == GameData.ClassType) && it.levelRequire <= GameData.Me.level && it.levelRequire < wpnReq) { wpn = it.id; wpnReq = it.levelRequire; }
+            GameData.Equipment.TryGetValue(1, out int oldWpn);
+            GameActions.Chat(1, $"/item {wpn} 1 15");
+            yield return WaitUntil(() => GameData.Inventory.Exists(x => x.tpl == wpn && x.level == 15), 5);
+            GameActions.Equip(GameData.Inventory.FindIndex(x => x.tpl == wpn && x.level == 15));
+            yield return WaitUntil(() => GameData.Pvp.TryGetValue(LocalPlayerState.Id, out var pv) && pv.glow == 3, 5);
+            Check($"Mặc {GameData.ItemName(wpn)} +15 → server báo hào quang bậc 3", GameData.Pvp.TryGetValue(LocalPlayerState.Id, out var pv3) && pv3.glow == 3);
+            yield return new WaitForSecondsRealtime(0.5f);
+            Check("Vòng hào quang đỏ dưới chân hiện", aura5i != null && aura5i.GlowTier == 3 && aura5i.RingVisible);
+            yield return Shot("Glow");
+            var invGlow = GameWindow.Open<InventoryWindow>();
+            yield return new WaitForSecondsRealtime(0.5f);
+            Check("Ô vũ khí +15 trong Hành trang có viền sáng (ItemGlow)", invGlow.GetComponentsInChildren<ItemGlow>(true).Length > 0);
+            yield return Shot("WeaponGlow");
+            invGlow.Hide();
+            int oldIdx = oldWpn > 0 ? GameData.Inventory.FindIndex(x => x.tpl == oldWpn) : -1;
+            if (oldIdx >= 0) GameActions.Equip(oldIdx); else GameActions.Unequip(1);
+            // Server gửi PLAYER_PVP_INFO trước EQUIPMENT → chờ ô vũ khí đổi xong rồi mới so bậc
+            yield return WaitUntil(() => oldWpn > 0 ? GameData.Equipment.TryGetValue(1, out int w1) && w1 == oldWpn : !GameData.Equipment.ContainsKey(1), 5);
+            yield return new WaitForSecondsRealtime(0.3f);
+            GameData.EquipLevel.TryGetValue(1, out int oldLv);
+            Check("Trả vũ khí cũ → hào quang về đúng bậc của nó", GameData.Pvp.TryGetValue(LocalPlayerState.Id, out var pv1) && pv1.glow == GameData.GlowTier(oldLv));
 
             // 5c. GĐ9 — hoạt động hằng ngày, sổ tay nhiệm vụ, cẩm nang, mẹo theo cấp, hội thoại nhiều trang
             GameActions.Chat(1, "/daily");

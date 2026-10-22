@@ -76,6 +76,7 @@ namespace Assets.Script.UI.Windows
                     + (s.bonus > 0 ? $" <color=#6fd0ff>+{s.bonus}%</color>" : "") + "</size>", () => { _selPos = idx; _selTpl = s.tpl; Refresh(); }, 14).Height(34);
                 b.image.color = idx == sel ? UIKit.ButtonHot : UIKit.SlotColor;
                 ItemIcon.ForItem(b, s.tpl, ItemIcon.Place.Left, 30);
+                ItemGlow.Add(b, s.level);
                 shown++;
             }
             if (shown == 0) UIKit.Text("None", _equips, "<color=#888>Không có trang bị trong túi (đồ đang mặc phải tháo ra trước).</color>", 14).Height(40);

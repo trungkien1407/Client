@@ -164,7 +164,7 @@ namespace Assets.Script.Data
     public class QuestGuideRow { public int questId, status; public bool daily; public string where; }
 
     /// <summary>Thông tin PvP của 1 người (PLAYER_PVP_INFO): chế độ, điểm PK, gia tộc → màu tên.</summary>
-    public class PvpInfo { public int pkMode, pkPoint; public string guild = ""; }
+    public class PvpInfo { public int pkMode, pkPoint, glow; public string guild = ""; }   // glow = hào quang 0..3 theo cấp vũ khí
 
     /// <summary>
     /// KHO DỮ LIỆU CLIENT — 1 chỗ duy nhất giữ những gì server gửi về; UI chỉ đọc ở đây
@@ -285,6 +285,9 @@ namespace Assets.Script.Data
         /// <summary>Màu chữ cấp cường hoá (+N) kiểu NSO: trắng → xanh lá → xanh dương → tím → cam → đỏ.</summary>
         public static string LevelColor(int lv) =>
             lv >= 15 ? "#ff4040" : lv >= 12 ? "#ff9a2e" : lv >= 9 ? "#c27bff" : lv >= 6 ? "#4fa8ff" : lv >= 3 ? "#5cf05c" : "#ffffff";
+
+        /// <summary>Bậc phát sáng của đồ +N: 0 không · 1 tím (+9) · 2 cam (+12) · 3 đỏ (+15) — khớp server UpgradeRules.glowTier.</summary>
+        public static int GlowTier(int lv) => lv >= 15 ? 3 : lv >= 12 ? 2 : lv >= 9 ? 1 : 0;
 
         /// <summary>Tên món kèm +N tô màu (dùng trong rich text).</summary>
         public static string ColoredName(int tpl, int level) =>

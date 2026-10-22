@@ -141,6 +141,7 @@ namespace Assets.Script.UI.Windows
                     $"<size=12><color=#9aa>{m.seller} · còn {Left(m.secondsLeft)}</color></size>", 14, TextAlignmentOptions.TopLeft)
                     .rectTransform.Fill(8, 92, 3, 2);
                 ItemIcon.ForItem(row, m.slot.tpl, ItemIcon.Place.Left, 44);
+                ItemGlow.Add(row, m.slot.level);
                 var buy = UIKit.Button("Buy", row.transform, "Mua", () => ConfirmWindow.Ask(
                     $"Mua {GameData.ColoredName(m.slot.tpl, m.slot.level)} x{m.slot.qty} giá <color=#fd5>{m.price:N0} yên</color>?",
                     "Mua", () => GameActions.MarketBuy(id)), 15);

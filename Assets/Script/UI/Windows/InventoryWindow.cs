@@ -107,6 +107,7 @@ namespace Assets.Script.UI.Windows
                 var b = UIKit.Button("Slot" + slot, _equipGrid, label, () => SelectEquip(s), 13);
                 b.image.color = slot == _selectedEquipSlot ? UIKit.ButtonHot : tpl > 0 ? UIKit.SlotColor : new Color(0.1f, 0.12f, 0.15f, 1f);
                 if (tpl > 0) ItemIcon.ForItem(b, tpl, ItemIcon.Place.Top, 30);
+                if (tpl > 0) ItemGlow.Add(b, lv);
             }
 
             // ---- túi ----
@@ -120,6 +121,7 @@ namespace Assets.Script.UI.Windows
                 var b = UIKit.Button("Item", _bagGrid, lockMark + GameData.ColoredName(s.tpl, s.level) + Extras(s) + qty, () => SelectBag(idx), 13);
                 b.image.color = idx == SelectedIndex ? UIKit.ButtonHot : UIKit.SlotColor;
                 ItemIcon.ForItem(b, s.tpl, ItemIcon.Place.Top, 32);
+                ItemGlow.Add(b, s.level);
             }
             if (GameData.Inventory.Count == 0) UIKit.Text("Empty", _bagGrid, "(túi trống)", 14);
             _bagTitle.text = $"Túi ({GameData.Inventory.Count}/{GameData.BagCapacity})";

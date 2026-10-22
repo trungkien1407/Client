@@ -44,6 +44,13 @@ namespace Assets.Script.Fx
             p.gameObject.SetActive(true);
         }
 
+        /// <summary>Dừng mọi hiệu ứng đang diễn (đổi map / khu — hiệu ứng bám theo nhân vật không được "đi theo" sang map mới).</summary>
+        public static void StopAll()
+        {
+            if (_root == null) return;
+            foreach (var fx in _root.GetComponentsInChildren<EffectPlayer>(false)) fx.Recycle();
+        }
+
         private static EffectPlayer Take()
         {
             while (Pool.Count > 0)

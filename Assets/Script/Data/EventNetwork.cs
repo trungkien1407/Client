@@ -68,6 +68,8 @@ namespace Assets.Script.Data
             }
             // Phân thân: nhân vật mờ / nhấp nháy tới hết hiệu ứng (mình và người khác đều thấy)
             if (t != null && effect == (int)StatusEffect.Dodge && t.TryGetComponent(out PlayerVisualController pvc)) pvc.Ghost(ms / 1000f);
+            // Choáng / chậm / bỏng / tăng sức mạnh: hình trên thân tới hết hiệu ứng (sao trên đầu, nhuộm màu, tia lửa — Fx.BodyAura)
+            else if (t != null) Fx.BodyAura.On(t).Add((StatusEffect)effect, ms / 1000f);
             // Chữ nổi báo lúc dính hiệu ứng; mình thì có thêm icon + đồng hồ trên HUD (StatusIconsHud)
             if (t != null) DamagePopup.Show(t.position + Vector3.up * 1.4f, EffectNames[effect], EffectColors[effect], 4f);
         }

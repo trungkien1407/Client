@@ -85,8 +85,14 @@ namespace Assets.Script.Map
         private static void BeginTransfer()
         {
             PopupAndLoad.Instance?.ShowLoading();
+            Fx.EffectPlayer.StopAll();   // hiệu ứng chiêu đang bay / bám người: bỏ, không mang sang map mới
             if (Players == null) return;
-            if (Players.localPlayer != null) Players.localPlayer.gameObject.SetActive(false);
+            if (Players.localPlayer != null)
+            {
+                // Ẩn nhân vật làm anim Spine dừng giữa chừng → bỏ ngang động tác trước, không thì hiện lại ở map mới diễn tiếp chiêu cũ
+                if (Players.localPlayer.TryGetComponent(out PlayerVisualController vc)) vc.CancelAction();
+                Players.localPlayer.gameObject.SetActive(false);
+            }
             Players.ClearAllRemotePlayers();
         }
     }

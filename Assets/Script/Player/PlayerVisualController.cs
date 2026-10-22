@@ -6,7 +6,7 @@ using Assets.Script.Manager;
 
 namespace Assets.Script.Player
 {
-    public class PlayerVisualController : MonoBehaviour
+    public class PlayerVisualController : MonoBehaviour, Fx.IAuraBody
     {
         [Header("Visual Components")]
         [SerializeField] private GameObject mainVisualObj;      // Object chứa SkeletonAnimation nhân vật
@@ -43,6 +43,7 @@ namespace Assets.Script.Player
         public void SetupVisual(SkeletonDataAsset charData, Sprite customDeathImg = null, int classType = 0)
         {
             ClassType = classType;
+            Fx.BodyAura.ResetOn(this, true);   // thân lấy lại từ pool: bỏ trạng thái + hào quang của người dùng trước
             // 1. Reset trạng thái sống
             if (mainVisualObj != null) mainVisualObj.SetActive(true);
             if (deathVisualObj != null) deathVisualObj.SetActive(false);
@@ -95,6 +96,20 @@ namespace Assets.Script.Player
             mainSkeleton.AnimationState.AddAnimation(0, idleAnimation, true, 0f);
             _actionLockUntil = Time.time + Mathf.Min(anim.Duration, maxSeconds);
             return true;
+        }
+
+        /// <summary>
+        /// Bỏ ngang động tác đang diễn (đổi map / khu): về đứng yên ngay + trả mọi slot Spine về mặc định (tắt attachment FX của chiêu).
+        /// Không gọi thì: nhân vật bị ẩn lúc tải map → anim chiêu dừng giữa chừng → hiện lại ở map mới diễn tiếp phần còn lại
+        /// (VD lốc xoáy đỏ của Trảm Phong "đi theo" sang map mới).
+        /// </summary>
+        public void CancelAction()
+        {
+            _actionLockUntil = 0f;
+            if (mainSkeleton == null || mainSkeleton.AnimationState == null) return;
+            mainSkeleton.AnimationState.ClearTracks();
+            mainSkeleton.Skeleton?.SetToSetupPose();
+            mainSkeleton.AnimationState.SetAnimation(0, idleAnimation, true);
         }
 
         // ---- HÀNH ĐỘNG → ANIM (dùng chung cho mình và người khác) ----
@@ -161,6 +176,27 @@ namespace Assets.Script.Player
             if (mainSkeleton == null || mainSkeleton.Skeleton == null) return;
             float a = Time.time < _ghostUntil && !isdead ? 0.45f + 0.15f * Mathf.Sin(Time.time * 12f) : 1f;
             if (!Mathf.Approximately(mainSkeleton.Skeleton.A, a)) mainSkeleton.Skeleton.A = a;
+            var sk = mainSkeleton.Skeleton;
+            if (sk.R != _statusTint.r || sk.G != _statusTint.g || sk.B != _statusTint.b) { sk.R = _statusTint.r; sk.G = _statusTint.g; sk.B = _statusTint.b; }
+        }
+
+        // ---- HIỆU ỨNG TRÊN THÂN (Fx.BodyAura vẽ choáng / chậm / bỏng / hào quang, hỏi thân qua các hàm này) ----
+        private Color _statusTint = Color.white;
+        private Collider2D _box;
+
+        public bool AuraHidden => isdead || mainVisualObj == null || !mainVisualObj.activeInHierarchy;
+        public Renderer MainRenderer => mainSkeleton != null ? mainSkeleton.GetComponent<MeshRenderer>() : null;
+        public void SetStatusTint(Color c) => _statusTint = c;   // Update áp vào màu Spine (RGB), alpha vẫn do Ghost
+
+        /// <summary>Khung thân = BoxCollider2D (0,6 × 1,6, gốc ở chân); không có thì ước lượng.</summary>
+        public Bounds BodyBounds
+        {
+            get
+            {
+                if (_box == null) TryGetComponent(out _box);
+                if (_box != null && _box.enabled) return _box.bounds;
+                return new Bounds(transform.position + Vector3.up * 0.8f, new Vector3(0.6f, 1.6f, 0f));
+            }
         }
 
         /// <summary>
@@ -195,6 +231,7 @@ namespace Assets.Script.Player
         {
             if (isDead)
             {
+                Fx.BodyAura.ResetOn(this);   // chết → hết choáng / chậm / bỏng (hào quang giữ, tự ẩn khi chết)
                 if (mainVisualObj != null) mainVisualObj.SetActive(false);
                 if (jumpFXObj != null) jumpFXObj.SetActive(false);
                 if (deathVisualObj != null) deathVisualObj.SetActive(true);

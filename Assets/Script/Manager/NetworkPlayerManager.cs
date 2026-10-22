@@ -159,6 +159,8 @@ namespace Assets.Script.Manager
                     PopupAndLoad.Instance?.HideLoading();
                 }
                 else remotePlayers.Add(p.id, PlayerSpawner.SetupRemote(obj, p, spine));
+                // Hào quang vũ khí (PLAYER_PVP_INFO có thể tới TRƯỚC khi nhân vật tải xong)
+                if (Data.GameData.Pvp.TryGetValue(p.id, out var pvp) && pvp.glow > 0) Fx.BodyAura.On(obj.transform).GlowTier = pvp.glow;
             }
             catch (Exception e) { Debug.LogError($"Spawn Error: {e.Message}"); }
             finally { loadingPlayers.Remove(p.id); }

@@ -12,7 +12,7 @@ namespace Assets.Script.Entities
     public enum MobState { Idle, Walk, Attack, Dead, Hurt }
 
     [RequireComponent(typeof(SpriteRenderer))]
-    public class MobController : MonoBehaviour, ITargetable, IHasHealth
+    public class MobController : MonoBehaviour, ITargetable, IHasHealth, Fx.IAuraBody
     {
         [Header("Thông tin cơ bản")]
         private int mobId;
@@ -72,6 +72,7 @@ namespace Assets.Script.Entities
             _loadToken++;   // hình đang tải dở của lần dùng trước (pool) bỏ đi
             AppliedArt = -1;
             UseAnim(null);
+            Fx.BodyAura.ResetOn(this);   // quái lấy lại từ pool: bỏ choáng / chậm / bỏng của lần trước
             ApplyColor(BaseColor);
             UpdateUI();
         }
@@ -112,6 +113,7 @@ namespace Assets.Script.Entities
         /// <summary>Server báo quái chết (MOB_DIE): hiện frame bị đánh, mờ dần. Manager sẽ thu hồi về Pool sau.</summary>
         public void PlayDeath()
         {
+            Fx.BodyAura.ResetOn(this);
             currentHp = 0;
             UpdateUI();
             OnHpChanged?.Invoke(currentHp, maxHp);
@@ -119,8 +121,30 @@ namespace Assets.Script.Entities
             var c = BaseColor; c.a = 0.6f; ApplyColor(c);
         }
 
+        // ---- HIỆU ỨNG TRÊN THÂN (Fx.BodyAura) ----
+        private Color _statusTint = Color.white;   // nhuộm do trạng thái (chậm / bỏng), nhân với màu gốc
+
+        public bool AuraHidden => IsDead || !gameObject.activeInHierarchy;
+        public Renderer MainRenderer => _spriteRenderer;   // các mảnh (PartRenderer) cùng lớp vẽ
+        public Bounds BodyBounds
+        {
+            get
+            {
+                Data.GameData.Mobs.TryGetValue(templateId, out var t);
+                float h = (BodyCenter.y - transform.position.y) * 2f, w = t != null && t.hitW > 0 ? t.HalfWidth * 2f : 0.8f;
+                return new Bounds(BodyCenter, new Vector3(w, Mathf.Max(0.3f, h), 0f));
+            }
+        }
+
+        public void SetStatusTint(Color c)
+        {
+            _statusTint = c;
+            if (!IsDead) ApplyColor(BaseColor);
+        }
+
         private void ApplyColor(Color c)
         {
+            c = new Color(c.r * _statusTint.r, c.g * _statusTint.g, c.b * _statusTint.b, c.a);
             if (_spriteRenderer != null) _spriteRenderer.color = c;
             if (_parts != null) _parts.SetColor(c);
         }
