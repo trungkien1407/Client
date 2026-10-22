@@ -9,6 +9,7 @@ using Assets.Script.UI;
 using Assets.Script.UI.Kit;
 using Assets.Script.UI.Windows;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 using Assets.Script.Skill;
 
 namespace Assets.Script.Core
@@ -435,6 +436,31 @@ namespace Assets.Script.Core
                 vis.HasBuiltInCastFx(1) && vis.HasBuiltInCastFx(2) && vis.HasBuiltInCastFx(3));
 
             yield return Shot("Platform");
+
+            // 5h. Nước (Đầm Lầy Sương Mù, hồ 2: ô nước x 41..45, mặt nước y = 4, đáy y = 3): chạy → đi trên mặt nước,
+            //     đứng yên → chìm, nhảy + chạy → lên bờ. Trước 2026-10-22 nước không có collider / tag → rơi qua như không khí.
+            GameActions.Chat(1, "/tele 8 38.5 4.1");
+            yield return WaitUntil(() => GameData.MapName == "Đầm Lầy Sương Mù", 8);
+            yield return new WaitForSecondsRealtime(1.5f);
+            GameActions.Chat(1, "/killall");                       // quái chủ động gần hồ không quấy
+            yield return new WaitForSecondsRealtime(0.5f);
+            me = NetworkPlayerManager.Instance.localPlayer;
+            var waterObj = MapManager.Instance.currentMapInstance.transform.Find("Water");
+            Check("Lớp Water có TilemapCollider2D (Is Trigger) + tag Water",
+                waterObj != null && waterObj.CompareTag("Water") && waterObj.GetComponent<TilemapCollider2D>() is TilemapCollider2D wc && wc.isTrigger);
+            me.AutoMoveX = 1f;
+            yield return WaitUntil(() => me.transform.position.x > 43f, 4);
+            float ySurface = me.transform.position.y;
+            yield return Shot("Water");
+            Check($"Chạy vào nước → đi trên mặt nước (x = {me.transform.position.x:0.0}, y = {ySurface:0.00}, cần ~4)", me.transform.position.x > 43f && Mathf.Abs(ySurface - 4f) < 0.25f);
+            me.AutoMoveX = 0f;
+            yield return new WaitForSecondsRealtime(2f);
+            Check($"Đứng yên trên mặt nước → chìm xuống đáy hồ (y = {me.transform.position.y:0.00}, cần ~3)", Mathf.Abs(me.transform.position.y - 3f) < 0.3f);
+            me.AutoMoveX = 1f;
+            me.Jump();
+            yield return WaitUntil(() => me.transform.position.x > 47f && me.IsGrounded, 5);
+            me.AutoMoveX = 0f;
+            Check($"Nhảy + chạy → lên bờ bên kia (x = {me.transform.position.x:0.0}, y = {me.transform.position.y:0.00})", me.transform.position.x > 47f && Mathf.Abs(me.transform.position.y - 4f) < 0.3f);
 
             GameActions.Chat(1, "/tele 1");
             yield return WaitUntil(() => GameData.MapName == "Làng Lá", 8);

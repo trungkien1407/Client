@@ -48,13 +48,17 @@ namespace Assets.Script.Player
         private bool isGrounded;
         private bool isFacingLeft;
 
+        // ---- NƯỚC (object "Water" của map: TilemapCollider2D Is Trigger + tag "Water" — Tools → Naruto → Map → 5) ----
+        // Đang chạy vào nước → ĐI TRÊN MẶT NƯỚC (ninja dồn chakra xuống chân). Đứng yên quá sinkDelay → CHÌM: chậm lại, nặng nề;
+        // trong nước vẫn nhảy được để lên bờ. Server coi ô nước là "đứng được" (không bắt bay); quái thì không bước lên nước.
         [Header("Water Settings")]
-        public float sinkDelay = 0.2f;
-        public float waterSpeedDebuff = 0.5f;
+        public float sinkDelay = 0.6f;          // đứng yên trên mặt nước chừng này giây thì chìm
+        public float waterSpeedDebuff = 0.5f;   // tốc độ khi đã chìm
         private bool isInWater = false;
         private bool isOnWaterSurface = false;
         private float timeStandingStill = 0f;
         private float waterSurfaceY = 0f;
+        private UnityEngine.Tilemaps.Tilemap waterMap;   // tilemap nước đang ở trong (để biết dưới chân còn nước không)
         private bool isJumping = false;
 
         // Bục 1 chiều: collider đang đứng lên + hạn bỏ qua va chạm khi bấm xuống để rơi xuyên
@@ -225,7 +229,9 @@ namespace Assets.Script.Player
             {
                 if (isOnWaterSurface)
                 {
-                    isOnWaterSurface = false;
+                    // Nhảy từ mặt nước: thoát hẳn trạng thái nước (thân đã ở trên trigger — không có sự kiện rời nữa,
+                    // để isInWater thì nhảy tiếp giữa không trung được). Rơi lại xuống nước → OnTriggerEnter2D tính lại.
+                    ExitWater();
                     rb.gravityScale = baseGravity;
                 }
 
@@ -245,7 +251,8 @@ namespace Assets.Script.Player
                 rb.velocity = new Vector2(moveInput.x * moveSpeed * LocalPlayerState.SpeedFactor, 0f);
 
                 float offsetToFeet = rb.position.y - col.bounds.min.y;
-                rb.position = new Vector2(rb.position.x, waterSurfaceY + offsetToFeet - 0.05f);
+                rb.position = new Vector2(rb.position.x, waterSurfaceY + offsetToFeet + 0.01f);   // chân ngang mặt nước — ra bờ không vướng góc
+                if (!WaterBelowFeet()) ExitWater();   // đã đi hết hồ (lên bờ / ra khoảng trống) → đi bình thường
             }
             else
             {
@@ -259,7 +266,8 @@ namespace Assets.Script.Player
             if (collision.CompareTag("Water"))
             {
                 isInWater = true;
-                waterSurfaceY = collision.bounds.max.y;
+                waterMap = collision.GetComponent<UnityEngine.Tilemaps.Tilemap>();
+                waterSurfaceY = WaterTopAt(collision, col.bounds.center.x, col.bounds.min.y);
                 float playerFeetY = col.bounds.min.y;
 
                 if (playerFeetY >= waterSurfaceY - 0.3f && Mathf.Abs(moveInput.x) > 0.01f)
@@ -278,8 +286,33 @@ namespace Assets.Script.Player
         {
             if (collision.CompareTag("Water"))
             {
+                // Đi trên mặt nước: chân ngang mặt nước nên thân có thể vừa "rời" trigger dù vẫn đang ở trên hồ → bỏ qua,
+                // FixedUpdate tự thôi đi trên nước khi dưới chân hết ô nước.
+                if (isOnWaterSurface && WaterBelowFeet()) return;
                 ExitWater();
             }
+        }
+
+        /// <summary>
+        /// Mặt nước tại cột x: đi từ ô nước gần chân lên tới ô nước trên cùng liền nhau → mép trên ô đó.
+        /// Không phải Tilemap (vùng nước vẽ bằng collider thường) → đỉnh khung collider.
+        /// </summary>
+        private static float WaterTopAt(Collider2D water, float x, float feetY)
+        {
+            var tm = water.GetComponent<UnityEngine.Tilemaps.Tilemap>();
+            if (tm == null) return water.bounds.max.y;
+            var cell = tm.WorldToCell(new Vector3(x, feetY - 0.1f, 0f));
+            if (!tm.HasTile(cell)) cell = tm.WorldToCell(new Vector3(x, feetY + 0.5f, 0f));   // vừa chạm mép trên
+            if (!tm.HasTile(cell)) return water.bounds.max.y;
+            while (tm.HasTile(cell + Vector3Int.up)) cell += Vector3Int.up;
+            return tm.CellToWorld(cell + Vector3Int.up).y;
+        }
+
+        /// <summary>Ngay dưới chân (giữa thân) còn ô nước không.</summary>
+        private bool WaterBelowFeet()
+        {
+            if (waterMap == null) return true;   // vùng nước không phải tilemap → để trigger tự lo
+            return waterMap.HasTile(waterMap.WorldToCell(new Vector3(col.bounds.center.x, waterSurfaceY - 0.5f, 0f)));
         }
 
         private void SinkIntoWater()
@@ -291,6 +324,7 @@ namespace Assets.Script.Player
 
         private void ExitWater()
         {
+            waterMap = null;
             isInWater = false;
             isOnWaterSurface = false;
             moveSpeed = baseMoveSpeed;

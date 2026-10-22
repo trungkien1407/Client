@@ -151,6 +151,8 @@ public static class MapDataTool
         Mark(root, "Ground", 1, coll, w, h, warn, tag);
         Mark(root, "Platform", 3, coll, w, h, warn, tag);
         Mark(root, "Water", 2, coll, w, h, warn, tag);
+        if (WaterTool.IsMisconfigured(root.Find("Water")))
+            warn.Add($"{tag}: object Water có ô nước nhưng thiếu TilemapCollider2D (Is Trigger) / tag Water — client sẽ coi nước như không khí (Tools → Naruto → Map → 5)");
         var columns = new JArray();
         for (int x = 0; x < w; x++)
         {
