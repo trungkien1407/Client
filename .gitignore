@@ -58,6 +58,8 @@ sysinfo.txt
 *.app
 *.exe
 *.dll
+# dll plugin trong Assets PHẢI commit (trước đây chặn nhầm Newtonsoft → clone mới không build được)
+!/[Aa]ssets/**/*.dll
 
 # Crashlytics generated file
 crashlytics-build.properties
