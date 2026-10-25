@@ -39,6 +39,11 @@ namespace Assets.Script.Manager
         void Start()
         {
             if (btnCreate != null) btnCreate.onClick.AddListener(OnCreateButtonClicked);
+            if (inputName != null)
+            {
+                inputName.characterLimit = 15;   // khớp server: tên 3–15 ký tự
+                inputName.onSubmit.AddListener(_ => { if (PopupAndLoad.Instance == null || !PopupAndLoad.Instance.IsShowing) OnCreateButtonClicked(); });
+            }
             // Bắt đầu quy trình khởi tạo và tải dữ liệu
             StartCoroutine(InitialSetupRoutine());
         }
@@ -170,12 +175,20 @@ namespace Assets.Script.Manager
             // Cập nhật Sprite nút
             for (int i = 0; i < generatedButtonImages.Count; i++)
             {
+                if (generatedButtonImages[i] == null) continue;
                 generatedButtonImages[i].sprite = (i == index) ? selectedSprite : normalSprite;
+                var label = generatedButtonImages[i].GetComponentInChildren<TextMeshProUGUI>();   // nút đang chọn: chữ đậm, màu nổi
+                if (label != null)
+                {
+                    label.fontStyle = i == index ? FontStyles.Bold : FontStyles.Normal;
+                    label.color = i == index ? new Color(0.55f, 0.20f, 0.10f) : new Color(0.25f, 0.20f, 0.30f);
+                }
             }
 
-            // Cập nhật text mô tả
+            // Mô tả: tên hệ (to, đậm) · vai trò · mô tả
             NinjaClassData selectedData = availableClasses[index];
-            textClassDescription.text = $"{selectedData.description}\n\n<color=#ff0000>Hệ:</color> {selectedData.element}";
+            textClassDescription.text = $"<size=125%><b>{selectedData.className}</b></size>\n"
+                + $"<color=#A0461E>{selectedData.element}</color>\n\n{selectedData.description}";
 
             // Bật/Tắt Spine tương ứng
             for (int i = 0; i < generatedSpineObjects.Count; i++)
@@ -195,7 +208,11 @@ namespace Assets.Script.Manager
                 return;
             }
 
-            if (currentClassId == -1) return;
+            if (currentClassId == -1)
+            {
+                PopupAndLoad.Instance.ShowPopup("Đang tải hệ phái, vui lòng đợi giây lát...");
+                return;
+            }
 
             PopupAndLoad.Instance.ShowPopup("Đang tạo nhân vật...", null, false);
 

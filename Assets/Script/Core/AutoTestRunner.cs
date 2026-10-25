@@ -135,6 +135,25 @@ namespace Assets.Script.Core
             Check("Có màn hình đăng nhập", auth != null);
             if (auth != null)
             {
+                // 0. Các khung màn đăng nhập (dàn lại bằng Tools/Naruto/UI/4) — chụp + kiểm nối dây
+                auth.ShowRegisterForm();
+                yield return Shot("00_register");
+                Check("Form đăng ký kiểm trước ở máy (sai tên / mật khẩu nhập lại lệch / email sai → báo lỗi; đúng → cho gửi)",
+                    AuthMessages.CheckRegisterForm("ab", "123456", "123456", "a@b.cc") != null
+                    && AuthMessages.CheckRegisterForm("abcd", "123456", "654321", "a@b.cc") != null
+                    && AuthMessages.CheckRegisterForm("abcd", "123456", "123456", "abc") != null
+                    && AuthMessages.CheckRegisterForm("abcd_1", "123456", "123456", "a@b.cc") == null);
+                auth.ShowQuickLogin(Arg("-user", "clientbot"));
+                yield return Shot("00_quick");
+                auth.ShowCreateCharacter();
+                var ccm = FindAnyObjectByType<CharacterCreationManager>(FindObjectsInactive.Include);
+                yield return WaitUntil(() => ccm != null && ccm.buttonContainer.childCount >= 3
+                    && ccm.spineContainer.GetComponentInChildren<Spine.Unity.SkeletonGraphic>() != null, 10);
+                yield return new WaitForSecondsRealtime(0.3f);
+                yield return Shot("00_createchar");
+                Check("Màn tạo nhân vật: 3 hệ phái + hình nhân vật + nút Tạo đã nối",
+                    ccm != null && ccm.buttonContainer.childCount >= 3 && ccm.btnCreate != null
+                    && ccm.spineContainer.GetComponentInChildren<Spine.Unity.SkeletonGraphic>() != null);
                 auth.ShowLoginForm(Arg("-user", "clientbot"));
                 yield return Shot("00_login"); // form đăng nhập + nút "Ghi nhớ đăng nhập"
                 Check("Ghi nhớ đăng nhập mặc định bật", SavedLogin.Remember);

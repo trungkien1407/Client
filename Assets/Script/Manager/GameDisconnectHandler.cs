@@ -89,7 +89,11 @@ namespace Assets.Script.Manager
 
             // 2. XỬ LÝ GIAO DIỆN — màn đăng nhập tạo mới từ prefab không có sẵn tham chiếu HUD của scene → trao lại
             if (inGameUI != null) inGameUI.SetActive(false);
-            var auth = Instantiate(loginPanel).GetComponentInChildren<GameAuthManager>(true);
+            // Rớt mạng khi CHƯA vào game (đang ở màn đăng nhập / tạo nhân vật) → dùng lại màn đang có,
+            // không tạo thêm bản thứ 2 đè lên (2 bản cùng nghe LOGIN → hiện thông báo 2 lần)
+            var auth = FindAnyObjectByType<GameAuthManager>();
+            if (auth != null) auth.ShowLoginForm(Assets.Script.Core.SavedLogin.User);
+            else auth = Instantiate(loginPanel).GetComponentInChildren<GameAuthManager>(true);
             if (auth != null) auth.SetHud(inGameUI);
 
             // 3. HIỂN THỊ THÔNG BÁO VÀ TẮT LOADING

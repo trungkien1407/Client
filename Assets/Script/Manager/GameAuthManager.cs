@@ -34,6 +34,7 @@ namespace Assets.Script.Manager
         [SerializeField] private TMP_InputField inputRegEmail;
         [SerializeField] private TMP_InputField inputRegUser;
         [SerializeField] private TMP_InputField inputRegPass;
+        [SerializeField] private TMP_InputField inputRegConfirm;   // nhập lại mật khẩu
 
         [Header("Buttons")]
         [SerializeField] private Button btnLoginSend;
@@ -42,9 +43,11 @@ namespace Assets.Script.Manager
         [SerializeField] private Button btnOpenRegister;
         [SerializeField] private Button btnCloseRegister;
         [SerializeField] private Button btnSwitchAccount;
+        [SerializeField] private Button btnBackFromCreate;          // nút X màn tạo nhân vật → về đăng nhập
 
         [Header("Texts")]
         [SerializeField] private TextMeshProUGUI txtQuickLogin;
+        [SerializeField] private TextMeshProUGUI txtVersion;        // góc dưới phải: "Phiên bản x"
 
         private string _pendingUser;
         private string _pendingPass;
@@ -54,15 +57,74 @@ namespace Assets.Script.Manager
         void Start()
         {
             // UI Listeners
-            if (btnLoginSend != null) btnLoginSend.onClick.AddListener(() => DoSocketLogin(inputLoginUser.text, inputLoginPass.text));
-            if (btnRegisterSend != null) btnRegisterSend.onClick.AddListener(() => DoSocketRegister(inputRegUser.text, inputRegPass.text, inputRegEmail.text));
-            if (btnOpenRegister != null) btnOpenRegister.onClick.AddListener(() => SwitchPanel(registerPanel));
-            if (btnCloseRegister != null) btnCloseRegister.onClick.AddListener(() => SwitchPanel(loginPanel));
+            if (btnLoginSend != null) btnLoginSend.onClick.AddListener(SubmitLogin);
+            if (btnRegisterSend != null) btnRegisterSend.onClick.AddListener(SubmitRegister);
+            if (btnOpenRegister != null) btnOpenRegister.onClick.AddListener(ShowRegisterForm);
+            if (btnCloseRegister != null) btnCloseRegister.onClick.AddListener(() => ShowLoginForm(inputLoginUser != null ? inputLoginUser.text : ""));
             if (btnQuickLogin != null) btnQuickLogin.onClick.AddListener(OnQuickLoginClick);
             if (btnSwitchAccount != null) btnSwitchAccount.onClick.AddListener(OnSwitchAccountClick);
+            if (btnBackFromCreate != null) btnBackFromCreate.onClick.AddListener(OnBackFromCreate);
             BuildRememberToggle();
 
+            // Enter ở ô cuối = bấm nút gửi; Enter ở ô giữa = sang ô kế (máy tính: Tab cũng sang ô kế — xem Update)
+            ChainSubmit(SubmitLogin, inputLoginUser, inputLoginPass);
+            ChainSubmit(SubmitRegister, inputRegUser, inputRegPass, inputRegConfirm, inputRegEmail);
+            if (txtVersion != null) txtVersion.text = "Phiên bản " + GameConfig.ClientVersion;
+
             InitUI();
+        }
+
+        private void SubmitLogin()
+        {
+            if (inputLoginUser == null || inputLoginPass == null) return;
+            DoSocketLogin(inputLoginUser.text.Trim(), inputLoginPass.text);
+        }
+
+        private void SubmitRegister()
+        {
+            string user = inputRegUser != null ? inputRegUser.text.Trim() : "";
+            string pass = inputRegPass != null ? inputRegPass.text : "";
+            string email = inputRegEmail != null ? inputRegEmail.text.Trim() : "";
+            // Kiểm trước ở máy (khớp RegisterHandler server) → báo lỗi ngay, khỏi gửi đi rồi mới biết
+            string err = AuthMessages.CheckRegisterForm(user, pass, inputRegConfirm != null ? inputRegConfirm.text : pass, email);
+            if (err != null) { PopupAndLoad.Instance.ShowPopup(err); return; }
+            DoSocketRegister(user, pass, email);
+        }
+
+        /// <summary>Nối các ô nhập: Enter ở ô i → chọn ô i+1; Enter ở ô cuối → gọi submit.</summary>
+        private static void ChainSubmit(Action submit, params TMP_InputField[] fields)
+        {
+            var list = Array.FindAll(fields, f => f != null);
+            for (int i = 0; i < list.Length; i++)
+            {
+                int next = i + 1;
+                list[i].onSubmit.AddListener(_ =>
+                {
+                    if (PopupAndLoad.Instance != null && PopupAndLoad.Instance.IsShowing) return;
+                    if (next < list.Length) list[next].ActivateInputField();
+                    else submit();
+                });
+            }
+        }
+
+        /// <summary>Tab / Shift+Tab: chuyển giữa các ô nhập của khung đang mở (chỉ máy có bàn phím).
+        /// PHẢI gọi base.Update(): lớp nền đăng ký nghe gói tin ở đó (thiếu → không nhận LOGIN, kẹt "Đang đăng nhập...").</summary>
+        protected override void Update()
+        {
+            base.Update();
+            var kb = UnityEngine.InputSystem.Keyboard.current;
+            if (kb == null || !kb.tabKey.wasPressedThisFrame) return;
+            TMP_InputField[] order =
+                loginPanel != null && loginPanel.activeSelf ? new[] { inputLoginUser, inputLoginPass } :
+                registerPanel != null && registerPanel.activeSelf ? new[] { inputRegUser, inputRegPass, inputRegConfirm, inputRegEmail } :
+                null;
+            if (order == null) return;
+            order = Array.FindAll(order, f => f != null);
+            if (order.Length == 0) return;
+            int cur = Array.FindIndex(order, f => f.isFocused);
+            int step = kb.shiftKey.isPressed ? -1 : 1;
+            int idx = cur < 0 ? 0 : (cur + step + order.Length) % order.Length;
+            order[idx].ActivateInputField();
         }
 
         protected override void RegisterHandlers()
@@ -75,15 +137,23 @@ namespace Assets.Script.Manager
         private void InitUI()
         {
             string savedUser = SavedLogin.User;
+            foreach (var f in new[] { inputLoginUser, inputLoginPass, inputRegUser, inputRegPass, inputRegConfirm, inputRegEmail })
+                StripTabs(f);
             if (SavedLogin.HasSaved)
             {
-                if (txtQuickLogin != null) txtQuickLogin.text = "Tiếp tục: " + savedUser;
-                SwitchPanel(quickLoginPanel);
+                ShowQuickLogin(savedUser);
             }
             else
             {
                 ShowLoginForm(savedUser);
             }
+        }
+
+        /// <summary>Phím Tab không được lọt vào ô nhập thành ký tự (Tab dùng để chuyển ô).</summary>
+        private static void StripTabs(TMP_InputField f)
+        {
+            if (f == null) return;
+            f.onValueChanged.AddListener(v => { if (v.IndexOf('\t') >= 0) f.text = v.Replace("\t", ""); });
         }
 
         /// <summary>Hiện form đăng nhập, điền sẵn tên (nếu có) và xoá ô mật khẩu.</summary>
@@ -92,6 +162,32 @@ namespace Assets.Script.Manager
             if (inputLoginUser != null && !string.IsNullOrEmpty(user)) inputLoginUser.text = user;
             if (inputLoginPass != null) inputLoginPass.text = "";
             SwitchPanel(loginPanel);
+        }
+
+        /// <summary>Hiện form đăng ký (xoá ô cũ).</summary>
+        public void ShowRegisterForm()
+        {
+            foreach (var f in new[] { inputRegUser, inputRegPass, inputRegConfirm, inputRegEmail })
+                if (f != null) f.text = "";
+            SwitchPanel(registerPanel);
+        }
+
+        /// <summary>Hiện màn tạo nhân vật (sau LOGIN mã 1; AutoTestRunner gọi để chụp bố cục).</summary>
+        public void ShowCreateCharacter() => SwitchPanel(createCharPanel);
+
+        /// <summary>Hiện khung "Tiếp tục: tên" (có tài khoản đã lưu).</summary>
+        public void ShowQuickLogin(string user)
+        {
+            if (txtQuickLogin != null) txtQuickLogin.text = "Tiếp tục: " + user;
+            SwitchPanel(quickLoginPanel);
+        }
+
+        /// <summary>Đang ở màn tạo nhân vật mà muốn đổi tài khoản: đóng phiên (server chưa có nhân vật nên không mất gì) → form đăng nhập.
+        /// Lần đăng nhập sau EnsureConnected tự nối lại.</summary>
+        private void OnBackFromCreate()
+        {
+            if (NetworkManager.Instance != null) NetworkManager.Instance.Disconnect();   // không phát OnDisconnected → không hiện "mất kết nối"
+            ShowLoginForm(_pendingUser);
         }
 
         /// <summary>
@@ -236,7 +332,7 @@ namespace Assets.Script.Manager
             var r = new MessageReader(data);
             short status = r.ReadShort();
             if (status == 0) { Enter(r); return; }
-            if (status == 1) { r.Cleanup(); SwitchPanel(createCharPanel); return; }
+            if (status == 1) { r.Cleanup(); ShowCreateCharacter(); return; }
 
             // Mã 12 kèm lời nhắn bảo trì; mã 3, 8, 9, 10 kèm số lần thử còn lại / số giây phải đợi (server cũ không gửi → -1)
             string note = status == 12 && r.Available() >= 2 ? r.ReadUTF() : null;
@@ -269,7 +365,8 @@ namespace Assets.Script.Manager
             short status = r.ReadShort();
             int extra = status == 4 && r.Available() >= 4 ? r.ReadInt() : -1; // mã 4 kèm số giây phải đợi
             r.Cleanup();
-            if (status == 0) PopupAndLoad.Instance.ShowPopup("Đăng ký thành công!", () => SwitchPanel(loginPanel));
+            // Thành công → về form đăng nhập, điền sẵn tên vừa đăng ký (chỉ còn gõ mật khẩu)
+            if (status == 0) PopupAndLoad.Instance.ShowPopup("Đăng ký thành công!", () => ShowLoginForm(inputRegUser != null ? inputRegUser.text.Trim() : ""));
             else PopupAndLoad.Instance.ShowPopup(AuthMessages.Register(status, extra));
         }
 

@@ -42,6 +42,22 @@ namespace Assets.Script.Manager
             _ => "Lỗi máy chủ!"
         };
 
+        /// <summary>
+        /// Kiểm form đăng ký ở máy trước khi gửi (luật khớp RegisterHandler server). Trả null = hợp lệ, khác = lời báo lỗi.
+        /// </summary>
+        public static string CheckRegisterForm(string user, string pass, string confirm, string email)
+        {
+            if (string.IsNullOrEmpty(user) || string.IsNullOrEmpty(pass) || string.IsNullOrEmpty(email))
+                return "Vui lòng điền đầy đủ thông tin!";
+            if (user.Length < 4 || user.Length > 32 || !System.Text.RegularExpressions.Regex.IsMatch(user, "^[A-Za-z0-9_]+$"))
+                return "Tài khoản 4–32 ký tự, chỉ gồm chữ không dấu, số và _.";
+            if (pass.Length < 6 || pass.Length > 64) return "Mật khẩu 6–64 ký tự.";
+            if (pass != confirm) return "Mật khẩu nhập lại không khớp.";
+            if (email.Length > 100 || !System.Text.RegularExpressions.Regex.IsMatch(email, @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"))
+                return "Email không hợp lệ.";
+            return null;
+        }
+
         public static string CreateCharacter(short status) => status switch
         {
             1 => "Tên nhân vật phải từ 3 đến 15 ký tự.",
