@@ -486,7 +486,7 @@ namespace Assets.Script.Core
             // Ra chiêu (anim Spine có vẽ sẵn hiệu ứng) rồi đổi map ngay → sang map mới KHÔNG diễn tiếp chiêu cũ
             // (lỗi cũ: nhân vật bị ẩn lúc tải map, anim dừng giữa chừng → lốc xoáy đỏ Trảm Phong "đi theo" sang map mới)
             var pvc5 = me.GetComponent<PlayerVisualController>();
-            bool castAnim = pvc5 != null && pvc5.PlayActionOnce("Skill10", 2f);
+            bool castAnim = pvc5 != null && pvc5.PlayActionOnce("Skill10");
             GameActions.Chat(1, "/tele 1");
             yield return WaitUntil(() => GameData.MapName == "Làng Lá", 8);
             yield return new WaitForSecondsRealtime(0.3f);

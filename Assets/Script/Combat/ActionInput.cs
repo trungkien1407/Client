@@ -174,7 +174,7 @@ namespace Assets.Script.Combat
                 if (timedOut) ChatBox.AddSystem("Không tới được mục tiêu.");
                 return;
             }
-
+            if (me.IsActionLocked) { _stuckSince = Time.time; return; }   // đứng yên có chủ đích, không phải bị kẹt
             if (InRange(me, _runTarget, ArriveMargin))
             {
                 var t = _runTarget;

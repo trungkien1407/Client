@@ -1,8 +1,9 @@
-﻿using UnityEngine;
+﻿using Assets.Script.Manager;
+using Spine;
 using Spine.Unity;
 using System.Collections;
 using System.Collections.Generic;
-using Assets.Script.Manager;
+using UnityEngine;
 
 namespace Assets.Script.Player
 {
@@ -26,6 +27,7 @@ namespace Assets.Script.Player
         public string jumpFXAnimation = "play"; // Tên anim của cái Jump FX
         public bool isdead;
 
+        public bool IsActionLocked => Time.time < _actionLockUntil;
         private void Awake()
         {
             // Đảm bảo trạng thái ban đầu chuẩn
@@ -73,30 +75,36 @@ namespace Assets.Script.Player
         // Đang diễn 1 động tác 1 lần (đánh, tung chiêu) -> tạm khoá anim di chuyển tới thời điểm này
         private float _actionLockUntil;
 
+        private TrackEntry SetAnimWithSpeed(Spine.Animation anim, bool loop)
+        {
+            TrackEntry entry = mainSkeleton.AnimationState.SetAnimation(0, anim, loop);
+            entry.TimeScale = AnimSpeeds.TryGetValue(anim.Name, out var speed) ? speed : 1f;
+            return entry;
+        }
         public void PlayAnimation(string animName, bool loop)
         {
             if (mainSkeleton == null || mainVisualObj == null || !mainVisualObj.activeSelf) return;
             if (Time.time < _actionLockUntil) return;
-
             // Tránh chơi đè lại cùng 1 animation đang chạy
             if (mainSkeleton.AnimationName == animName) return;
-
-            mainSkeleton.AnimationState.SetAnimation(0, animName, loop);
+            var anim = mainSkeleton.Skeleton?.Data?.FindAnimation(animName);
+            if (anim == null) return;
+            SetAnimWithSpeed(anim, loop);
         }
 
         /// <summary>
         /// Diễn 1 động tác KHÔNG lặp (vd "Punch_Combo" khi đánh) rồi tự quay về Idle.
         /// Trong lúc diễn, các lệnh PlayAnimation của di chuyển bị bỏ qua.
         /// </summary>
-        public bool PlayActionOnce(string animName, float maxSeconds = 0.6f)
+        public bool PlayActionOnce(string animName)
         {
             if (mainSkeleton == null || mainVisualObj == null || !mainVisualObj.activeSelf) return false;
             var anim = mainSkeleton.Skeleton?.Data?.FindAnimation(animName);
             if (anim == null) return false;
 
-            mainSkeleton.AnimationState.SetAnimation(0, anim, false);
+           var entry = SetAnimWithSpeed(anim, false);
             mainSkeleton.AnimationState.AddAnimation(0, idleAnimation, true, 0f);
-            _actionLockUntil = Time.time + Mathf.Min(anim.Duration, maxSeconds);
+            _actionLockUntil = Time.time + (anim.Duration/entry.TimeScale);
             return true;
         }
 
@@ -137,7 +145,11 @@ namespace Assets.Script.Player
         };
         private static readonly string[] Combo = { AnimNames.Punch, AnimNames.Kick };
         private int _comboStep;
-
+        private static readonly Dictionary<string, float> AnimSpeeds = new()
+        {
+            { AnimNames.Punch,2f },
+            { AnimNames.Kick,2f }
+        };
         /// <summary>Tên anim Spine của chiêu cho hệ {cls} (null = đòn cơ bản / chưa có anim riêng).</summary>
         public static string SkillAnimFor(int cls, int skillId) => SkillAnim.TryGetValue((cls, skillId), out var n) ? n : null;
 
@@ -161,10 +173,10 @@ namespace Assets.Script.Player
         {
             string name = BasicSkills.Contains(skillId) ? null : SkillAnimFor(ClassType, skillId);
             // Anim chiêu dài 1–2 giây (hiệu ứng vẽ sẵn chạy hết), chỉ khoá anim di chuyển tối đa 0,9 giây cho đỡ cứng tay
-            if (name != null && PlayActionOnce(name, 0.9f)) return;
+            if (name != null && PlayActionOnce(name)) return;
             name = Combo[_comboStep++ % Combo.Length];
-            if (PlayActionOnce(name, 0.45f)) return;
-            PlayActionOnce(AnimNames.Punch, 0.45f);
+            if (PlayActionOnce(name)) return;
+            PlayActionOnce(AnimNames.Punch);
         }
 
         // ---- PHÂN THÂN (né tránh): nhân vật mờ, nhấp nháy nhẹ tới hết hiệu ứng ----

@@ -69,13 +69,13 @@ namespace Assets.Script.Combat
             if (dist > range + 0.3f)
             {
                 Warn($"Quá xa (tầm chiêu {range:0.#}) — lại gần mục tiêu.");
-                Swing(local, skillId);
+                Swing(local, skillId,target);
                 return;
             }
 
             Data.GameActions.UseSkill(skillId, targetType, target.GetId());
             SkillCooldowns.Start(skillId);   // tự đếm, không chờ server
-            Swing(local, skillId);   // diễn ngay, không đợi server (bị từ chối thì chỉ là anim suông)
+            Swing(local, skillId,target);   // diễn ngay, không đợi server (bị từ chối thì chỉ là anim suông)
         }
 
         public static void Revive() => Data.GameActions.Revive();
@@ -115,10 +115,11 @@ namespace Assets.Script.Combat
             ChatBox.AddSystem(msg);
             _nextWarn = Time.time + 1.5f;
         }
-
-        private static void Swing(Component local, int skillId)
+        private static void Swing(PlayerMovement local, int skillId, ITargetable target = null)
         {
             _nextAttackTime = Time.time + LocalAttackGap;
+            var tt = target?.GetTransform();
+            if (tt != null) local.FaceTowards(tt.position);
             if (local.TryGetComponent(out PlayerVisualController vc)) vc.PlaySkill(skillId);
         }
     }

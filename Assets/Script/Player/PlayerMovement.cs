@@ -68,6 +68,8 @@ namespace Assets.Script.Player
         private const float DROP_TIME = 0.35f;      // bỏ va chạm tối thiểu
         private const float DROP_MAX_TIME = 1.5f;   // tối đa (còn kẹt trong bục quá lâu thì vẫn bật lại)
 
+        /// <summary>Đang diễn đòn → đứng yên, không nhảy; hết đòn tự đi tiếp.</summary>
+        public bool IsActionLocked => visualCtrl != null && visualCtrl.IsActionLocked;
         // Input tạo 1 lần, bật/tắt theo object, Dispose khi huỷ (tránh rò bộ nhớ)
         private void Awake()
         {
@@ -131,7 +133,7 @@ namespace Assets.Script.Player
             moveInput = ManualInput;
             if (blocked) AutoMoveX = 0f;
             else if (Mathf.Abs(moveInput.x) < 0.01f && AutoMoveX != 0f) moveInput.x = AutoMoveX;   // không tự bấm → đi theo tự chạy
-
+            if (IsActionLocked) moveInput.x = 0f;
             if (isOnWaterSurface)
             {
                 if (Mathf.Abs(moveInput.x) > 0.01f)
@@ -222,7 +224,7 @@ namespace Assets.Script.Player
 
         void OnJump()
         {
-            if (isDead || Assets.Script.Combat.ChatBox.IsTyping || Assets.Script.Player.LocalPlayerState.IsStunned) return;
+            if (isDead || Assets.Script.Combat.ChatBox.IsTyping || Assets.Script.Player.LocalPlayerState.IsStunned || IsActionLocked) return;
             // Giữ xuống + nhảy trên bục 1 chiều = nhảy xuống (kiểu NSO)
             if (ManualInput.y < -0.5f && TryDropThrough()) return;
             if (isGrounded || isOnWaterSurface || isInWater)
@@ -412,6 +414,16 @@ namespace Assets.Script.Player
             lastSentDir = dir;
             lastSentPos = transform.position;
             lastSyncTime = Time.time;
+        }
+        private const float FaceDeadZone = 0.05f;
+
+        /// <summary>Quay mặt về phía targetPos (chỉ trục X). Ghi vào isFacingLeft → UpdateVisuals giữ hướng, HandleNetworkSync gửi hướng mới.</summary>
+        public void FaceTowards(Vector3 targetPos)
+        {
+            float dx = targetPos.x - transform.position.x;
+            if (Mathf.Abs(dx) < FaceDeadZone) return;
+            isFacingLeft = dx < 0f;
+            visualCtrl.SetFlip(isFacingLeft);
         }
     }
 }
