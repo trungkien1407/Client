@@ -31,7 +31,7 @@ namespace Assets.Script.Map
                 t.text = p.side == 0 ? $"<< {p.target}" : p.side == 1 ? $"{p.target} >>" : $"[ {p.target} ]\n<size=2.6>đứng vào để đi</size>";
                 t.fontSize = 3.2f;
                 t.alignment = TextAlignmentOptions.Center;
-                t.color = new Color(0.55f, 1f, 1f);
+                t.color = new Color(255, 255, 0);
                 t.outlineWidth = 0.25f;
                 t.outlineColor = Color.black;
                 t.sortingOrder = 30;
