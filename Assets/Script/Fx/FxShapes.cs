@@ -29,20 +29,31 @@ namespace Assets.Script.Fx
             return Mathf.Clamp01((edge - r) * 8f);            // mép hơi mềm
         });
 
-        /// <summary>Dựng texture Size×Size: {alpha}(x, y) với x, y ∈ [-1, 1] → độ đậm 0..1.</summary>
-        private static Sprite Make(System.Func<float, float, float> alpha)
+        private static Sprite _arrow;
+
+        /// <summary>Mũi tên chỉ sang PHẢI (thân + đầu nhọn) — cổng chuyển map; xoay transform để đổi hướng. 64 px cho nét.</summary>
+        public static Sprite Arrow => _arrow != null ? _arrow : _arrow = Make((x, y) =>
         {
-            var tex = new Texture2D(Size, Size, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear };
-            var px = new Color[Size * Size];
-            for (int j = 0; j < Size; j++)
-                for (int i = 0; i < Size; i++)
+            float head = (0.92f - x) * 0.95f - Mathf.Abs(y);             // tam giác đầu: hẹp dần tới mũi x = 0,92
+            head = Mathf.Min(head, x + 0.05f);                           // đáy tam giác ở x ≈ -0,05
+            float stem = Mathf.Min(0.26f - Mathf.Abs(y), Mathf.Min(x + 0.9f, 0.2f - x));   // thân chữ nhật
+            return Mathf.Clamp01(Mathf.Max(head, stem) * 14f);           // mép hơi mềm
+        }, 64);
+
+        /// <summary>Dựng texture size×size: {alpha}(x, y) với x, y ∈ [-1, 1] → độ đậm 0..1. Luôn 1 đơn vị vuông.</summary>
+        private static Sprite Make(System.Func<float, float, float> alpha, int size = Size)
+        {
+            var tex = new Texture2D(size, size, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear };
+            var px = new Color[size * size];
+            for (int j = 0; j < size; j++)
+                for (int i = 0; i < size; i++)
                 {
-                    float x = (i + 0.5f) / Size * 2f - 1f, y = (j + 0.5f) / Size * 2f - 1f;
-                    px[j * Size + i] = new Color(1f, 1f, 1f, alpha(x, y));
+                    float x = (i + 0.5f) / size * 2f - 1f, y = (j + 0.5f) / size * 2f - 1f;
+                    px[j * size + i] = new Color(1f, 1f, 1f, alpha(x, y));
                 }
             tex.SetPixels(px);
             tex.Apply();
-            return Sprite.Create(tex, new Rect(0, 0, Size, Size), new Vector2(0.5f, 0.5f), PixelsPerUnit);
+            return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size * PixelsPerUnit / Size);
         }
     }
 }

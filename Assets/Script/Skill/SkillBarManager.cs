@@ -91,6 +91,7 @@ namespace Assets.Script.Skill
         {
             if (index < 0 || index >= skillSlots.Length) return;
             if (skillSlots[index].assignedSkillId == -1) return; // Ô trống thì không làm gì
+            if (Assets.Script.UI.Kit.UIRoot.GameplayBlocked) return;   // đang mở cửa sổ → không ra chiêu
 
             // 1. Cập nhật UI
             currentSelectedIndex = index;

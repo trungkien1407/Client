@@ -53,6 +53,39 @@ namespace Assets.Script.Entities
             }
         }
 
+        /// <summary>Số bộ hình đang dùng (-1 = hình mặc định trong atlas).</summary>
+        public int AppliedArt { get; private set; } = -1;
+
+        /// <summary>
+        /// Hình theo server (npc_template.art → NpcArtSO "NpcArt_{art}"): thay thân + chân, dời tên / mũi tên chọn lên trên đầu.
+        /// art &lt; 0 hoặc chưa có hình trong kho → giữ hình mặc định (atlas). Gọi lại được khi GAME_DATA_NPCS tới muộn.
+        /// </summary>
+        public void ApplyArt(int art)
+        {
+            if (art < 0 || art == AppliedArt) return;
+            AppliedArt = art;
+            Core.AssetSource.Load<Models.NpcArtSO>(Models.NpcArtSO.Address(art), "NpcArt/" + Models.NpcArtSO.Address(art), so =>
+            {
+                if (this == null || so == null || so.body == null || AppliedArt != art) return;
+                legRenderer.sprite = so.legs;
+                legRenderer.transform.localPosition = Vector3.zero;
+                headRenderer.sprite = so.body;
+                var bp = so.BodyPos;   // thân lệch theo eo (đo sẵn), không đặt thẳng tâm ảnh
+                headRenderer.transform.localPosition = new Vector3(bp.x, bp.y, 0f);
+                float top = so.TopY;
+                if (npcNameText != null)
+                {
+                    _originalNamePosition = new Vector3(_originalNamePosition.x, top + 0.35f, _originalNamePosition.z);
+                    npcNameText.transform.localPosition = _originalNamePosition;
+                }
+                if (targetArrow != null)
+                {
+                    var p = targetArrow.transform.localPosition;
+                    targetArrow.transform.localPosition = new Vector3(p.x, top + 0.75f, p.z);
+                }
+            });
+        }
+
         // --- Hiện thực Interface ITargetable ---
      
         public string GetTargetName() => npcNameText.text;

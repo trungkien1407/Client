@@ -152,7 +152,11 @@ namespace Assets.Script.Data
         {
             var r = new MessageReader(data);
             int n = r.ReadShort();
-            for (int i = 0; i < n; i++) GameData.NpcNames[r.ReadInt()] = r.ReadUTF();
+            var ids = new int[n];
+            for (int i = 0; i < n; i++) { ids[i] = r.ReadInt(); GameData.NpcNames[ids[i]] = r.ReadUTF(); }
+            // GĐ20: [short art] × n ở cuối (server cũ không gửi → giữ hình mặc định)
+            if (r.Available() >= n * 2)
+                for (int i = 0; i < n; i++) GameData.NpcArt[ids[i]] = r.ReadShort();
             r.Cleanup();
             GameData.Notify(DataKind.Templates);
         }

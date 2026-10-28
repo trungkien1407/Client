@@ -177,6 +177,8 @@ namespace Assets.Script.Data
         public static readonly Dictionary<int, QuestTpl> Quests = new Dictionary<int, QuestTpl>();
         public static readonly Dictionary<int, MobTpl> Mobs = new Dictionary<int, MobTpl>();
         public static readonly Dictionary<int, string> NpcNames = new Dictionary<int, string>();
+        /// <summary>Số bộ hình NPC theo templateId (npc_template.art, -1 = hình mặc định) — GAME_DATA_NPCS.</summary>
+        public static readonly Dictionary<int, int> NpcArt = new Dictionary<int, int>();
         public static readonly Dictionary<int, EffectTpl> Effects = new Dictionary<int, EffectTpl>();
 
         // ---- trạng thái của mình ----

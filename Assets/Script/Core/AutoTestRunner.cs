@@ -197,6 +197,46 @@ namespace Assets.Script.Core
             GameWindow.Open<StorageWindow>(); yield return null;
             GameWindow.Get<PlayerActionWindow>().ShowFor(0, "Test"); yield return null;
             Check("Mở 7 cửa sổ GĐ2–GĐ4 không lỗi", _exceptions == before);
+
+            // 3c. Mở cửa sổ → chặn đánh / di chuyển; chat thì không. Cặp cửa sổ: đóng 1 = đóng cả 2. Túi hiện Xu / Lượng rõ.
+            {
+                GameWindow.Get<PlayerActionWindow>().Hide();
+                var bag = GameWindow.Get<InventoryWindow>();
+                var set = GameWindow.Get<SettingsWindow>();
+                foreach (var w in new GameWindow[] { GameWindow.Get<SocialWindow>(), GameWindow.Get<MailWindow>(), GameWindow.Get<LeaderboardWindow>(),
+                                                     GameWindow.Get<UpgradeWindow>(), GameWindow.Get<StorageWindow>(), set, bag }) w.Hide();
+                yield return null;
+                bool freeBefore = !UIRoot.GameplayBlocked;
+                GameWindow.Open<ChatWindow>(); yield return null;
+                bool chatFree = !UIRoot.GameplayBlocked;
+                GameWindow.Get<ChatWindow>().Hide();
+                bag.Show(); yield return null;
+                bool blocked = UIRoot.GameplayBlocked;
+                Check($"Mở Hành trang → chặn đánh / di chuyển; không mở gì / chỉ mở chat → không chặn ({freeBefore}/{chatFree}/{blocked})",
+                    freeBefore && chatFree && blocked);
+                bool moneyOk = false;
+                foreach (var t in bag.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true))
+                    if (t.name == "Money" && t.text.Contains("Xu") && t.text.Contains("Lượng") && t.fontSize >= 16) moneyOk = true;
+                Check("Hành trang hiện dải Yên · Xu · Lượng chữ to", moneyOk);
+                set.Show();
+                GameWindow.SideBySide(set, bag);
+                bag.Hide(); yield return null;
+                Check("Cặp cửa sổ (… | Hành trang): đóng 1 cái → đóng cả 2", !set.IsOpen && !bag.IsOpen && !UIRoot.GameplayBlocked);
+            }
+
+            // 3d. Hình NPC theo server (npc_template.art — demo: db/demo_art.sql) + mốc cổng có mũi tên
+            {
+                bool anyArt = false;
+                foreach (var a in GameData.NpcArt.Values) if (a >= 0) { anyArt = true; break; }
+                if (anyArt && NetworkNpcManager.Instance != null)
+                {
+                    int withArt = 0, total = 0;
+                    foreach (var npc in NetworkNpcManager.Instance.All) { total++; if (npc != null && npc.AppliedArt >= 0) withArt++; }
+                    Check($"NPC dùng hình riêng theo server: {withArt}/{total}", total > 0 && withArt == total);
+                }
+                var marker = GameObject.Find("PortalMarker");
+                Check("Cổng chuyển map có mũi tên + tên map", marker != null && marker.transform.Find("Arrow") != null && marker.transform.Find("Name") != null);
+            }
             if (!string.IsNullOrEmpty(Arg("-shots", null)))
             {
                 // Chụp từng cửa sổ riêng (đóng hết rồi mở 1 cái) để kiểm bố cục

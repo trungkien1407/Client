@@ -25,7 +25,7 @@ namespace Assets.Script.UI.Windows
         {
             Title = "Nhân vật";
             HotKey = Key.C;
-            Size = new Vector2(460, 470);
+            Size = new Vector2(460, 500);   // 4 dòng tiềm năng cần ~430 px nội dung
         }
 
         protected override void Build()
@@ -52,6 +52,9 @@ namespace Assets.Script.UI.Windows
 
         protected override void Bind()
         {
+            // Prefab cũ cao 470 → dòng "Thể lực" đè lên viền dưới. Nới cho đủ (chỉnh prefab cao hơn thì giữ nguyên)
+            var win = (RectTransform)transform;
+            if (win.sizeDelta.y < 500f) win.sizeDelta = new Vector2(win.sizeDelta.x, 500f);
             for (int i = 0; i < 4; i++)
             {
                 byte stat = (byte)i;

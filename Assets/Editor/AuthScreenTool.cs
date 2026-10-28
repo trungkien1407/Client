@@ -149,6 +149,7 @@ public static class AuthScreenTool
     {
         var rt = (RectTransform)p;
         Place(rt, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1000, 680));
+        rt.localScale = Vector3.one * 0.82f;   // cả khung thu nhỏ (bản đầu to quá so với khung đăng nhập)
         var frame = (RectTransform)p.Find("ImgBg");
         Stretch(frame, -6);
         Banner(p, "TẠO NHÂN VẬT");
@@ -158,7 +159,7 @@ public static class AuthScreenTool
         Place(ch, new Vector2(0.5f, 0.5f), new Vector2(-270, 45), new Vector2(320, 390));
         var holder = (RectTransform)ch.Find("CharacterContainer");
         Place(holder, new Vector2(0.5f, 0f), new Vector2(0, 48), new Vector2(100, 100));   // gốc hình Spine ở chân → đặt sát đáy khung
-        holder.localScale = Vector3.one * 2.4f;   // hình nhân vật (Spine UI ~100px) phóng to cho vừa khung
+        holder.localScale = Vector3.one * 2.0f;   // hình nhân vật (Spine UI ~100px) phóng to cho vừa khung
         Field(p, "TxtName", "LblName", "Tên nhân vật", "3–15 ký tự", -207, 15, TMP_InputField.ContentType.Standard,
             x: -270, width: 320);
         var nameImg = p.Find("TxtName").GetComponent<Image>();

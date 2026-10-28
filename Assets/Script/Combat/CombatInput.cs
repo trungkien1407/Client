@@ -27,6 +27,7 @@ namespace Assets.Script.Combat
         /// <summary>Đánh bằng chiêu đang chọn trên thanh phím tắt.</summary>
         public static void CastSelected()
         {
+            if (UI.Kit.UIRoot.GameplayBlocked) return;   // đang mở túi / shop... → không đánh (cả nút cảm ứng)
             if (SkillBarManager.Instance != null) SkillCaster.TryCast(SkillBarManager.Instance.GetSelectedSkillId());
         }
 

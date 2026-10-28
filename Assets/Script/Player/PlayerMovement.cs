@@ -127,8 +127,9 @@ namespace Assets.Script.Player
                 return;
             }
 
-            // Chết hoặc đang gõ chat -> không nhận phím di chuyển
-            bool blocked = isDead || Assets.Script.Combat.ChatBox.IsTyping || Assets.Script.Player.LocalPlayerState.IsStunned;
+            // Chết, đang gõ chat, bị choáng hoặc đang mở cửa sổ (túi, shop...) -> không nhận phím di chuyển
+            bool blocked = isDead || Assets.Script.Combat.ChatBox.IsTyping || Assets.Script.Player.LocalPlayerState.IsStunned
+                           || Assets.Script.UI.Kit.UIRoot.GameplayBlocked;
             ManualInput = blocked ? Vector2.zero : controls.Player.Move.ReadValue<Vector2>();
             moveInput = ManualInput;
             if (blocked) AutoMoveX = 0f;
@@ -224,7 +225,8 @@ namespace Assets.Script.Player
 
         void OnJump()
         {
-            if (isDead || Assets.Script.Combat.ChatBox.IsTyping || Assets.Script.Player.LocalPlayerState.IsStunned || IsActionLocked) return;
+            if (isDead || Assets.Script.Combat.ChatBox.IsTyping || Assets.Script.Player.LocalPlayerState.IsStunned || IsActionLocked
+                || Assets.Script.UI.Kit.UIRoot.GameplayBlocked) return;
             // Giữ xuống + nhảy trên bục 1 chiều = nhảy xuống (kiểu NSO)
             if (ManualInput.y < -0.5f && TryDropThrough()) return;
             if (isGrounded || isOnWaterSurface || isInWater)

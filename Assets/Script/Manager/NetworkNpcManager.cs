@@ -52,8 +52,18 @@ namespace Assets.Script.Manager
         void Start()
         {
             NetworkEventDispatcher.Instance.AddHandler(Cmd.NPC_LIST, OnNpcList);   // nghe ngay (gói sớm giữ lại ở _earlyList)
+            Data.GameData.OnChanged += OnDataChanged;
             LoadResources();
         }
+
+        /// <summary>Hình NPC theo server (npc_template.art) có thể tới SAU khi NPC đã hiện → áp lại cho NPC đang có.</summary>
+        private void OnDataChanged(Data.DataKind k)
+        {
+            if (k != Data.DataKind.Templates) return;
+            foreach (var e in activeNpcs.Values) if (e != null) e.ApplyArt(ArtOf(e.TemplateId));
+        }
+
+        private static int ArtOf(int templateId) => Data.GameData.NpcArt.TryGetValue(templateId, out var a) ? a : -1;
 
         private void LoadResources()
         {
@@ -146,6 +156,7 @@ namespace Assets.Script.Manager
                     if (entity != null)
                     {
                         entity.Setup(config, npcId, _loadedAtlas);
+                        entity.ApplyArt(ArtOf(templateId));   // có hình riêng (GĐ20) thì thay hình mặc định
                         activeNpcs[npcId] = entity;
                     }
                 }
@@ -182,6 +193,7 @@ namespace Assets.Script.Manager
 
         void OnDestroy()
         {
+            Data.GameData.OnChanged -= OnDataChanged;
             if (NetworkEventDispatcher.Instance != null)
                 NetworkEventDispatcher.Instance.RemoveHandler(Cmd.NPC_LIST, OnNpcList);
 

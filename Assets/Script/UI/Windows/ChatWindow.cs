@@ -13,6 +13,9 @@ namespace Assets.Script.UI.Windows
     /// </summary>
     public class ChatWindow : GameWindow
     {
+        /// <summary>Không chặn đánh / di chuyển: đọc / gõ chat không làm đứng nhân vật (đang gõ thì GameInput.Blocked đã chặn phím).</summary>
+        public override bool BlocksGameplay => false;
+
         private static readonly int[] TabChannels = { 1, 0, 4, 2 };
         private static readonly string[] TabLabels = { "Khu", "Thế giới", "Gia tộc", "Riêng" };
 

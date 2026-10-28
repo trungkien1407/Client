@@ -60,6 +60,7 @@ namespace Assets.Script.Combat
         {
             var me = Me();
             if (me == null || LocalPlayerState.IsDead) return;
+            if (UI.Kit.UIRoot.GameplayBlocked) return;   // đang mở cửa sổ (nút Đánh cảm ứng cũng vào đây)
             if (LocalPlayerState.IsStunned) { ChatBox.AddSystem("Đang bị choáng!"); return; }
 
             // Chiêu hỗ trợ (hồi máu / tăng sức mạnh) lên bản thân + đồng đội: không cần mục tiêu, không chạy

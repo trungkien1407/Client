@@ -25,6 +25,7 @@ public static class DemoArtTool
     public const string MobArtDir = Root + "/MobArt";
     public const string MobAnimDir = Root + "/MobAnim";
     public const string SkinDir = Root + "/UISkin";
+    public const string NpcArtDir = Root + "/NpcArt";
     private const string DirKey = "Naruto.DemoArtDir";
 
     [MenuItem("Tools/Naruto/Demo art/1. Nhập kho ảnh + hình quái từ TaiNguyen", priority = 40)]
@@ -32,8 +33,8 @@ public static class DemoArtTool
     {
         string dir = SourceDir(true);
         if (dir == null) return;
-        var (icons, mobs, ui) = ImportAll(dir);
-        EditorUtility.DisplayDialog("Demo art", $"Kho ảnh: {icons} ảnh\nHình quái: {mobs} bộ\nSkin UI: {ui} hình\n→ {Root} (không commit)", "OK");
+        var (icons, mobs, ui, npcs) = ImportAll(dir);
+        EditorUtility.DisplayDialog("Demo art", $"Kho ảnh: {icons} ảnh\nHình quái: {mobs} bộ\nHình NPC: {npcs} bộ\nSkin UI: {ui} hình\n→ {Root} (không commit)", "OK");
     }
 
     [MenuItem("Tools/Naruto/Demo art/2. Đổi thư mục TaiNguyen", priority = 41)]
@@ -41,21 +42,23 @@ public static class DemoArtTool
 
     public static void BatchImport()
     {
-        var (icons, mobs, ui) = ImportAll(SourceDir(false));
-        Debug.Log($"[DemoArt] kho ảnh {icons}, hình quái {mobs}, skin UI {ui}");
+        var (icons, mobs, ui, npcs) = ImportAll(SourceDir(false));
+        Debug.Log($"[DemoArt] kho ảnh {icons}, hình quái {mobs}, hình NPC {npcs}, skin UI {ui}");
     }
 
-    public static (int icons, int mobs, int ui) ImportAll(string src)
+    public static (int icons, int mobs, int ui, int npcs) ImportAll(string src)
     {
         int icons = CopyBank(Path.Combine(src, "07_VatPham_IconNho"));
         var mobDirs = CopyMobArt(Path.Combine(src, "02_Quai"));
+        var npcArts = CopyNpcArt(Path.Combine(src, "03_NPC"));
         var skins = CopyUiSkin(Path.Combine(src, "08_UI"));
         AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
-        int mobs = 0;
+        int mobs = 0, npcs = 0;
         foreach (var (art, anim) in mobDirs) if (BuildMobAnim(art, anim)) mobs++;
+        foreach (var art in npcArts) if (BuildNpcArt(art)) npcs++;
         foreach (var (path, border) in skins) SetupSkinSprite(path, border);
         AssetDatabase.SaveAssets();
-        return (icons, mobs, skins.Count);
+        return (icons, mobs, skins.Count, npcs);
     }
 
     // ==================== SKIN UI ====================
@@ -212,6 +215,117 @@ public static class DemoArtTool
         return true;
     }
 
+    // ==================== HÌNH NPC ====================
+
+    /// <summary>
+    /// 03_NPC/npcN (hoặc npcNa)/img0.png (thân) + img1.png (chân) → _Demo/Resources/NpcArt/N/. Số bộ hình = N (bỏ chữ "a").
+    /// Không có animation: mỗi NPC là 2 ảnh tĩnh. npc37 chỉ có 1 ảnh to (cây / đồ vật) → legs trống.
+    /// </summary>
+    private static List<int> CopyNpcArt(string dir)
+    {
+        var list = new List<int>();
+        if (!Directory.Exists(dir)) { Debug.LogWarning("[DemoArt] thiếu " + dir); return list; }
+        foreach (var d in Directory.GetDirectories(dir, "npc*"))
+        {
+            string num = new string(Path.GetFileName(d).Substring(3).TakeWhile(char.IsDigit).ToArray());
+            if (!int.TryParse(num, out int art)) continue;
+            if (!File.Exists(Path.Combine(d, "img0.png"))) continue;
+            string dst = $"{NpcArtDir}/{art}";
+            Directory.CreateDirectory(dst);
+            foreach (var name in new[] { "img0.png", "img1.png" })
+            {
+                string f = Path.Combine(d, name), to = Path.Combine(dst, name);
+                if (File.Exists(f) && (!File.Exists(to) || new FileInfo(to).Length != new FileInfo(f).Length)) File.Copy(f, to, true);
+            }
+            list.Add(art);
+        }
+        return list;
+    }
+
+    /// <summary>Ảnh img0 / img1 → NpcArtSO "NpcArt_N" (cùng thư mục Resources/NpcArt để tải bằng "NpcArt/NpcArt_N").</summary>
+    private static bool BuildNpcArt(int art)
+    {
+        var body = AssetDatabase.LoadAssetAtPath<Sprite>($"{NpcArtDir}/{art}/img0.png");
+        if (body == null) return false;
+        string path = $"{NpcArtDir}/{NpcArtSO.Address(art)}.asset";
+        var so = AssetDatabase.LoadAssetAtPath<NpcArtSO>(path);
+        bool isNew = so == null;
+        if (isNew) so = ScriptableObject.CreateInstance<NpcArtSO>();
+        so.body = body;
+        so.legs = AssetDatabase.LoadAssetAtPath<Sprite>($"{NpcArtDir}/{art}/img1.png");
+        so.bodyOffsetPx = so.legs != null ? FitBodyOnLegs($"{NpcArtDir}/{art}/img0.png", $"{NpcArtDir}/{art}/img1.png") : Vector2.zero;
+        if (isNew) AssetDatabase.CreateAsset(so, path);
+        else EditorUtility.SetDirty(so);
+        return true;
+    }
+
+    /// <summary>
+    /// Ghép thân lên chân theo ĐIỂM ẢNH (game gốc không ghi vị trí):
+    ///   ngang — so "cột có màu" của dải {band} hàng dưới cùng của thân với dải {band} hàng trên cùng của chân, chọn độ dời
+    ///           để chân được thân phủ nhiều nhất (hoà thì lấy trùng khít hơn, rồi dời ít hơn). Không lấy giữa min..max vì
+    ///           đồ cầm tay (búa Thợ Rèn) hay thõng xuống thấp nhất → đo nhầm vào đồ;
+    ///   dọc — mép có màu của thân chồng xuống mép có màu của chân {overlap} px.
+    /// Trả vị trí giữa-đáy ảnh thân so với giữa-đáy ảnh chân (px, x sang phải, y lên trên).
+    /// </summary>
+    private static Vector2 FitBodyOnLegs(string bodyPath, string legsPath, int overlap = 4, int band = 12)
+    {
+        var b = ReadPng(bodyPath); var l = ReadPng(legsPath);
+        if (b == null || l == null) return Vector2.zero;
+        try
+        {
+            // Texture2D: hàng 0 = ĐÁY ảnh
+            int bBottom = FirstOpaqueRow(b, fromBottom: true), lTop = FirstOpaqueRow(l, fromBottom: false);
+            if (bBottom < 0 || lTop < 0) return new Vector2(0, l.height - overlap);
+            var bodyCols = OpaqueColumns(b, bBottom, bBottom + band - 1, b.width / 2f);
+            var legCols = OpaqueColumns(l, lTop - band + 1, lTop, l.width / 2f);
+            int bestDx = 0; float bestCover = -1f, bestIou = -1f;
+            for (int dx = -80; dx <= 80; dx++)
+            {
+                int inter = 0;
+                foreach (int x in legCols) if (bodyCols.Contains(x - dx)) inter++;
+                float cover = legCols.Count > 0 ? (float)inter / legCols.Count : 0f;
+                float iou = (float)inter / Mathf.Max(1, bodyCols.Count + legCols.Count - inter);
+                bool better = cover > bestCover + 1e-4f
+                              || (Mathf.Abs(cover - bestCover) <= 1e-4f && (iou > bestIou + 1e-4f
+                                  || (Mathf.Abs(iou - bestIou) <= 1e-4f && Mathf.Abs(dx) < Mathf.Abs(bestDx))));
+                if (better) { bestCover = cover; bestIou = iou; bestDx = dx; }
+            }
+            float dy = lTop + 1 - overlap - bBottom;          // đáy có màu của thân nằm dưới đỉnh có màu của chân {overlap} px
+            return new Vector2(bestDx, Mathf.Round(dy));
+        }
+        finally { UnityEngine.Object.DestroyImmediate(b); UnityEngine.Object.DestroyImmediate(l); }
+    }
+
+    private static Texture2D ReadPng(string assetPath)
+    {
+        if (!File.Exists(assetPath)) return null;
+        var t = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+        return t.LoadImage(File.ReadAllBytes(assetPath)) ? t : null;
+    }
+
+    /// <summary>Hàng có điểm ảnh đục đầu tiên tính từ đáy (fromBottom) hoặc từ đỉnh; -1 = ảnh trống.</summary>
+    private static int FirstOpaqueRow(Texture2D t, bool fromBottom)
+    {
+        var px = t.GetPixels32();
+        for (int i = 0; i < t.height; i++)
+        {
+            int y = fromBottom ? i : t.height - 1 - i;
+            for (int x = 0; x < t.width; x++) if (px[y * t.width + x].a > 128) return y;
+        }
+        return -1;
+    }
+
+    /// <summary>Các cột có điểm ảnh đục trong hàng y0..y1, tính theo toạ độ lấy giữa ảnh làm 0 (làm tròn).</summary>
+    private static HashSet<int> OpaqueColumns(Texture2D t, int y0, int y1, float center)
+    {
+        var px = t.GetPixels32();
+        var set = new HashSet<int>();
+        for (int y = Mathf.Max(0, y0); y <= Mathf.Min(t.height - 1, y1); y++)
+            for (int x = 0; x < t.width; x++)
+                if (px[y * t.width + x].a > 128) set.Add(Mathf.RoundToInt(x - center));
+        return set;
+    }
+
     // ==================== THƯ MỤC NGUỒN ====================
 
     /// <summary>Thư mục TaiNguyen: tham số -demoArt, rồi lựa chọn đã lưu, rồi đoán D:/Download/AssetRipper_win_x64/TaiNguyen.</summary>
@@ -245,8 +359,8 @@ public class DemoArtPostprocessor : AssetPostprocessor
     private void OnPreprocessTexture()
     {
         string p = assetPath.Replace('\\', '/');
-        bool bank = p.Contains("/ImageBank/"), mob = p.Contains("/MobArt/");
-        if (!bank && !mob) return;
+        bool bank = p.Contains("/ImageBank/"), mob = p.Contains("/MobArt/"), npc = p.Contains("/NpcArt/");
+        if (!bank && !mob && !npc) return;
         var ti = (TextureImporter)assetImporter;
         ti.textureType = TextureImporterType.Sprite;
         ti.spriteImportMode = SpriteImportMode.Single;
@@ -256,7 +370,7 @@ public class DemoArtPostprocessor : AssetPostprocessor
         ti.filterMode = FilterMode.Bilinear;
         var s = new TextureImporterSettings();
         ti.ReadTextureSettings(s);
-        s.spriteAlignment = (int)(mob ? SpriteAlignment.TopLeft : SpriteAlignment.Center);
+        s.spriteAlignment = (int)(mob ? SpriteAlignment.TopLeft : npc ? SpriteAlignment.BottomCenter : SpriteAlignment.Center);   // NPC: chân đứng ở gốc
         s.spriteMeshType = SpriteMeshType.FullRect;
         ti.SetTextureSettings(s);
     }

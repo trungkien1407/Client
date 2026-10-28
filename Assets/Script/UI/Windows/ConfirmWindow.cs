@@ -15,6 +15,9 @@ namespace Assets.Script.UI.Windows
     /// </summary>
     public class ConfirmWindow : GameWindow
     {
+        /// <summary>Không chặn đánh / di chuyển: lời mời tự bật giữa trận.</summary>
+        public override bool BlocksGameplay => false;
+
         private class Item { public string text, yes, no; public Action onYes, onNo; public float expire; }
 
         private static readonly Queue<Item> Pending = new Queue<Item>();

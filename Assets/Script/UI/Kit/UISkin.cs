@@ -73,6 +73,15 @@ namespace Assets.Script.UI.Kit
             if (!Enabled || f == null) return;
             if (f.TryGetComponent(out Image bg)) { Set(bg, Get(Window)); bg.color = Color.white; }
             if (f.header != null && f.header.TryGetComponent(out Image head) && Get(Header) != null) { Set(head, Get(Header)); head.color = Color.white; }
+            if (f.title != null)
+            {
+                // Tiêu đề rõ hơn: đậm, vàng kem, to vừa thanh (tên dài tự nhỏ lại)
+                f.title.fontStyle = FontStyles.Bold;
+                f.title.color = new Color(1f, 0.92f, 0.72f);
+                f.title.enableAutoSizing = true;
+                f.title.fontSizeMin = 14;
+                f.title.fontSizeMax = 21;
+            }
             if (f.close != null && Get(Close) != null)
             {
                 Set(f.close.image, Get(Close));
@@ -85,12 +94,36 @@ namespace Assets.Script.UI.Kit
             }
         }
 
+        private static readonly List<UnityEngine.UI.Button> _pending = new List<UnityEngine.UI.Button>();
+
+        /// <summary>
+        /// Phủ skin NGAY TRƯỚC KHI canvas vẽ khung hình này (sau khi code đã Place / Height / bố cục xong).
+        /// UIKit.Button gọi hàm này: lúc vừa tạo, nút còn cỡ mẫu 100×100 → trước đây bị coi là "khung bấm lớn" và bỏ qua
+        /// → nút Học / Nâng, lựa chọn hội thoại NPC... còn màu xanh đậm kiểu cũ.
+        /// </summary>
+        public static void SkinButtonLater(UnityEngine.UI.Button b)
+        {
+            if (!Enabled || b == null) return;
+            if (_pending.Count == 0) Canvas.willRenderCanvases += FlushPending;
+            _pending.Add(b);
+        }
+
+        private static void FlushPending()
+        {
+            Canvas.willRenderCanvases -= FlushPending;
+            var list = _pending.ToArray();
+            _pending.Clear();
+            foreach (var b in list) if (b != null) SkinButton(b);
+        }
+
         public static void SkinButton(UnityEngine.UI.Button b)
         {
             if (!Enabled || b == null || b.image == null || !IsFlat(b.image)) return;
             var frame = b.GetComponentInParent<WindowFrame>();
             if (frame != null && frame.close == b) return;          // nút đóng: SkinWindow lo
-            if (((RectTransform)b.transform).rect.height > 70f) return;   // "nút" cỡ lớn = khung bấm được (bảng nhiệm vụ HUD...) → giữ nguyên
+            // Chiều cao thật: ô Height() (LayoutElement) nếu có, không thì cỡ đang đặt
+            float h = b.TryGetComponent(out LayoutElement le) && le.preferredHeight > 0 ? le.preferredHeight : ((RectTransform)b.transform).rect.height;
+            if (h > 70f) return;   // "nút" cỡ lớn = khung bấm được (bảng nhiệm vụ HUD...) → giữ nguyên
             Set(b.image, Get(Button), keepColor: true);
             // Màu nướng sẵn trong prefab (màu nút cũ, xám tối) → màu nút mới. Màu riêng (đỏ đồ sát...) giữ nguyên.
             if (Near(b.image.color, _oldButton) || IsNeutralDark(b.image.color)) b.image.color = UIKit.ButtonColor;

@@ -96,7 +96,7 @@ namespace Assets.Script.UI.Kit
             var t = btn.GetComponentInChildren<TextMeshProUGUI>(true);
             if (t != null) { t.text = label; t.fontSize = fontSize; }
             if (onClick != null) btn.onClick.AddListener(() => onClick());
-            UISkin.SkinButton(btn);
+            UISkin.SkinButtonLater(btn);   // đợi code Place / Height xong mới biết cỡ thật
             return btn;
         }
 

@@ -67,7 +67,7 @@ namespace Assets.Script.UI.Windows
             {
                 int idx = i;
                 var s = GameData.Storage[i];
-                string qty = s.qty > 1 ? $"\n<color=#fd5>x{s.qty}</color>" : "";
+                string qty = s.qty > 1 ? $"\n<color=#c0600a>x{s.qty}</color>" : "";
                 var b = UIKit.Button("S" + i, _grid, GameData.ColoredName(s.tpl, s.level) + InventoryWindow.Extras(s) + qty, () => { _sel = idx; Refresh(); }, 13);
                 b.image.color = idx == _sel ? UIKit.ButtonHot : UIKit.SlotColor;
                 ItemIcon.ForItem(b, s.tpl, ItemIcon.Place.Top, 30);

@@ -50,9 +50,15 @@ namespace Assets.Script.Core
             }
         }
 
+        /// <summary>Phím vẫn dùng được khi đang mở cửa sổ (Esc đóng cửa sổ, mở chat, hồi sinh). Còn lại là phím đánh / chiêu / bình.</summary>
+        private static bool WorksWithWindowOpen(GameKey k) => k == GameKey.CloseWindow || k == GameKey.OpenChat || k == GameKey.Revive;
+
+        /// <summary>Phím hành động k có bị chặn vì đang mở cửa sổ (túi, shop...) không.</summary>
+        private static bool WindowBlocks(GameKey k) => !WorksWithWindowOpen(k) && UI.Kit.UIRoot.GameplayBlocked;
+
         public static bool Pressed(GameKey k)
         {
-            if (Blocked || !Bindings.TryGetValue(k, out var keys)) return false;
+            if (Blocked || WindowBlocks(k) || !Bindings.TryGetValue(k, out var keys)) return false;
             foreach (var key in keys) if (Keyboard.current[key].wasPressedThisFrame) return true;
             return false;
         }
@@ -62,7 +68,7 @@ namespace Assets.Script.Core
         /// <summary>Phím của hành động k đang được GIỮ (giữ Enter = đánh liên tục).</summary>
         public static bool Held(GameKey k)
         {
-            if (Blocked || !Bindings.TryGetValue(k, out var keys)) return false;
+            if (Blocked || WindowBlocks(k) || !Bindings.TryGetValue(k, out var keys)) return false;
             foreach (var key in keys) if (Keyboard.current[key].isPressed) return true;
             return false;
         }

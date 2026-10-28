@@ -68,6 +68,24 @@ namespace Assets.Script.UI.Windows
                     GameActions.NpcSelect(_npcId, index);
                 }, 17).Height(40);
             }
+            FitToContent(options.Count);
+        }
+
+        /// <summary>
+        /// Cao vừa nội dung: lời thoại + các lựa chọn (trước cố định 420 → lời ngắn / ít lựa chọn thì trống một khoảng lớn).
+        /// Khung: tiêu đề + lề = 54, mỗi lựa chọn 40 + cách 6.
+        /// </summary>
+        private void FitToContent(int optionCount)
+        {
+            var win = (RectTransform)transform;
+            float width = win.sizeDelta.x - 20f;
+            float textH = Mathf.Clamp(_text.GetPreferredValues(_text.text, width, 0).y + 10f, 50f, 230f);
+            var trt = _text.rectTransform;
+            trt.sizeDelta = new Vector2(trt.sizeDelta.x, textH);
+            var list = (RectTransform)_options.parent;
+            list.offsetMax = new Vector2(list.offsetMax.x, -(textH + 8f));
+            float h = 54f + textH + 8f + optionCount * 46f + 6f;
+            win.sizeDelta = new Vector2(win.sizeDelta.x, Mathf.Clamp(h, 200f, 560f));
         }
     }
 }

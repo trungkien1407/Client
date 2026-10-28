@@ -78,11 +78,36 @@ namespace Assets.Script.UI.Windows
             _btnPut.onClick.AddListener(OnPut);
             _btnTrade.onClick.AddListener(OnTrade);
             _btnMarket.onClick.AddListener(OnMarket);
+            StyleMoneyBar();
             GameData.OnChanged += k =>
             {
                 if (k == DataKind.Inventory || k == DataKind.Equipment || k == DataKind.Templates || k == DataKind.Money
                     || k == DataKind.Character || k == DataKind.Storage || k == DataKind.Trade || k == DataKind.Market) RefreshIfOpen();
             };
+        }
+
+        /// <summary>
+        /// Dải tiền dưới túi: Yên · Xu · Lượng chữ to, số đậm, có nền (trước là dòng chữ nhỏ mờ ở góc — khó thấy).
+        /// Chạy trong Bind() nên áp cả khi cửa sổ tạo từ prefab.
+        /// </summary>
+        private void StyleMoneyBar()
+        {
+            if (_money == null) return;
+            var rt = _money.rectTransform;
+            rt.anchorMin = new Vector2(0, 0); rt.anchorMax = new Vector2(1, 0); rt.pivot = new Vector2(0.5f, 0);
+            rt.offsetMin = new Vector2(310, 0); rt.offsetMax = new Vector2(0, 30);
+            _money.fontSize = 18; _money.alignment = TextAlignmentOptions.Center;
+            _money.enableAutoSizing = true; _money.fontSizeMin = 12; _money.fontSizeMax = 18;
+            _money.color = Color.white;
+            if (rt.parent.Find("MoneyBg") == null)
+            {
+                var bg = UIKit.Panel("MoneyBg", rt.parent, new Color(0f, 0f, 0f, 0.35f));
+                var bgRt = bg.rectTransform;
+                bgRt.anchorMin = rt.anchorMin; bgRt.anchorMax = rt.anchorMax; bgRt.pivot = rt.pivot;
+                bgRt.offsetMin = rt.offsetMin; bgRt.offsetMax = rt.offsetMax;
+                bg.raycastTarget = false;
+                bg.transform.SetSiblingIndex(_money.transform.GetSiblingIndex());   // nằm ngay sau chữ
+            }
         }
 
         private static Button Btn(Transform parent, string name, string label, float x, float y)
@@ -102,10 +127,10 @@ namespace Assets.Script.UI.Windows
                 GameData.Equipment.TryGetValue(slot, out int tpl);
                 GameData.EquipLevel.TryGetValue(slot, out int lv);
                 GameData.EquipSlots.TryGetValue(slot, out var es);
-                string label = tpl > 0 ? $"<size=12><color=#9aa>{GameData.SlotNames[slot]}</color></size>\n{GameData.ColoredName(tpl, lv)}{Extras(es)}"
-                                       : $"<color=#666>{GameData.SlotNames[slot]}</color>";
+                string label = tpl > 0 ? $"<size=12><color=#7a6470>{GameData.SlotNames[slot]}</color></size>\n{GameData.ColoredName(tpl, lv)}{Extras(es)}"
+                                       : $"<color=#a08a9a>{GameData.SlotNames[slot]}</color>";
                 var b = UIKit.Button("Slot" + slot, _equipGrid, label, () => SelectEquip(s), 13);
-                b.image.color = slot == _selectedEquipSlot ? UIKit.ButtonHot : tpl > 0 ? UIKit.SlotColor : new Color(0.1f, 0.12f, 0.15f, 1f);
+                b.image.color = slot == _selectedEquipSlot ? UIKit.ButtonHot : tpl > 0 ? UIKit.SlotColor : new Color(0.42f, 0.24f, 0.38f, 0.75f);   // ô trống: tím mận nhạt (trước gần đen; đủ sắc để UISkin không coi là "xám cũ" mà đổi sang nút kem)
                 if (tpl > 0) ItemIcon.ForItem(b, tpl, ItemIcon.Place.Top, 30);
                 if (tpl > 0) ItemGlow.Add(b, lv);
             }
@@ -116,8 +141,8 @@ namespace Assets.Script.UI.Windows
             {
                 int idx = i;
                 var s = GameData.Inventory[i];
-                string qty = s.qty > 1 ? $"\n<color=#fd5>x{s.qty}</color>" : "";
-                string lockMark = s.locked ? "<size=11><color=#aaa>[Khoá] </color></size>" : "";
+                string qty = s.qty > 1 ? $"\n<color=#c0600a>x{s.qty}</color>" : "";
+                string lockMark = s.locked ? "<size=11><color=#806a78>[Khoá] </color></size>" : "";
                 var b = UIKit.Button("Item", _bagGrid, lockMark + GameData.ColoredName(s.tpl, s.level) + Extras(s) + qty, () => SelectBag(idx), 13);
                 b.image.color = idx == SelectedIndex ? UIKit.ButtonHot : UIKit.SlotColor;
                 ItemIcon.ForItem(b, s.tpl, ItemIcon.Place.Top, 32);
@@ -125,7 +150,7 @@ namespace Assets.Script.UI.Windows
             }
             if (GameData.Inventory.Count == 0) UIKit.Text("Empty", _bagGrid, "(túi trống)", 14);
             _bagTitle.text = $"Túi ({GameData.Inventory.Count}/{GameData.BagCapacity})";
-            _money.text = $"Yên {GameData.Me.yen:N0}   <color=#7cf>Xu {GameData.Me.xu:N0}</color>   <color=#f8c>Lượng {GameData.Me.luong:N0}</color>";
+            _money.text = $"<color=#ffd75a>Yên</color> <b>{GameData.Me.yen:N0}</b>     <color=#7cd8ff>Xu</color> <b>{GameData.Me.xu:N0}</b>     <color=#ff9ad5>Lượng</color> <b>{GameData.Me.luong:N0}</b>";
 
             UpdateDetail();
         }
@@ -134,8 +159,8 @@ namespace Assets.Script.UI.Windows
         public static string Extras(BagSlot s)
         {
             if (s == null || (s.bonus == 0 && s.gems.Count == 0)) return "";
-            string q = s.bonus > 0 ? $"<color={(s.bonus >= 8 ? "#ffa040" : "#6fd0ff")}>+{s.bonus}%</color>" : "";
-            string g = s.gems.Count > 0 ? $"<color=#e080ff>{s.gems.Count} ngọc</color>" : "";
+            string q = s.bonus > 0 ? $"<color={(s.bonus >= 8 ? "#d0600a" : "#1a78b8")}>+{s.bonus}%</color>" : "";
+            string g = s.gems.Count > 0 ? $"<color=#9a38b8>{s.gems.Count} ngọc</color>" : "";
             return $"\n<size=11>{q}{(q != "" && g != "" ? " " : "")}{g}</size>";
         }
 

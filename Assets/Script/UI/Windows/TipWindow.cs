@@ -11,6 +11,9 @@ namespace Assets.Script.UI.Windows
     /// </summary>
     public class TipWindow : GameWindow
     {
+        /// <summary>Không chặn đánh / di chuyển: mẹo tự bật khi lên cấp giữa trận.</summary>
+        public override bool BlocksGameplay => false;
+
         [SerializeField] private TextMeshProUGUI _text;
         [SerializeField] private Button _ok, _more;
         private int _topic;

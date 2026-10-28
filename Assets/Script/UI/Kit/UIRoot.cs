@@ -83,6 +83,27 @@ namespace Assets.Script.UI.Kit
 
         public void BringToFront(GameWindow w) => w.transform.SetAsLastSibling();
 
+        private static int _blockFrame = -1;
+        private static bool _blockCached;
+
+        /// <summary>
+        /// Đang mở cửa sổ chặn thao tác (túi, shop, nhân vật...) → không đánh / dùng chiêu / di chuyển / nhảy (GameInput, PlayerMovement,
+        /// ActionInput hỏi cờ này). Tính 1 lần mỗi khung hình.
+        /// </summary>
+        public static bool GameplayBlocked
+        {
+            get
+            {
+                if (_instance == null) return false;
+                if (_blockFrame == Time.frameCount) return _blockCached;
+                _blockFrame = Time.frameCount;
+                _blockCached = false;
+                foreach (var w in _instance._windows)
+                    if (w != null && w.IsOpen && w.BlocksGameplay) { _blockCached = true; break; }
+                return _blockCached;
+            }
+        }
+
         private void Update()
         {
             if (Core.GameInput.Blocked) return;

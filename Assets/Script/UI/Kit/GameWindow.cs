@@ -101,7 +101,26 @@ namespace Assets.Script.UI.Kit
             Refresh();
         }
 
-        public void Hide() => gameObject.SetActive(false);
+        /// <summary>
+        /// Có chặn đánh / dùng chiêu / di chuyển khi đang mở không (mặc định CÓ, kiểu NSO). Cửa sổ tự bật lên giữa trận
+        /// (mẹo, hộp hỏi lời mời) hoặc chat thì override = false.
+        /// </summary>
+        public virtual bool BlocksGameplay => true;
+
+        /// <summary>Cửa sổ đi cặp (Shop | Hành trang...) — đóng 1 cái là đóng cả 2. SideBySide gán.</summary>
+        private GameWindow _partner;
+
+        public void Hide()
+        {
+            gameObject.SetActive(false);
+            var p = _partner;
+            _partner = null;
+            if (p != null && p._partner == this)
+            {
+                p._partner = null;   // gỡ trước rồi mới đóng → không gọi vòng lại
+                if (p.IsOpen) p.Hide();
+            }
+        }
 
         /// <summary>
         /// Xếp 2 cửa sổ cạnh nhau (vd Rương | Hành trang) vừa khít bề ngang màn hình thật (PC 16:9 hay điện thoại 20:9).
@@ -118,6 +137,11 @@ namespace Assets.Script.UI.Kit
             ((RectTransform)left.transform).anchoredPosition = new Vector2(lx, 0);
             ((RectTransform)right.transform).anchoredPosition = new Vector2(rx, 0);
             UIRoot.Instance.BringToFront(right);
+            // Ghép cặp: bấm X / Esc ở 1 cửa sổ → đóng luôn cửa sổ kia (trước phải tắt 2 lần)
+            if (left._partner != null && left._partner != right) left._partner._partner = null;
+            if (right._partner != null && right._partner != left) right._partner._partner = null;
+            left._partner = right;
+            right._partner = left;
         }
 
         public void SetTitle(string title)
