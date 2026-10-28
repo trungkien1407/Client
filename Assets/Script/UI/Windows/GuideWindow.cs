@@ -19,7 +19,8 @@ namespace Assets.Script.UI.Windows
         {
             ("Điều khiển",
              "<b>Máy tính:</b> A/D hoặc ← → để đi, W/↑ để nhảy. Đến gần quái là <b>tự chọn</b> con gần nhất (ra xa thì tự đổi con khác); Click / Tab để chọn tay, Esc bỏ chọn. <b>Enter</b>: quái → đánh (giữ để đánh liên tục), NPC → nói chuyện, người → tương tác; " +
-             "ở xa thì nhân vật tự chạy lại. J đánh bằng chiêu đang chọn (cả người khi bật Đồ sát). Phím 1–5 dùng chiêu ở ô đó: chiêu đánh thì thành chiêu J / Enter đánh tiếp, chiêu hỗ trợ (hồi máu, buff) chỉ dùng 1 lần. Q/E uống bình máu/chakra. F nói chuyện với NPC gần nhất. T để chat. R hồi sinh — về điểm đã lưu ở Trưởng làng / Hiệu trưởng (\"Lưu điểm hồi sinh\"), chưa lưu thì về Làng Lá.\n\n" +
+             "ở xa thì nhân vật tự chạy lại. J đánh bằng chiêu đang chọn (cả người khi bật Đồ sát). Phím 1–5 dùng chiêu ở ô đó: chiêu đánh thì thành chiêu J / Enter đánh tiếp, chiêu hỗ trợ (hồi máu, buff) chỉ dùng 1 lần. Q/E uống bình máu/chakra. F nói chuyện với NPC gần nhất. T để chat. R hồi sinh — về điểm đã lưu ở Trưởng làng / Hiệu trưởng (\"Lưu điểm hồi sinh\"), chưa lưu thì về Làng Lá.\n" +
+             "<b>Z</b> (hoặc nút Auto) bật tự động: tự tìm quái, đánh bằng chiêu đang chọn, nhặt đồ, uống bình — chỉnh ở <b>U</b> (Cài đặt → Tự động), chọn cả chiêu buff tự dùng. Có <b>Tự động luyện tập</b> còn hạn (bán ở Hokage) thì dịch chuyển thẳng tới quái, không có thì chạy bộ.\n\n" +
              "<b>Điện thoại:</b> cần điều khiển góc trái, nút Nhảy/Đánh bên phải; chạm quái để chọn, chạm NPC rồi bấm Nói.\n\n" +
              "<b>Phím tắt cửa sổ:</b> C nhân vật · I túi · K kỹ năng · L nhiệm vụ · H hoạt động · G cẩm nang · O xã hội · M thư."),
             ("Nhiệm vụ",

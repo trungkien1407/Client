@@ -14,6 +14,8 @@ namespace Assets.Script.Combat
     public class CombatNetwork : NetworkListener
     {
         public static CombatNetwork Instance { get; private set; }
+        /// <summary>Số đòn của MÌNH trúng quái (server xác nhận) — AutoTestRunner đo tự động có đánh không.</summary>
+        public static int MyMobHits { get; private set; }
 
         private static readonly Color MyHitColor = new Color(1f, 0.85f, 0.2f);    // vàng: mình gây
         private static readonly Color OtherHitColor = Color.white;                 // trắng: người khác gây
@@ -67,6 +69,7 @@ namespace Assets.Script.Combat
 
             if (targetType == AttackTarget.Mob)
             {
+                if (mine) MyMobHits++;
                 var mob = NetworkMobManager.Instance?.GetMob(targetId);
                 if (mob == null) return;
                 mob.UpdateHp(hpRemain);

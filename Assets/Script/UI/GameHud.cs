@@ -73,6 +73,7 @@ namespace Assets.Script.UI
             _v.levelText.fontSizeMax = 20;
             HudPanel.Create<MinimapHud>(_v.transform);   // phím B = bản đồ lớn
             StatusIconsHud.Create(_v.transform, new Vector2(252, -86));
+            AutoHud.Create(_v.transform);                // nút Auto (bật / tắt tự động, như phím Z)
             HudMenuIcons.Apply(_v, MinimapWidth);   // có hình kho → 12 nút menu thành icon (không có → giữ nút chữ)   // icon choáng / chậm / bỏng / tăng sức mạnh / phân thân (cạnh ô cấp)
 
             // Hành động nút menu — cùng thứ tự GameHudView.MenuLabels
@@ -111,6 +112,7 @@ namespace Assets.Script.UI
             GameWindow.Preload<ActivityWindow>();   // phím H
             GameWindow.Preload<GuideWindow>();      // phím G
             GameWindow.Preload<WorldMapWindow>();   // phím B
+            GameWindow.Preload<AutoWindow>();       // phím U (tự động)
             SettingsWindow.ApplySaved();
 
             GameData.OnChanged += k =>

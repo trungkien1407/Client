@@ -202,7 +202,15 @@ namespace Assets.Script.UI.Windows
         }
 
         /// <summary>Mô tả 1 ô đồ đầy đủ: phẩm chất + ngọc đã khảm (GĐ9).</summary>
-        public static string Describe(BagSlot s) => Describe(s.tpl, s.level, s.locked, s.bonus, s.gems);
+        public static string Describe(BagSlot s) => Describe(s.tpl, s.level, s.locked, s.bonus, s.gems) + ExpiryLine(s);
+
+        /// <summary>GĐ22 đồ có hạn: "Hạn dùng: còn 6 ngày 23 giờ" / "Đã hết hạn" (vào game lại sẽ biến mất).</summary>
+        private static string ExpiryLine(BagSlot s)
+        {
+            if (!s.HasExpiry) return "";
+            return s.Expired ? "\n<color=#f77>Đã hết hạn (biến mất khi vào game lại)</color>"
+                             : $"\n<color=#7cf>Hạn dùng: còn {GameData.FormatDuration(s.SecondsLeft)}</color>";
+        }
 
         /// <summary>Mô tả vật phẩm: tên (+N), yêu cầu, chỉ số (gốc × phẩm chất × cường hoá), ngọc, giá.</summary>
         public static string Describe(int tplId, int level = 0, bool locked = false, int bonus = 0, System.Collections.Generic.List<int> gems = null)

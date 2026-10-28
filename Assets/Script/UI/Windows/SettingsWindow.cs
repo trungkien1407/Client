@@ -20,11 +20,12 @@ namespace Assets.Script.UI.Windows
         [SerializeField] private Button _tutorial;
         [SerializeField, Optional] private Button _logout;   // prefab cũ chưa có → Bind() tự tạo
         [SerializeField, Optional] private Button _password; // Đổi mật khẩu — như trên
+        [SerializeField, Optional] private Button _auto;     // GĐ22 mở cửa sổ Tự động — như trên
 
         protected override void Configure()
         {
             Title = "Cài đặt";
-            Size = new Vector2(460, 370);
+            Size = new Vector2(460, 430);   // GĐ22 thêm dòng nút Tự động
         }
 
         protected override void Build()
@@ -39,6 +40,8 @@ namespace Assets.Script.UI.Windows
             _tutorial = UIKit.Button("Tutorial", body, "Hướng dẫn tân thủ", null, 15);
             _logout = UIKit.Button("Logout", body, "Đăng xuất", null, 15);
             _password = UIKit.Button("Password", body, "Đổi mật khẩu", null, 15);
+            _auto = UIKit.Button("Auto", body, "Tự động (U)", null, 16);
+            PlaceAutoButton();
             PlaceBottomButtons();
         }
 
@@ -48,6 +51,12 @@ namespace Assets.Script.UI.Windows
             Bottom(_tutorial, -144);
             Bottom(_password, 0);
             Bottom(_logout, 144);
+        }
+
+        /// <summary>Dòng thứ 5 (dưới Đồ hoạ): nút mở cửa sổ Tự động.</summary>
+        private void PlaceAutoButton()
+        {
+            if (_auto != null) ((RectTransform)_auto.transform).Place(new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -228), new Vector2(240, 40), new Vector2(0.5f, 1));
         }
 
         private static void Bottom(Button b, float x)
@@ -73,6 +82,14 @@ namespace Assets.Script.UI.Windows
                 _tutorial.SetLabel("Hướng dẫn tân thủ");   // 3 nút 1 hàng → nhãn ngắn hơn
                 PlaceBottomButtons();
             }
+            if (_auto == null)   // prefab xuất trước GĐ22: thêm nút + nới cửa sổ cho đủ chỗ
+            {
+                _auto = UIKit.Button("Auto", Body, "Tự động (U)", null, 16);
+                var win = (RectTransform)transform;
+                if (win.sizeDelta.y < 430f) win.sizeDelta = new Vector2(win.sizeDelta.x, 430f);
+                PlaceAutoButton();
+            }
+            _auto.onClick.AddListener(() => { Hide(); Open<AutoWindow>(); });
             _password.onClick.AddListener(() => { Hide(); Get<ChangePasswordWindow>().Open(); });
             _logout.onClick.AddListener(() =>
                 ConfirmWindow.Ask("Đăng xuất về màn hình đăng nhập?", "Đăng xuất", () => { Hide(); GameActions.Logout(); }));

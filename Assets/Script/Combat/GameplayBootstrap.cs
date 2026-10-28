@@ -19,6 +19,7 @@ namespace Assets.Script.Combat
             go.AddComponent<CombatNetwork>();      // Awake() tự DontDestroyOnLoad
             go.AddComponent<CombatInput>();        // phím J / R, nút AttackBtn
             go.AddComponent<ActionInput>();        // Enter: đánh quái / nói NPC / tương tác người, xa thì tự chạy lại
+            go.AddComponent<AutoPlay>();           // tự động (Z): bình máu/chakra, nhặt đồ, tìm + đánh quái (GĐ22)
             go.AddComponent<Assets.Script.Network.Heartbeat>();
             go.AddComponent<Assets.Script.Map.MapTransferNetwork>(); // đổi map / khu, FORCE_MOVE
             go.AddComponent<GroundItemNetwork>();

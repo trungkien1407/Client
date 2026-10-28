@@ -53,6 +53,8 @@ namespace Assets.Script.Data
         }
         public static void Revive() => Send(Cmd.REVIVE, null);
         public static void PickItem(int groundItemId) => Send(Cmd.PICK_ITEM, w => w.WriteInt(groundItemId));
+        /// <summary>GĐ22 tự động luyện tập: xin dịch chuyển tới cạnh quái (server kiểm vật phẩm còn hạn, cùng khu).</summary>
+        public static void AutoTele(int mobId) => Send(Cmd.AUTO_TELE, w => w.WriteInt(mobId));
 
         // ---- Vật phẩm ----
         public static void UseItem(int templateId) => Send(Cmd.USE_ITEM, w => w.WriteInt(templateId));

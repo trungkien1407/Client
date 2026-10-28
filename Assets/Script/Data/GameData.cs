@@ -19,6 +19,7 @@ namespace Assets.Script.Data
         /// <summary>Cấp ngọc 1..3 (khớp GemRules: id = 90 + loại·3 + cấp − 1).</summary>
         public int GemTier => IsGem ? (id - 90) % 3 + 1 : 0;
         public bool IsUsable => type >= 0 && type <= 3;
+        public bool IsAutoTrain => type == 7;                             // GĐ22 Tự động luyện tập (có hạn)
     }
 
     public class SkillLevel
@@ -88,6 +89,12 @@ namespace Assets.Script.Data
         public bool locked;
         public int bonus;                                   // GĐ9 phẩm chất 0..10 (% chỉ số gốc)
         public List<int> gems = new List<int>();            // GĐ9 ngọc đã khảm (templateId)
+        // GĐ22 hạn dùng (đuôi gói INVENTORY): 0 = vĩnh viễn, < 0 = đã hết hạn, > 0 = Time.realtimeSinceStartup lúc hết hạn
+        public float expireAt;
+        public bool HasExpiry => expireAt != 0;
+        public bool Expired => expireAt < 0 || (expireAt > 0 && UnityEngine.Time.realtimeSinceStartup >= expireAt);
+        /// <summary>Giây còn lại (0 = vĩnh viễn hoặc đã hết).</summary>
+        public float SecondsLeft => expireAt > 0 ? UnityEngine.Mathf.Max(0f, expireAt - UnityEngine.Time.realtimeSinceStartup) : 0f;
         public string Name => GameData.ItemName(tpl) + (level > 0 ? $" +{level}" : "");
 
         /// <summary>Đọc 1 danh sách ô đồ: short n, [ô đồ] x n.</summary>
@@ -185,6 +192,25 @@ namespace Assets.Script.Data
         public static readonly CharacterInfo Me = new CharacterInfo();
         /// <summary>Túi đồ ĐÚNG THỨ TỰ Ô (chỉ số = bagIndex gửi lên server khi mặc/bán/nâng cấp...).</summary>
         public static readonly List<BagSlot> Inventory = new List<BagSlot>();
+
+        /// <summary>GĐ22: giây còn lại của "Tự động luyện tập" còn hạn lâu nhất trong túi; -1 = không có (auto chạy bộ tới quái).</summary>
+        public static float AutoTrainSecondsLeft()
+        {
+            float best = -1f;
+            foreach (var s in Inventory)
+                if (s.qty > 0 && !s.Expired && Items.TryGetValue(s.tpl, out var t) && t.IsAutoTrain)
+                    best = UnityEngine.Mathf.Max(best, s.HasExpiry ? s.SecondsLeft : float.MaxValue);
+            return best;
+        }
+
+        /// <summary>"6 ngày 23 giờ" / "5 giờ 12 phút" / "12 phút" (dưới 1 phút: "dưới 1 phút").</summary>
+        public static string FormatDuration(float seconds)
+        {
+            long s = (long)seconds;
+            if (s >= 86400) return $"{s / 86400} ngày {s % 86400 / 3600} giờ";
+            if (s >= 3600) return $"{s / 3600} giờ {s % 3600 / 60} phút";
+            return s >= 60 ? $"{s / 60} phút" : "dưới 1 phút";
+        }
         public static int BagCapacity = 40;
         public static readonly Dictionary<int, int> Equipment = new Dictionary<int, int>();   // slot → templateId
         public static readonly Dictionary<int, int> EquipLevel = new Dictionary<int, int>();  // slot → cấp +N

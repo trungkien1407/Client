@@ -211,6 +211,9 @@ namespace Assets.Script.Data
             var r = new MessageReader(data);
             GameData.BagCapacity = r.ReadShort();
             var list = BagSlot.ReadList(r);
+            // GĐ22: đuôi [int giây còn lại] × n (0 vĩnh viễn, -1 hết hạn) — server cũ không gửi thì mọi món vĩnh viễn
+            if (r.Available() >= list.Count * 4)
+                foreach (var s in list) { int left = r.ReadInt(); s.expireAt = left == 0 ? 0f : left < 0 ? -1f : UnityEngine.Time.realtimeSinceStartup + left; }
             r.Cleanup();
             GameData.Inventory.Clear();
             GameData.Inventory.AddRange(list);

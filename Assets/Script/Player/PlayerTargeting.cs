@@ -110,6 +110,7 @@ namespace Assets.Script.Player
             _nextAutoScan = Time.time + AutoScanInterval;
             if (Time.time < _autoPausedUntil || LocalPlayerState.IsDead || NetworkMobManager.Instance == null) return;
             if (Combat.ActionInput.IsRunning) return;   // đang tự chạy tới mục tiêu → không đổi giữa đường
+            if (Combat.AutoPlay.IsOn) return;           // tự động tự chọn quái (AutoPlay) → không giành mục tiêu
 
             Vector3 me = playerTransform.position;
             if (currentTarget != null)

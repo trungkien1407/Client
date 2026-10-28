@@ -67,6 +67,7 @@
         public const short ITEM_REMOVE = 304;       // S→C int groundId
         public const short EQUIP_ITEM = 305;        // C→S int bagIndex
         public const short UNEQUIP_ITEM = 306;      // C→S int slot
+        public const short AUTO_TELE = 315;         // C→S int mobId — GĐ22: có "Tự động luyện tập" còn hạn → server đặt cạnh quái (AutoPlay)
         public const short EQUIPMENT = 307;         // S→C short n, [int slot, int templateId, byte level + EXTRAS] x n
         public const short OPEN_SHOP = 308;
         public const short SHOP_DATA = 309;         // S→C int npcId, short n, [int itemId, int price, byte currency(0 yên/1 xu/2 lượng)]

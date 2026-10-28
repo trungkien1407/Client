@@ -8,6 +8,7 @@ namespace Assets.Script.Core
     {
         Attack, Action, Revive, PotionHp, PotionMp, TalkNpc, OpenChat, CloseWindow,
         Skill1, Skill2, Skill3, Skill4, Skill5,
+        AutoToggle,
     }
 
     /// <summary>
@@ -24,6 +25,7 @@ namespace Assets.Script.Core
             { GameKey.Revive, new[] { Key.R } },
             { GameKey.PotionHp, new[] { Key.Q } },
             { GameKey.PotionMp, new[] { Key.E } },
+            { GameKey.AutoToggle, new[] { Key.Z } },                              // bật / tắt tự động (AutoPlay)
             { GameKey.TalkNpc, new[] { Key.F } },
             { GameKey.OpenChat, new[] { Key.T } },                                // Enter đã dành cho Action
             { GameKey.CloseWindow, new[] { Key.Escape } },

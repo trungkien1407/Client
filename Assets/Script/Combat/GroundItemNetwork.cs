@@ -33,7 +33,29 @@ namespace Assets.Script.Combat
         private readonly Dictionary<int, GroundItem> _items = new Dictionary<int, GroundItem>();
         private static Sprite _squareSprite;
 
-        private void Awake() => Data.GameData.OnSessionReset += ClearAll;
+        public static GroundItemNetwork Instance { get; private set; }
+
+        private void Awake() { Instance = this; Data.GameData.OnSessionReset += ClearAll; }
+
+        /// <summary>
+        /// Món đồ trên đất gần {from} nhất trong {radius} ô (bỏ món {skip} trả true) — AutoPlay đi tới, tới sát thì AutoPick tự nhặt.
+        /// </summary>
+        /// <summary>Món {id} còn nằm trên đất không.</summary>
+        public bool Has(int id) => _items.ContainsKey(id);
+
+        public bool TryNearest(Vector3 from, float radius, System.Predicate<int> skip, out int id, out Vector3 pos)
+        {
+            id = -1; pos = Vector3.zero;
+            float best = radius * radius;
+            foreach (var it in _items.Values)
+            {
+                if (it.go == null || (skip != null && skip(it.id))) continue;
+                float sqr = ((Vector2)(it.go.transform.position - from)).sqrMagnitude;
+                if (sqr >= best) continue;
+                best = sqr; id = it.id; pos = it.go.transform.position;
+            }
+            return id >= 0;
+        }
         protected override void OnDestroy() { base.OnDestroy(); Data.GameData.OnSessionReset -= ClearAll; }
 
         protected override void RegisterHandlers()
