@@ -15,7 +15,7 @@ namespace Assets.Script.Core
         public const string BasePlayer = "BasePlayer";          // Prefabs/basePlayer.prefab
 
         // ---- Group "Characters" ----
-        /// <summary>Dữ liệu xương Spine theo hệ: 1 Naruto (Kiếm), 2 Sakura (Tiêu), 3 Sasuke (Hoả).</summary>
+        /// <summary>Dữ liệu xương Spine theo hệ: 1 Naruto (đấm đá), 2 Sakura (phi tiêu), 3 Sasuke (đấm đá nhanh).</summary>
         public static string CharacterSkeleton(int classType) => $"Char_Data_{classType}";
 
         /// <summary>Label gắn cho các NinjaClassData hiện ở màn tạo nhân vật.</summary>

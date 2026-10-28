@@ -186,6 +186,14 @@ namespace Assets.Script.Core
             GameWindow.Open<SkillWindow>(); yield return null;
             GameWindow.Open<QuestWindow>(); yield return null;
             Check("Mở 4 cửa sổ không lỗi", _exceptions == before);
+            // Thanh chiêu gán lúc vào game có thể trước GAME_DATA_SKILLS → phải vẽ lại theo icon_id của server (không giữ icon cũ trong SkillDatabase)
+            {
+                var slot = Skill.SkillBarManager.Instance != null ? System.Array.Find(Skill.SkillBarManager.Instance.skillSlots, s => s != null && s.assignedSkillId > 0) : null;
+                int iconId = slot != null && GameData.Skills.TryGetValue(slot.assignedSkillId, out var stpl) ? stpl.iconId : -1;
+                var wantIcon = ImageBank.Cached(iconId);
+                Check($"Ô thanh chiêu hiện icon server (chiêu {slot?.assignedSkillId}, icon {iconId})",
+                    slot != null && wantIcon != null && slot.iconImg != null && slot.iconImg.sprite == wantIcon);
+            }
             GameWindow.Get<CharacterWindow>().Hide(); GameWindow.Get<InventoryWindow>().Hide();
             GameWindow.Get<SkillWindow>().Hide(); GameWindow.Get<QuestWindow>().Hide();
 

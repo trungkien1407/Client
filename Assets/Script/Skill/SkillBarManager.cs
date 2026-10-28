@@ -78,6 +78,18 @@ namespace Assets.Script.Skill
         {
             // Khởi tạo giao diện ban đầu (Tắt hết highlight, chỉ bật ô đang chọn)
             UpdateHighlight();
+            Data.GameData.OnChanged += OnDataChanged;
+        }
+
+        private void OnDestroy() => Data.GameData.OnChanged -= OnDataChanged;
+
+        // Thanh chiêu gán lúc vào game có thể TRƯỚC khi GAME_DATA_SKILLS tới → ô lùi về icon cũ trong SkillDatabase.asset.
+        // Dữ liệu mẫu tới (Templates) → vẽ lại icon theo skill_template.icon_id của server.
+        private void OnDataChanged(Data.DataKind kind)
+        {
+            if (kind != Data.DataKind.Templates || skillSlots == null) return;
+            foreach (var slot in skillSlots)
+                if (slot != null && slot.assignedSkillId != -1) slot.AssignSkill(slot.assignedSkillId, skillDatabase);
         }
 
         private void Update()

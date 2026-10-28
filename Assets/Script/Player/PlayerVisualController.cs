@@ -157,7 +157,7 @@ namespace Assets.Script.Player
         private static readonly Dictionary<int, SkillMotion[]> BasicMotion = new Dictionary<int, SkillMotion[]>
         {
             { 1, PunchKick },                                               // Naruto: đấm – đá (cận chiến 1,8 ô)
-            { 2, new[] { new SkillMotion(AnimNames.Throw, 1.7f, 0.5f) } },  // Sakura: Phong Quạt đánh xa 5 ô → ném shuriken
+            { 2, new[] { new SkillMotion(AnimNames.Throw, 1.7f, 0.5f) } },  // Sakura: Phi Tiêu đánh xa 5 ô → ném shuriken
             { 3, PunchKick },                                               // Sasuke: đòn nhanh cận chiến
         };
         private static readonly Dictionary<(int cls, int skill), SkillMotion> SkillAnim = new Dictionary<(int, int), SkillMotion>
