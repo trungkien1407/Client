@@ -30,6 +30,7 @@ namespace Assets.Script.UI
 
         private static GameHud _instance;
         private GameHudView _v;
+        private Button _leaveDungeon;
         private string _shownMap;
         private int _shownZone = -2;
         private float _bannerUntil;
@@ -74,6 +75,10 @@ namespace Assets.Script.UI
             HudPanel.Create<MinimapHud>(_v.transform);   // phím B = bản đồ lớn
             StatusIconsHud.Create(_v.transform, new Vector2(252, -86));
             AutoHud.Create(_v.transform);                // nút Auto (bật / tắt tự động, như phím Z)
+            // Nút "Rời" phó bản (góc phải khung sự kiện, chỉ hiện khi đang ở phó bản) — map phó bản không có cổng ra
+            _leaveDungeon = UIKit.Button("LeaveDungeon", _v.eventPanel.transform, "Rời", () =>
+                ConfirmWindow.Ask("Rời phó bản về làng? Lượt hôm nay đã dùng, không được trả lại.", "Rời", GameActions.DungeonLeave), 14);
+            ((RectTransform)_leaveDungeon.transform).Place(new Vector2(1, 1), new Vector2(1, 1), new Vector2(-4, -4), new Vector2(56, 30), new Vector2(1, 1));
             HudMenuIcons.Apply(_v, MinimapWidth);   // có hình kho → 12 nút menu thành icon (không có → giữ nút chữ)   // icon choáng / chậm / bỏng / tăng sức mạnh / phân thân (cạnh ô cấp)
 
             // Hành động nút menu — cùng thứ tự GameHudView.MenuLabels
@@ -210,6 +215,8 @@ namespace Assets.Script.UI
                 string phase = GameData.EventState == 1 ? (GameData.EventType == 2 ? "đăng ký" : "sắp xuất hiện") : "đang diễn ra";
                 sb.Append($"<b>{name}</b> {phase}");
                 if (GameData.EventEndTime > Time.time) sb.Append($"  <color=#fd5>{Clock(GameData.EventEndTime)}</color>");
+                string bosses = GameData.EventType == 1 && GameData.EventState == 2 ? BossList(GameData.EventText) : null;
+                if (!string.IsNullOrEmpty(bosses)) sb.Append($"\n<size=13>{bosses}</size>");
                 if (GameData.EventType == 2 && GameData.EventState == 2 && GameData.ArenaScore.Count > 0)
                     for (int i = 0; i < Mathf.Min(5, GameData.ArenaScore.Count); i++)
                         sb.Append($"\n{i + 1}. {GameData.ArenaScore[i].Key} — {GameData.ArenaScore[i].Value} hạ");
@@ -219,6 +226,22 @@ namespace Assets.Script.UI
                 GameData.EventState = 0;
             _v.eventText.text = sb.ToString();
             _v.eventPanel.gameObject.SetActive(sb.Length > 0);
+            if (_leaveDungeon != null) _leaveDungeon.gameObject.SetActive(GameData.DungeonState == 2);
+        }
+
+        /// <summary>
+        /// Danh sách boss đang sống trong chữ EVENT_STATE của server ("… Đang có: A (map, khu 1), B …" / "… Còn: …" /
+        /// "… đang xuất hiện: …"). Không có → null.
+        /// </summary>
+        private static string BossList(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return null;
+            foreach (var key in new[] { "Còn: ", "Đang có: ", "đang xuất hiện: " })
+            {
+                int i = text.LastIndexOf(key, System.StringComparison.Ordinal);
+                if (i >= 0) return text.Substring(i + key.Length).TrimEnd('.', '!', ' ');
+            }
+            return null;
         }
 
         /// <summary>Bảng theo dõi nhiệm vụ: tối đa 3 nhiệm vụ đang làm + tiến độ; chưa có thì nhắc gặp Hokage.</summary>

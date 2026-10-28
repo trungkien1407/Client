@@ -758,6 +758,33 @@ namespace Assets.Script.Core
                 yield return new WaitForSecondsRealtime(1.5f);
             }
 
+            // 5l. Phó bản (2026-10-29): Hokage → Phó bản → Vào → HUD có nút "Rời" → rời → về Làng Lá ngay
+            //     (map phó bản không có cổng ra — trước kẹt tới hết giờ nếu không thoát game)
+            {
+                var dgHk = NetworkNpcManager.Instance != null ? NetworkNpcManager.Instance.FindByTemplate(1) : null;
+                if (dgHk != null)
+                {
+                    var dgPos = dgHk.transform.position;
+                    GameActions.Chat(1, $"/go {(dgPos.x + 0.6f).ToString(inv)} {(dgPos.y + 0.05f).ToString(inv)}");
+                    yield return new WaitForSecondsRealtime(1.5f);
+                }
+                var dgDlg = GameWindow.Get<NpcDialogWindow>();
+                Assets.Script.Data.NpcNetwork.TalkToNearest();
+                yield return WaitUntil(() => dgDlg.IsOpen, 5);
+                dgDlg.Choose("Phó bản");
+                yield return new WaitForSecondsRealtime(0.8f);
+                dgDlg.Choose("Vào phó bản");
+                yield return WaitUntil(() => GameData.DungeonState == 2, 8);
+                yield return new WaitForSecondsRealtime(1f);
+                var dgLeave = GameObject.Find("LeaveDungeon");
+                Check($"Trong phó bản: HUD có nút Rời ({GameData.DungeonName})", GameData.DungeonState == 2 && dgLeave != null && dgLeave.activeInHierarchy);
+                yield return Shot("Dungeon");
+                GameActions.DungeonLeave();
+                yield return WaitUntil(() => GameData.MapName == "Làng Lá" && GameData.DungeonState == 0, 8);
+                yield return new WaitForSecondsRealtime(1f);
+                Check("Bấm Rời → về Làng Lá ngay, nút Rời ẩn", GameData.MapName == "Làng Lá" && (dgLeave == null || !dgLeave.activeInHierarchy));
+            }
+
             // 5c. GĐ9 — hoạt động hằng ngày, sổ tay nhiệm vụ, cẩm nang, mẹo theo cấp, hội thoại nhiều trang
             GameActions.Chat(1, "/daily");
             yield return new WaitForSecondsRealtime(0.5f);

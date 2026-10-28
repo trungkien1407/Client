@@ -174,6 +174,7 @@
 
         // ---- GĐ4: phó bản / sự kiện ----
         public const short DUNGEON_STATE = 850;     // S→C byte state(2 đang chơi/3 thắng/4 thua/0 rời), int secs, short mobsLeft, UTF name
+        public const short DUNGEON_LEAVE = 853;     // C→S rỗng — tự rời phó bản về làng (lượt đã dùng, không trả)
         public const short EVENT_STATE = 851;       // S→C byte type(1 boss/2 lôi đài), byte state(0 hết/1 báo trước/2 đang diễn ra), int secs, UTF text
         public const short ARENA_SCORE = 852;      // S→C short n, [UTF name, short kills]
         // GĐ9 — CHỢ ("ô đồ" = BagSlot.Read)
