@@ -63,6 +63,14 @@ namespace Assets.Script.UI
         private void CreateHud()
         {
             _v = HudPanel.Create<GameHudView>(UIRoot.Instance.HudLayer);
+            // Ô cấp: số cấp cách vạch sau chữ "LV" 1 khoảng (trước dính sát), có chỗ cho % EXP (prefab cũ đặt x = 146)
+            var lv = _v.levelText.rectTransform;
+            lv.anchoredPosition = new Vector2(154f, lv.anchoredPosition.y);
+            lv.sizeDelta = new Vector2(82f, lv.sizeDelta.y);
+            _v.levelText.enableWordWrapping = false;
+            _v.levelText.enableAutoSizing = true;
+            _v.levelText.fontSizeMin = 12;
+            _v.levelText.fontSizeMax = 20;
             HudPanel.Create<MinimapHud>(_v.transform);   // phím B = bản đồ lớn
             StatusIconsHud.Create(_v.transform, new Vector2(252, -86));
             HudMenuIcons.Apply(_v, MinimapWidth);   // có hình kho → 12 nút menu thành icon (không có → giữ nút chữ)   // icon choáng / chậm / bỏng / tăng sức mạnh / phân thân (cạnh ô cấp)
@@ -125,7 +133,8 @@ namespace Assets.Script.UI
             var c = GameData.Me;
             float pct = c.expToNext > 0 ? Mathf.Clamp01((float)c.exp / c.expToNext) : 0;
             _v.expFill.fillAmount = pct;
-            _v.levelText.text = c.level > 0 ? c.level.ToString() : "";
+            // "12  76.4%" — số cấp vàng to, % EXP trắng nhỏ ngay sau (đỡ phải nhìn xuống thanh EXP dưới màn hình)
+            _v.levelText.text = c.level > 0 ? $"{c.level} <size=72%><color=#f2f2f2>{pct * 100:F1}%</color></size>" : "";
             _v.expText.text = $"Cấp {c.level}   EXP {pct * 100:F1}%   ({c.exp:N0}/{c.expToNext:N0})" +
                             (c.potential > 0 ? $"   <color=#fd5>+{c.potential} điểm tiềm năng (C)</color>" : "") +
                             (c.skillPoints > 0 ? $"   <color=#7cf>+{c.skillPoints} điểm kỹ năng (K)</color>" : "");
