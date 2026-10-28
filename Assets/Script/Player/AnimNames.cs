@@ -6,5 +6,6 @@ namespace Assets.Script.Player
         public const string Idle = "Idle", Run = "Run", Jump = "Jump", Fall = "Jump_Falling", FallDown = "Jump_Down";
         public const string Punch = "Punch_Combo", Kick = "Kick_Combo";
         public const string Jutsu1 = "Jutsu1", Jutsu2 = "Jutsu2", Slash = "Skill20";
+        public const string Throw = "Skill10";   // Sakura: ném shuriken (Naruto / Sasuke Skill10 là chém)
     }
 }

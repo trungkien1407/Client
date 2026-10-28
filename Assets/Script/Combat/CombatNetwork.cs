@@ -39,7 +39,11 @@ namespace Assets.Script.Combat
             Listen(Cmd.SKILL_COOLDOWN, OnSkillCooldown);
         }
 
-        /// <summary>BROADCAST_ATTACK: int attackerId, byte targetType (0 quái · 1 người · 2 chiêu hỗ trợ), int targetId, int skillId, int damage, int hpRemain, byte dead</summary>
+        /// <summary>
+        /// BROADCAST_ATTACK: int attackerId, byte targetType (0 quái · 1 người · 2 chiêu hỗ trợ), int targetId, int skillId, int damage, int hpRemain, byte dead
+        /// MÁU cập nhật NGAY (server đã tính xong — trọng tài); SỐ sát thương + hiệu ứng trúng (fxHit) giữ lại tới KHUNG TRÚNG ĐÒN
+        /// của anim người ra chiêu (PlayerVisualController.HitTime, tối đa MaxHitDelay) → số bật ra đúng lúc nắm đấm / shuriken chạm.
+        /// </summary>
         private void OnBroadcastAttack(byte[] data)
         {
             var r = new MessageReader(data);
@@ -53,8 +57,12 @@ namespace Assets.Script.Combat
             r.Cleanup();
 
             bool mine = attackerId == LocalPlayerState.Id;
-            if (!mine) NetworkPlayerManager.Instance?.GetRemotePlayer(attackerId)?.PlayAttack(skillId);
-            PlaySkillFx(attackerId, targetType, targetId, skillId);
+            Transform from = GetPlayerTransform(attackerId);
+            Transform to = targetType == AttackTarget.Mob ? NetworkMobManager.Instance?.GetMob(targetId)?.transform
+                         : targetType == AttackTarget.Player ? GetPlayerTransform(targetId) : from;
+            // Người khác ra chiêu: quay mặt về mục tiêu + diễn anim (mình đã diễn lúc bấm — SkillCaster)
+            if (!mine) NetworkPlayerManager.Instance?.GetRemotePlayer(attackerId)?.PlayAttack(skillId, targetType == AttackTarget.Self ? null : to);
+            PlayCastFx(attackerId, from, to, skillId);
             if (targetType == AttackTarget.Self) return;   // chiêu hỗ trợ: chỉ diễn anim, số hồi máu đến bằng PLAYER_HEAL
 
             if (targetType == AttackTarget.Mob)
@@ -62,14 +70,43 @@ namespace Assets.Script.Combat
                 var mob = NetworkMobManager.Instance?.GetMob(targetId);
                 if (mob == null) return;
                 mob.UpdateHp(hpRemain);
-                DamagePopup.Show(mob.transform.position, DamageText(damage), mine ? MyHitColor : OtherHitColor);
             }
-            else
+            else if (targetId == LocalPlayerState.Id) LocalPlayerState.SetHp(hpRemain);
+            else NetworkPlayerManager.Instance?.GetRemotePlayer(targetId)?.UpdateHp(hpRemain);
+
+            Color color = targetId == LocalPlayerState.Id && targetType == AttackTarget.Player ? HurtColor : mine ? MyHitColor : OtherHitColor;
+            Vector3 lastPos = to != null ? to.position : Vector3.zero;
+            float delay = HitDelay(from);
+            AtHit(delay, () =>
             {
-                ApplyPlayerHp(targetId, hpRemain, damage);
-            }
+                if (to != null && to.gameObject.activeInHierarchy) lastPos = to.position;   // quái chết / bị thu hồi → số hiện ở chỗ cuối
+                if (to != null || lastPos != Vector3.zero) DamagePopup.Show(lastPos, DamageText(damage), color);
+                PlayHitFx(from, to, skillId);
+            });
         }
 
+        /// <summary>Tối đa giữ số sát thương bao lâu (giây) — anim dài cũng không để số chậm quá so với máu.</summary>
+        private const float MaxHitDelay = 0.4f;
+
+        /// <summary>Còn bao lâu tới khung trúng đòn của anim người ra chiêu (0 = hiện ngay).</summary>
+        private static float HitDelay(Transform attacker)
+        {
+            if (attacker == null || !attacker.TryGetComponent(out PlayerVisualController pvc)) return 0f;
+            return Mathf.Clamp(pvc.HitTime - Time.time, 0f, MaxHitDelay);
+        }
+
+        /// <summary>Chạy {action} sau {delay} giây (≈ 0 → chạy ngay).</summary>
+        private void AtHit(float delay, System.Action action)
+        {
+            if (delay <= 0.02f) { action(); return; }
+            StartCoroutine(AtHitLater(delay, action));
+        }
+
+        private static System.Collections.IEnumerator AtHitLater(float delay, System.Action action)
+        {
+            yield return new WaitForSeconds(delay);
+            action();
+        }
         /// <summary>MOB_ATTACK: int mobId, int playerId, int damage, int playerHpRemain</summary>
         private void OnMobAttack(byte[] data)
         {
@@ -251,24 +288,28 @@ namespace Assets.Script.Combat
         private float _lastCastTime;
 
         /// <summary>
-        /// Hiệu ứng chiêu (SkillTpl.fxCast ở người ra chiêu, fxHit ở mục tiêu) — số hiệu ứng do server cấu hình.
+        /// Hiệu ứng RA CHIÊU (SkillTpl.fxCast) ở người ra chiêu — số hiệu ứng do server cấu hình; phát ngay khi nhận gói.
         /// GỐC = GIỮA THÂN (không phải chân): dữ liệu hiệu ứng của game gốc chỉ lệch vài điểm quanh tâm thân — đặt ở chân thì
         /// đường chém / vụ nổ chìm xuống đất. Hiệu ứng ra chiêu bám theo người ra chiêu (chạy vẫn theo).
         /// </summary>
-        private void PlaySkillFx(int attackerId, AttackTarget targetType, int targetId, int skillId)
+        private void PlayCastFx(int attackerId, Transform from, Transform to, int skillId)
         {
-            if (!Data.GameData.Skills.TryGetValue(skillId, out var tpl) || (tpl.fxCast < 0 && tpl.fxHit < 0)) return;
-            Transform from = GetPlayerTransform(attackerId);
-            Transform to = targetType == AttackTarget.Mob ? NetworkMobManager.Instance?.GetMob(targetId)?.transform
-                         : targetType == AttackTarget.Player ? GetPlayerTransform(targetId) : from;
+            if (!Data.GameData.Skills.TryGetValue(skillId, out var tpl) || tpl.fxCast < 0) return;
             bool flip = from != null && to != null && to.position.x < from.position.x;
-
             bool sameCast = attackerId == _lastCastAttacker && skillId == _lastCastSkill && Time.time - _lastCastTime < 0.2f;
-            // Người ra chiêu có anim chiêu riêng / đấm – đá trong Spine (hiệu ứng vẽ sẵn) → không phát thêm fxCast theo dữ liệu (tránh chồng 2 hiệu ứng)
+            // Người ra chiêu có anim trong Spine (hiệu ứng vẽ sẵn) → không phát thêm fxCast theo dữ liệu (tránh chồng 2 hiệu ứng)
             bool spineFx = from != null && from.TryGetComponent(out PlayerVisualController pvc) && pvc.HasBuiltInCastFx(skillId);
-            if (from != null && tpl.fxCast >= 0 && !sameCast && !spineFx) Fx.EffectPlayer.Play(tpl.fxCast, BodyCenter(from) - from.position, flip, from);
+            if (from != null && !sameCast && !spineFx) Fx.EffectPlayer.Play(tpl.fxCast, BodyCenter(from) - from.position, flip, from);
             _lastCastAttacker = attackerId; _lastCastSkill = skillId; _lastCastTime = Time.time;
-            if (to != null && tpl.fxHit >= 0 && targetType != AttackTarget.Self) Fx.EffectPlayer.Play(tpl.fxHit, BodyCenter(to), flip);
+        }
+
+        /// <summary>Hiệu ứng TRÚNG ĐÒN (SkillTpl.fxHit) ở giữa thân mục tiêu — gọi đúng khung trúng của anim (OnBroadcastAttack).</summary>
+        private static void PlayHitFx(Transform from, Transform to, int skillId)
+        {
+            if (to == null || !to.gameObject.activeInHierarchy) return;
+            if (!Data.GameData.Skills.TryGetValue(skillId, out var tpl) || tpl.fxHit < 0) return;
+            bool flip = from != null && to.position.x < from.position.x;
+            Fx.EffectPlayer.Play(tpl.fxHit, BodyCenter(to), flip);
         }
 
         /// <summary>Giữa thân (world): quái → nửa khung va chạm; người → tâm BoxCollider2D; không biết → cao hơn chân 0,6 ô.</summary>

@@ -141,8 +141,14 @@ namespace Assets.Script.Player
             UpdateUI();
         }
 
-        /// <summary>Server báo người này vừa ra chiêu → diễn anim của chiêu đó.</summary>
-        public void PlayAttack(int skillId) => visualCtrl?.PlaySkill(skillId);
+        /// <summary>Server báo người này vừa ra chiêu → quay mặt về mục tiêu (nếu có) + diễn anim của chiêu đó.</summary>
+        public void PlayAttack(int skillId, Transform target = null)
+        {
+            if (visualCtrl == null) return;
+            if (target != null && Mathf.Abs(target.position.x - transform.position.x) > 0.05f)
+                visualCtrl.SetFlip(target.position.x < transform.position.x);
+            visualCtrl.PlaySkill(skillId);
+        }
 
         /// <summary>Server đặt lại vị trí (REVIVE) -> nhảy thẳng tới, không trượt mượt.</summary>
         public void TeleportTo(float x, float y)

@@ -28,6 +28,8 @@ namespace Assets.Script.Player
         public bool isdead;
 
         public bool IsActionLocked => Time.time < _actionLockUntil;
+        /// <summary>Còn bao lâu nữa hết động tác đang diễn (giây, 0 = rảnh).</summary>
+        public float ActionLockRemaining => Mathf.Max(0f, _actionLockUntil - Time.time);
         private void Awake()
         {
             // Đảm bảo trạng thái ban đầu chuẩn
@@ -75,10 +77,17 @@ namespace Assets.Script.Player
         // Đang diễn 1 động tác 1 lần (đánh, tung chiêu) -> tạm khoá anim di chuyển tới thời điểm này
         private float _actionLockUntil;
 
-        private TrackEntry SetAnimWithSpeed(Spine.Animation anim, bool loop)
+        // Tốc độ riêng theo tên anim (khi không truyền tốc độ) — đấm / đá gốc chậm, chạy nhanh gấp đôi
+        private static readonly Dictionary<string, float> AnimSpeeds = new()
+        {
+            { AnimNames.Punch,2f },
+            { AnimNames.Kick,2f }
+        };
+
+        private TrackEntry SetAnimWithSpeed(Spine.Animation anim, bool loop, float speed = 0f)
         {
             TrackEntry entry = mainSkeleton.AnimationState.SetAnimation(0, anim, loop);
-            entry.TimeScale = AnimSpeeds.TryGetValue(anim.Name, out var speed) ? speed : 1f;
+            entry.TimeScale = speed > 0f ? speed : AnimSpeeds.TryGetValue(anim.Name, out var s) ? s : 1f;
             return entry;
         }
         public void PlayAnimation(string animName, bool loop)
@@ -94,15 +103,15 @@ namespace Assets.Script.Player
 
         /// <summary>
         /// Diễn 1 động tác KHÔNG lặp (vd "Punch_Combo" khi đánh) rồi tự quay về Idle.
-        /// Trong lúc diễn, các lệnh PlayAnimation của di chuyển bị bỏ qua.
+        /// Trong lúc diễn, các lệnh PlayAnimation của di chuyển bị bỏ qua. speed = 0 → tốc độ theo AnimSpeeds.
         /// </summary>
-        public bool PlayActionOnce(string animName)
+        public bool PlayActionOnce(string animName, float speed = 0f)
         {
             if (mainSkeleton == null || mainVisualObj == null || !mainVisualObj.activeSelf) return false;
             var anim = mainSkeleton.Skeleton?.Data?.FindAnimation(animName);
             if (anim == null) return false;
 
-           var entry = SetAnimWithSpeed(anim, false);
+            var entry = SetAnimWithSpeed(anim, false, speed);
             mainSkeleton.AnimationState.AddAnimation(0, idleAnimation, true, 0f);
             _actionLockUntil = Time.time + (anim.Duration/entry.TimeScale);
             return true;
@@ -122,61 +131,111 @@ namespace Assets.Script.Player
             mainSkeleton.AnimationState.SetAnimation(0, idleAnimation, true);
         }
 
-        // ---- HÀNH ĐỘNG → ANIM (dùng chung cho mình và người khác) ----
-        // Mỗi chiêu diễn ĐÚNG anim chiêu trong bộ Spine của nhân vật — các anim SkillN / JutsuN đã VẼ SẴN hiệu ứng (lửa, khói,
-        // đường chém, hào quang... là attachment FX/... trong Spine), nên không phát thêm hiệu ứng ra chiêu theo dữ liệu (HasSkillAnim).
-        // Đòn cơ bản (chiêu 1 / 2 / 3) đấm – đá luân phiên (Punch_Combo / Kick_Combo cũng có hiệu ứng trúng đòn sẵn).
-        // Anim chưa dùng (để dành chiêu mới): Naruto Skill20/40/50/80/100 · Sakura Skill10/20/40/50/80 · Sasuke Skill20/40*/80*/100*.
+        // ---- CHIÊU → ANIM (dùng chung cho mình và người khác) ----
+        // Mỗi chiêu diễn 1 anim trong bộ Spine của nhân vật — các anim SkillN / JutsuN đã VẼ SẴN hiệu ứng (lửa, khói, đường chém,
+        // hào quang... là attachment FX trong Spine), nên không phát thêm hiệu ứng ra chiêu theo dữ liệu (HasBuiltInCastFx).
+        // Chọn anim theo thứ tự (ResolveMotion):
+        //   1. bảng SkillAnim (hệ, chiêu) — chọn tay theo ảnh chụp anim (Tools/VocVach/Spine/Chụp bảng anim)
+        //   2. đòn cơ bản (chiêu 1 / 2 / 3) → BasicMotion của hệ (đấm – đá luân phiên; Sakura đánh xa → ném shuriken)
+        //   3. chiêu chưa có trong bảng (vd chiêu mới thêm ở AdminTool) → anim dự phòng theo LOẠI chiêu: đánh → AttackFallback,
+        //      hỗ trợ / buff → BuffFallback; bộ Spine thiếu anim nào thì thử anim kế tiếp
+        //   4. cuối cùng: đấm – đá.
+        // Anim chưa dùng (để dành chiêu mới): Naruto Skill40/50/80/100 · Sakura Skill20/50/80/Jutsu1 · Sasuke Skill20/40*/80*/100*.
+
+        /// <summary>Cách diễn 1 chiêu: anim Spine, tốc độ (1 = gốc), mốc trúng đòn (0..1 độ dài anim: lúc nắm đấm / shuriken chạm mục tiêu).</summary>
+        public readonly struct SkillMotion
+        {
+            public readonly string anim;
+            public readonly float speed, hit;
+            public SkillMotion(string anim, float speed = SkillSpeed, float hit = DefaultHit) { this.anim = anim; this.speed = speed; this.hit = hit; }
+        }
+        public const float SkillSpeed = 1.5f;   // anim chiêu gốc dài 1,2–2 giây → nhanh 1,5 lần cho đỡ đứng im lâu
+        public const float DefaultHit = 0.35f;
+
         private static readonly HashSet<int> BasicSkills = new HashSet<int> { 1, 2, 3 };
-        private static readonly Dictionary<(int cls, int skill), string> SkillAnim = new Dictionary<(int, int), string>
+        private static readonly SkillMotion[] PunchKick = { new SkillMotion(AnimNames.Punch, 2f, 0.2f), new SkillMotion(AnimNames.Kick, 2f, 0.2f) };
+        private static readonly Dictionary<int, SkillMotion[]> BasicMotion = new Dictionary<int, SkillMotion[]>
+        {
+            { 1, PunchKick },                                               // Naruto: đấm – đá (cận chiến 1,8 ô)
+            { 2, new[] { new SkillMotion(AnimNames.Throw, 1.7f, 0.5f) } },  // Sakura: Phong Quạt đánh xa 5 ô → ném shuriken
+            { 3, PunchKick },                                               // Sasuke: đòn nhanh cận chiến
+        };
+        private static readonly Dictionary<(int cls, int skill), SkillMotion> SkillAnim = new Dictionary<(int, int), SkillMotion>
         {
             // Đấu sĩ — Naruto
-            { (1, 6), "Skill10" },    // Trảm Phong: chém mạnh diện rộng
-            { (1, 10), "Jutsu1" },    // Thiết Thể: hào quang gồng mình
-            { (1, 4), "Jutsu2" },     // Phân Thân Chi Thuật
+            { (1, 6), new SkillMotion("Skill10", 1.5f, 0.3f) },  // Trảm Phong: liên hoàn chém diện rộng
+            { (1, 10), new SkillMotion(AnimNames.Jutsu1) },      // Thiết Thể: kết ấn gồng mình
+            { (1, 4), new SkillMotion("Skill20") },              // Phân Thân Chi Thuật: phân thân hiện trong khói
             // Hỗ trợ — Sakura
-            { (2, 7), "Jutsu1" },     // Y Thuật: Hồi Phục — tay phát sáng
-            { (2, 9), "Skill30" },    // Cổ Vũ
-            { (2, 4), "Jutsu2" },     // Phân Thân Chi Thuật
+            { (2, 7), new SkillMotion("Skill40") },              // Y Thuật: Hồi Phục — vầng sáng xanh lá
+            { (2, 9), new SkillMotion("Skill30", 1.2f) },        // Cổ Vũ: hào quang vàng
+            { (2, 4), new SkillMotion(AnimNames.Jutsu2) },       // Phân Thân Chi Thuật: khói
             // Sát thủ — Sasuke
-            { (3, 8), "Skill10" },    // Ám Sát: nhát chém
-            { (3, 11), "Skill50" },   // Ảnh Bộ: mở mắt, hoà vào bóng tối
-            { (3, 4), "Jutsu1" },     // Phân Thân Chi Thuật: khói
+            { (3, 8), new SkillMotion("Skill10", 1.3f, 0.3f) },  // Ám Sát: nhát chém kiếm
+            { (3, 11), new SkillMotion("Skill50", 1.4f) },       // Ảnh Bộ: hoà vào bóng tối, mở Sharingan
+            { (3, 4), new SkillMotion(AnimNames.Jutsu1) },       // Phân Thân Chi Thuật: khói
         };
-        private static readonly string[] Combo = { AnimNames.Punch, AnimNames.Kick };
-        private int _comboStep;
-        private static readonly Dictionary<string, float> AnimSpeeds = new()
-        {
-            { AnimNames.Punch,2f },
-            { AnimNames.Kick,2f }
-        };
-        /// <summary>Tên anim Spine của chiêu cho hệ {cls} (null = đòn cơ bản / chưa có anim riêng).</summary>
-        public static string SkillAnimFor(int cls, int skillId) => SkillAnim.TryGetValue((cls, skillId), out var n) ? n : null;
+        private static readonly SkillMotion[] AttackFallback = { new SkillMotion("Skill10", 1.5f, 0.3f), new SkillMotion("Skill40"), new SkillMotion("Skill50") };
+        private static readonly SkillMotion[] BuffFallback = { new SkillMotion(AnimNames.Jutsu1), new SkillMotion(AnimNames.Jutsu2), new SkillMotion("Skill30") };
 
-        /// <summary>Chiêu này có anim riêng (kèm hiệu ứng vẽ sẵn) trong bộ Spine đang dùng → không phát hiệu ứng ra chiêu theo dữ liệu.</summary>
-        public bool HasSkillAnim(int skillId)
+        private int _comboStep;
+
+        /// <summary>Tên anim Spine trong BẢNG chiêu cho hệ {cls} (null = đòn cơ bản / chiêu chưa có trong bảng).</summary>
+        public static string SkillAnimFor(int cls, int skillId) => SkillAnim.TryGetValue((cls, skillId), out var m) ? m.anim : null;
+
+        private bool HasAnim(string n) => n != null && mainSkeleton != null && mainSkeleton.Skeleton?.Data?.FindAnimation(n) != null;
+
+        /// <summary>
+        /// Chọn cách diễn chiêu {skillId} cho bộ Spine đang dùng (thứ tự ở chú thích đầu mục). advanceCombo = true → đòn cơ bản
+        /// lần sau đổi đấm ↔ đá. Không có anim nào → anim = null.
+        /// </summary>
+        public SkillMotion ResolveMotion(int skillId, bool advanceCombo = false)
         {
-            string n = SkillAnimFor(ClassType, skillId);
-            return n != null && mainSkeleton != null && mainSkeleton.Skeleton?.Data?.FindAnimation(n) != null;
+            bool basicSkill = BasicSkills.Contains(skillId);
+            if (!basicSkill && SkillAnim.TryGetValue((ClassType, skillId), out var m) && HasAnim(m.anim)) return m;
+            if (!basicSkill)
+            {
+                int type = Data.GameData.Skills.TryGetValue(skillId, out var tpl) ? tpl.type : 1;
+                foreach (var f in type == 1 ? AttackFallback : BuffFallback) if (HasAnim(f.anim)) return f;
+            }
+            var basic = BasicMotion.TryGetValue(ClassType, out var b) ? b : PunchKick;
+            for (int i = 0; i < basic.Length; i++)
+            {
+                var c = basic[(_comboStep + i) % basic.Length];
+                if (!HasAnim(c.anim)) continue;
+                if (advanceCombo) _comboStep += i + 1;
+                return c;
+            }
+            foreach (var c in PunchKick) if (HasAnim(c.anim)) return c;
+            return default;
         }
+
+        /// <summary>Chiêu này có anim riêng trong BẢNG (kèm hiệu ứng vẽ sẵn) và bộ Spine đang dùng có anim đó.</summary>
+        public bool HasSkillAnim(int skillId) => HasAnim(SkillAnimFor(ClassType, skillId));
 
         /// <summary>
         /// Người ra chiêu đã có hiệu ứng vẽ sẵn trong Spine → KHÔNG phát hiệu ứng ra chiêu (fxCast) theo dữ liệu:
-        /// chiêu có anim riêng, hoặc đòn cơ bản (đấm / đá — fxCast của đòn cơ bản là đường chém kiếm xanh, không hợp nắm đấm).
-        /// Hiệu ứng trúng đòn ở mục tiêu (fxHit) vẫn phát.
+        /// mọi chiêu tìm được anim (bảng, đòn cơ bản hoặc dự phòng). Hiệu ứng trúng đòn ở mục tiêu (fxHit) vẫn phát.
         /// </summary>
-        public bool HasBuiltInCastFx(int skillId) => HasSkillAnim(skillId)
-            || (BasicSkills.Contains(skillId) && mainSkeleton != null && mainSkeleton.Skeleton?.Data?.FindAnimation(AnimNames.Punch) != null);
+        public bool HasBuiltInCastFx(int skillId) => ResolveMotion(skillId).anim != null;
 
-        /// <summary>Diễn anim của chiêu skillId (bấm đánh, kể cả khi đòn không gửi lên server).</summary>
+        /// <summary>Lúc anim chiêu vừa diễn chạm mục tiêu (Time.time) — CombatNetwork giữ số sát thương / hiệu ứng trúng tới mốc này.</summary>
+        public float HitTime { get; private set; }
+
+        /// <summary>
+        /// Diễn anim của chiêu skillId (bấm đánh, kể cả khi đòn không gửi lên server). Đòn cơ bản: tốc độ tự tăng để anim
+        /// xong trong thời gian hồi chiêu (Sasuke 0,5 giây) — không thì khoá đứng yên lâu hơn nhịp đánh.
+        /// </summary>
         public void PlaySkill(int skillId)
         {
-            string name = BasicSkills.Contains(skillId) ? null : SkillAnimFor(ClassType, skillId);
-            // Anim chiêu dài 1–2 giây (hiệu ứng vẽ sẵn chạy hết), chỉ khoá anim di chuyển tối đa 0,9 giây cho đỡ cứng tay
-            if (name != null && PlayActionOnce(name)) return;
-            name = Combo[_comboStep++ % Combo.Length];
-            if (PlayActionOnce(name)) return;
-            PlayActionOnce(AnimNames.Punch);
+            var m = ResolveMotion(skillId, true);
+            HitTime = Time.time;
+            if (!HasAnim(m.anim)) return;
+            var anim = mainSkeleton.Skeleton.Data.FindAnimation(m.anim);
+            float speed = m.speed > 0f ? m.speed : 1f;
+            if (BasicSkills.Contains(skillId) && Data.GameData.Skills.TryGetValue(skillId, out var tpl) && tpl.levels.Count > 0 && tpl.levels[0].coolDown > 0)
+                speed = Mathf.Max(speed, anim.Duration / (tpl.levels[0].coolDown / 1000f));
+            if (PlayActionOnce(m.anim, speed)) HitTime = Time.time + anim.Duration * m.hit / speed;
         }
 
         // ---- PHÂN THÂN (né tránh): nhân vật mờ, nhấp nháy nhẹ tới hết hiệu ứng ----

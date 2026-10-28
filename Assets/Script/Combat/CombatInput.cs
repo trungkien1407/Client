@@ -21,6 +21,7 @@ namespace Assets.Script.Combat
             if ((!_attackButtonHooked || !_potionIconsHooked) && Time.unscaledTime >= _nextHookTry) HookAttackButton();
 
             if (GameInput.Pressed(GameKey.Attack)) CastSelected();
+            SkillCaster.Tick();   // lệnh đánh bấm lúc đòn trước sắp xong
             if (GameInput.Pressed(GameKey.Revive) && LocalPlayerState.IsDead) SkillCaster.Revive();
         }
 

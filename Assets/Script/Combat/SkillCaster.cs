@@ -21,22 +21,47 @@ namespace Assets.Script.Combat
         private const float LocalAttackGap = 0.3f;   // chống spam phía client; hồi chiêu thật do server quyết
         private const float DefaultRange = 5f;       // tầm 0 trong dữ liệu = 5 (giống server)
 
+        private const float QueueWindow = 0.35f;     // bấm khi đòn trước còn ≤ 0,35 giây thì nhớ lệnh
+
         private static float _nextAttackTime;
         private static float _nextWarn;
         private static PlayerTargeting _targeting;
+        private static int _queuedSkill = -1;
+        private static float _queuedUntil;
+
+        /// <summary>Gọi mỗi khung (CombatInput): đòn trước diễn xong mà còn lệnh đã nhớ → ra chiêu đó.</summary>
+        public static void Tick()
+        {
+            if (_queuedSkill < 0) return;
+            if (Time.time > _queuedUntil || UI.Kit.UIRoot.GameplayBlocked) { _queuedSkill = -1; return; }
+            var local = NetworkPlayerManager.Instance != null ? NetworkPlayerManager.Instance.localPlayer : null;
+            if (local == null || local.IsActionLocked) return;
+            int s = _queuedSkill;
+            _queuedSkill = -1;
+            TryCast(s);
+        }
 
         /// <summary>Dùng chiêu {skillId} lên mục tiêu đang chọn; chưa chọn → tự chọn quái gần nhất.</summary>
         public static void TryCast(int skillId)
         {
             if (skillId < 0 || LocalPlayerState.IsDead) return;
             if (LocalPlayerState.IsStunned) { ChatBox.AddSystem("Đang bị choáng!"); return; }
+            var local = NetworkPlayerManager.Instance != null ? NetworkPlayerManager.Instance.localPlayer : null;
+            if (local == null) return;
+
+            // Đánh theo nhịp anim: đòn trước chưa diễn xong thì chưa ra chiêu mới. Bấm lúc anim sắp hết (≤ QueueWindow)
+            // → nhớ lại, hết anim tự ra (Tick) — bấm liên tục không bị "nuốt phím".
+            float busy = local.TryGetComponent(out PlayerVisualController pvc) ? pvc.ActionLockRemaining : 0f;
+            if (busy > 0f)
+            {
+                if (busy <= QueueWindow) { _queuedSkill = skillId; _queuedUntil = Time.time + busy + 0.1f; }
+                return;
+            }
+            _queuedSkill = -1;
             if (Time.time < _nextAttackTime) return;
             if (!SkillCooldowns.Ready(skillId)) { Warn($"Chiêu chưa hồi ({SkillCooldowns.Remaining(skillId):0.0} giây)."); return; }
             var lv = LevelOf(skillId);
             if (lv != null && LocalPlayerState.Mp < lv.manaUse) { Warn($"Không đủ chakra (cần {lv.manaUse})."); return; }
-
-            var local = NetworkPlayerManager.Instance != null ? NetworkPlayerManager.Instance.localPlayer : null;
-            if (local == null) return;
 
             // Chiêu hỗ trợ (hồi máu / tăng sức mạnh): lên bản thân + đồng đội gần, không cần mục tiêu
             if (Data.GameData.Skills.TryGetValue(skillId, out var tpl) && tpl.type == (int)SkillType.Support)

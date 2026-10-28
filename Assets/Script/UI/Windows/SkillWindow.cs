@@ -62,9 +62,10 @@ namespace Assets.Script.UI.Windows
                 bool locked = next != null && next.levelRequire > GameData.Me.level; // GĐ7: chưa đủ cấp nhân vật
                 if (curLv != null) info += passive ? $"<size=14>Hiện tại: {curLv.info}</size>\n"
                     : support ? $"<size=14>Hiện tại: {curLv.info} · {curLv.manaUse} MP · hồi {curLv.coolDown / 1000f:0.#}s</size>\n"
-                    : $"<size=14>Hiện tại: {curLv.damage} sát thương · {curLv.manaUse} MP · hồi {curLv.coolDown / 1000f:0.#}s{(curLv.aoe > 0 ? " · diện rộng" : "")}{(curLv.executeHpPct > 0 ? $" · địch dưới {curLv.executeHpPct * 100:0}% máu +{curLv.executeBonus * 100:0}%" : "")}</size>\n";
+                    : $"<size=14>Hiện tại: {curLv.info} · {curLv.manaUse} MP · hồi {curLv.coolDown / 1000f:0.#}s · tầm {Range(curLv)}</size>\n";
+                // Cấp kế: dòng mô tả cấp của server (đủ sát thương + hiệu ứng làm chậm / choáng...), chiêu đánh thêm MP
                 if (next != null) info += passive || support ? $"<size=14><color=#7cf>Cấp kế: {next.info}</color></size>"
-                    : $"<size=14><color=#7cf>Cấp kế: {next.damage} sát thương · {next.manaUse} MP</color></size>";
+                    : $"<size=14><color=#7cf>Cấp kế: {next.info} · {next.manaUse} MP</color></size>";
                 if (locked) info += $"  <size=14><color=#f77>(cần cấp {next.levelRequire})</color></size>";
                 var text = UIKit.Text("Info", row.transform, info, 16, TextAlignmentOptions.TopLeft);
                 text.rectTransform.Fill(8, 210, 4, 4);
@@ -88,6 +89,9 @@ namespace Assets.Script.UI.Windows
                 }
             }
         }
+
+        /// <summary>Tầm chiêu để hiện: 0 trong dữ liệu = 5 ô (giống SkillCaster / server).</summary>
+        private static string Range(SkillLevel lv) => $"{(lv.range > 0 ? lv.range : 5f):0.#} ô";
 
         /// <summary>Gán skill vào ô phím: báo server lưu + cập nhật thanh skill trên HUD ngay.</summary>
         private static void AssignShortcut(int slot, int skillId)

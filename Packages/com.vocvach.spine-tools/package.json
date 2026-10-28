@@ -1,0 +1,8 @@
+{
+  "name": "com.vocvach.spine-tools",
+  "version": "1.0.0",
+  "displayName": "VocVach Spine Tools",
+  "description": "Công cụ Editor cho nhân vật Spine: chụp bảng khung hình mọi anim (xem anim nào là chém / ném / buff, chọn anim cho chiêu). Cần spine-unity 3.8 (asmdef spine-unity) trong dự án.",
+  "unity": "2022.3",
+  "author": { "name": "VocVach" }
+}

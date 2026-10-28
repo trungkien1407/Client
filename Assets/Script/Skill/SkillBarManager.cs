@@ -93,12 +93,18 @@ namespace Assets.Script.Skill
             if (skillSlots[index].assignedSkillId == -1) return; // Ô trống thì không làm gì
             if (Assets.Script.UI.Kit.UIRoot.GameplayBlocked) return;   // đang mở cửa sổ → không ra chiêu
 
-            // 1. Cập nhật UI
-            currentSelectedIndex = index;
-            UpdateHighlight();
+            int skillId = skillSlots[index].assignedSkillId;
+            // 1. Chiêu đánh → thành chiêu đang chọn (J / Enter đánh tiếp bằng chiêu này). Chiêu hỗ trợ / buff (Hồi Phục, Thiết Thể...)
+            //    chỉ dùng 1 lần, GIỮ chiêu đánh đang chọn — không thì J / Enter sau đó lại tung chiêu buff đang hồi thay vì đánh
+            bool support = Data.GameData.Skills.TryGetValue(skillId, out var tpl) && tpl.type == (int)Constants.SkillType.Support;
+            if (!support)
+            {
+                currentSelectedIndex = index;
+                UpdateHighlight();
+            }
 
             // 2. Tung chiêu (SkillCaster tự chọn mục tiêu / kiểm tầm)
-            Assets.Script.Combat.SkillCaster.TryCast(skillSlots[index].assignedSkillId);
+            Assets.Script.Combat.SkillCaster.TryCast(skillId);
         }
 
         /// <summary>Id skill (templateId) đang được chọn trên thanh phím tắt, -1 nếu ô trống.</summary>

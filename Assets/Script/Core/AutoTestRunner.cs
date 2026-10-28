@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Generic;
 using Assets.Script.Combat;
 using Assets.Script.Data;
 using Assets.Script.Manager;
@@ -487,15 +488,45 @@ namespace Assets.Script.Core
             vis.PlaySkill(bigSkill);
             Check($"Chiêu {bigSkill} → anim chiêu trong Spine ({vis.mainSkeleton.AnimationName}, cần {want}) — hiệu ứng vẽ sẵn, không phát thêm fxCast",
                 want != null && vis.mainSkeleton.AnimationName == want && vis.HasSkillAnim(bigSkill));
-            yield return new WaitForSecondsRealtime(1f);
+            Check($"Chiêu có mốc trúng đòn sau lúc bấm ({vis.HitTime - Time.time:0.00} giây)", vis.HitTime > Time.time);
+            // Đánh theo nhịp anim: đang diễn chiêu lớn mà bấm đòn cơ bản → không cắt ngang anim
+            SkillCaster.TryCast(1);
+            Check($"Đang diễn chiêu → bấm đánh không cắt ngang ({vis.mainSkeleton.AnimationName})", vis.mainSkeleton.AnimationName == want && vis.IsActionLocked);
+            yield return new WaitUntil(() => !vis.IsActionLocked);
+            yield return new WaitForSecondsRealtime(0.1f);
             vis.PlaySkill(1);
             string a1 = vis.mainSkeleton.AnimationName;
-            yield return new WaitForSecondsRealtime(0.6f);
+            yield return new WaitForSecondsRealtime(0.65f);
             vis.PlaySkill(1);
-            Check($"Đòn cơ bản đấm – đá luân phiên ({a1} → {vis.mainSkeleton.AnimationName})", a1 != vis.mainSkeleton.AnimationName);
+            if (vis.ClassType != 2)
+                Check($"Đòn cơ bản đấm – đá luân phiên ({a1} → {vis.mainSkeleton.AnimationName})", a1 != vis.mainSkeleton.AnimationName);
             Check("Đòn cơ bản không phát thêm hiệu ứng ra chiêu (đường chém xanh) — đấm / đá đã có hiệu ứng trong Spine",
                 vis.HasBuiltInCastFx(1) && vis.HasBuiltInCastFx(2) && vis.HasBuiltInCastFx(3));
 
+            // Cả 3 hệ: mọi chiêu (trừ bị động) đều tìm được anim có thật trong bộ Spine; chiêu lạ → anim dự phòng theo loại
+            int myClass = vis.ClassType;
+            for (int cls = 1; cls <= 3; cls++)
+            {
+                var load = PlayerSpawner.LoadSkeleton(cls);
+                yield return new WaitUntil(() => load.IsCompleted);
+                vis.SetupVisual(load.Result, null, cls);
+                var missing = new List<string>();
+                foreach (var s in GameData.Skills.Values)
+                {
+                    if ((s.classId != 0 && s.classId != cls) || s.type == 2) continue;
+                    var m = vis.ResolveMotion(s.id);
+                    if (m.anim == null || vis.mainSkeleton.Skeleton.Data.FindAnimation(m.anim) == null) missing.Add(s.name);
+                }
+                Check($"Hệ {cls}: mọi chiêu có anim ({(missing.Count == 0 ? "đủ" : "thiếu " + string.Join(", ", missing))})", missing.Count == 0);
+                string basic = vis.ResolveMotion(cls).anim;
+                Check($"Hệ {cls}: đòn cơ bản → {basic}", cls == 2 ? basic == AnimNames.Throw : basic == AnimNames.Punch || basic == AnimNames.Kick);
+                Check($"Hệ {cls}: chiêu chưa có trong bảng → anim dự phòng ({vis.ResolveMotion(9999).anim})", vis.ResolveMotion(9999).anim != null);
+            }
+            {
+                var back = PlayerSpawner.LoadSkeleton(myClass);
+                yield return new WaitUntil(() => back.IsCompleted);
+                vis.SetupVisual(back.Result, null, myClass);
+            }
             yield return Shot("Platform");
 
             // 5h. Nước (Đầm Lầy Sương Mù, hồ 2: ô nước x 41..45, mặt nước y = 4, đáy y = 3): chạy → đi trên mặt nước,

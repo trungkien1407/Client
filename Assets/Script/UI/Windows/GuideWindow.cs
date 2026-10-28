@@ -19,7 +19,7 @@ namespace Assets.Script.UI.Windows
         {
             ("Điều khiển",
              "<b>Máy tính:</b> A/D hoặc ← → để đi, W/↑ để nhảy. Đến gần quái là <b>tự chọn</b> con gần nhất (ra xa thì tự đổi con khác); Click / Tab để chọn tay, Esc bỏ chọn. <b>Enter</b>: quái → đánh (giữ để đánh liên tục), NPC → nói chuyện, người → tương tác; " +
-             "ở xa thì nhân vật tự chạy lại. J đánh (cả người khi bật Đồ sát), phím 1–5 đổi chiêu. Q/E uống bình máu/chakra. F nói chuyện với NPC gần nhất. T để chat. R hồi sinh — về điểm đã lưu ở Trưởng làng / Hiệu trưởng (\"Lưu điểm hồi sinh\"), chưa lưu thì về Làng Lá.\n\n" +
+             "ở xa thì nhân vật tự chạy lại. J đánh bằng chiêu đang chọn (cả người khi bật Đồ sát). Phím 1–5 dùng chiêu ở ô đó: chiêu đánh thì thành chiêu J / Enter đánh tiếp, chiêu hỗ trợ (hồi máu, buff) chỉ dùng 1 lần. Q/E uống bình máu/chakra. F nói chuyện với NPC gần nhất. T để chat. R hồi sinh — về điểm đã lưu ở Trưởng làng / Hiệu trưởng (\"Lưu điểm hồi sinh\"), chưa lưu thì về Làng Lá.\n\n" +
              "<b>Điện thoại:</b> cần điều khiển góc trái, nút Nhảy/Đánh bên phải; chạm quái để chọn, chạm NPC rồi bấm Nói.\n\n" +
              "<b>Phím tắt cửa sổ:</b> C nhân vật · I túi · K kỹ năng · L nhiệm vụ · H hoạt động · G cẩm nang · O xã hội · M thư."),
             ("Nhiệm vụ",
@@ -34,9 +34,10 @@ namespace Assets.Script.UI.Windows
              "• <b>Chakra</b>: tăng MP (dùng chiêu).\n• <b>Thể lực</b>: tăng HP.\n\n" +
              "Chết sẽ mất một ít EXP (nhiều hơn nếu điểm PK cao). Ngoài chiến đấu máu/chakra tự hồi."),
             ("Kỹ năng & 3 hệ",
-             "Mỗi cấp được <b>1 điểm kỹ năng</b> (Kỹ năng – K): học chiêu mới hoặc nâng cấp chiêu cũ, rồi gán vào ô 1–5.\n\n" +
+             "Mỗi cấp được <b>1 điểm kỹ năng</b> (Kỹ năng – K): học chiêu mới hoặc nâng cấp chiêu cũ, rồi gán vào ô 1–5.\n" +
+             "Ra chiêu thì nhân vật đứng yên tới hết đòn; bấm tiếp lúc đòn sắp xong sẽ tự ra ngay sau đó. Số sát thương hiện đúng lúc đòn trúng.\n\n" +
              "<b>Đấu sĩ</b> (Kiếm): máu và phòng thủ cao nhất, chém diện rộng, Thiết Thể tăng phòng thủ.\n" +
-             "<b>Hỗ trợ</b> (Quạt): đánh tầm trung, Hồi Phục cho cả nhóm, Cổ Vũ tăng sức mạnh nhóm.\n" +
+             "<b>Hỗ trợ</b> (Quạt): đánh xa 5 ô, Hồi Phục cho cả nhóm, Cổ Vũ tăng sức mạnh nhóm.\n" +
              "<b>Sát thủ</b> (Kunai): ra đòn nhanh, chí mạng cao, Ám Sát kết liễu kẻ ít máu, nhưng máu mỏng.\n\n" +
              "Về trường của hệ mình (3 cổng trên thềm cao ở Làng Lá) để nhận nhiệm vụ trường."),
             ("Thế giới & đường đi",
