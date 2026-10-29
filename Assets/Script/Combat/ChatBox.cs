@@ -118,7 +118,9 @@ namespace Assets.Script.Combat
         public static void AddSystem(string text)
         {
             Push(3, "[Hệ thống] " + text);
-            Debug.Log("[Hệ thống] " + text);
+#if UNITY_EDITOR
+            Debug.Log("[Hệ thống] " + text);   // chỉ trong Editor (bản build: mỗi dòng log tốn ~0,5 ms vì kèm stack trace)
+#endif
         }
 
         /// <summary>

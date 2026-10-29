@@ -98,6 +98,7 @@ namespace Assets.Script.UI.Kit
         {
             gameObject.SetActive(true);
             UIRoot.Instance.BringToFront(this);
+            _dirty = false;
             Refresh();
         }
 
@@ -151,8 +152,20 @@ namespace Assets.Script.UI.Kit
         }
         public void Toggle() { if (IsOpen) Hide(); else Show(); }
 
-        /// <summary>Vẽ lại nếu đang mở (gọi khi dữ liệu thay đổi).</summary>
-        public void RefreshIfOpen() { if (IsOpen) Refresh(); }
+        /// <summary>
+        /// Vẽ lại nếu đang mở (gọi khi dữ liệu thay đổi). GOM LẠI: chỉ đánh dấu, cuối khung hình (LateUpdate) mới vẽ 1 lần —
+        /// trước đây nhặt 1 lần yên báo cả Money lẫn Character → Hành trang dựng lại ~50 ô 2 lần liền (rà soát hiệu năng 2026-10-29).
+        /// </summary>
+        public void RefreshIfOpen() { if (IsOpen) _dirty = true; }
+
+        private bool _dirty;
+
+        protected virtual void LateUpdate()
+        {
+            if (!_dirty) return;
+            _dirty = false;
+            if (IsOpen) Refresh();
+        }
 
         public void OnPointerDown(PointerEventData e) => UIRoot.Instance.BringToFront(this);
     }

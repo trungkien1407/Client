@@ -10,7 +10,8 @@ namespace Assets.Script.UI.Windows
 {
     /// <summary>
     /// TÚI ĐỒ + TRANG BỊ (phím I).
-    ///  - Trái: 9 ô trang bị (Vũ khí, Áo, Ngọc bội, Quần, Găng, Giày, Nhẫn, Dây chuyền, Phù). Bấm → Tháo.
+    ///  - Trái: 10 ô trang bị, lưới 5 × 2 chỉ hiện icon (+N, phẩm chất) theo thứ tự cấp trong bộ đồ:
+    ///    Vũ khí, Áo, Quần, Găng, Nón, Dây chuyền, Ngọc bội, Nhẫn, Giày, Phù (GameData.EquipOrder). Bấm → xem chi tiết / Tháo.
     ///  - Phải: các ô túi THEO ĐÚNG THỨ TỰ server (mỗi ô 1 chỉ số bagIndex). Món +N tô màu theo cấp, đồ khoá có chữ [Khoá].
     ///  - Nút theo ngữ cảnh: Dùng / Mặc / Bán (đang mở shop) / Cất (đang mở rương) / Đưa vào GD (đang giao dịch).
     /// Mọi thao tác chỉ GỬI yêu cầu kèm bagIndex; server trả INVENTORY/EQUIPMENT mới → cửa sổ tự vẽ lại.
@@ -42,7 +43,7 @@ namespace Assets.Script.UI.Windows
             var body = Body;
             var eqTitle = UIKit.Text("EqTitle", body, "Trang bị", 18, TextAlignmentOptions.Center, UIKit.ButtonHot);
             eqTitle.rectTransform.Place(new Vector2(0, 1), new Vector2(0, 1), Vector2.zero, new Vector2(300, 26), new Vector2(0, 1));
-            _equipGrid = UIKit.Grid("Equip", body, new Vector2(94, 64), new Vector2(6, 6), 3);
+            _equipGrid = UIKit.Grid("Equip", body, EquipCell, EquipSpacing, EquipColumns);
             _equipGrid.Place(new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, -30), new Vector2(300, 210), new Vector2(0, 1));
 
             _bagTitle = UIKit.Text("BagTitle", body, "Túi", 18, TextAlignmentOptions.Center, UIKit.ButtonHot);
@@ -79,11 +80,26 @@ namespace Assets.Script.UI.Windows
             _btnTrade.onClick.AddListener(OnTrade);
             _btnMarket.onClick.AddListener(OnMarket);
             StyleMoneyBar();
+            StyleEquipGrid();
             GameData.OnChanged += k =>
             {
                 if (k == DataKind.Inventory || k == DataKind.Equipment || k == DataKind.Templates || k == DataKind.Money
                     || k == DataKind.Character || k == DataKind.Storage || k == DataKind.Trade || k == DataKind.Market) RefreshIfOpen();
             };
+        }
+
+        // GĐ23: 10 ô trang bị → lưới 5 cột × 2 hàng ô vuông nhỏ (trước 3 × 3 ô chữ). Đặt lại trong Bind() nên áp cả khi cửa sổ tạo từ prefab.
+        private static readonly Vector2 EquipCell = new Vector2(56, 66), EquipSpacing = new Vector2(4, 6);
+        private const int EquipColumns = 5;
+
+        private void StyleEquipGrid()
+        {
+            var g = _equipGrid != null ? _equipGrid.GetComponent<GridLayoutGroup>() : null;
+            if (g == null) return;
+            g.cellSize = EquipCell;
+            g.spacing = EquipSpacing;
+            g.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+            g.constraintCount = EquipColumns;
         }
 
         /// <summary>
@@ -121,17 +137,15 @@ namespace Assets.Script.UI.Windows
         {
             // ---- trang bị ----
             UIKit.Clear(_equipGrid);
-            for (int slot = 1; slot <= GameData.EquipSlotCount; slot++)
+            foreach (int slot in GameData.EquipOrder)
             {
                 int s = slot;
                 GameData.Equipment.TryGetValue(slot, out int tpl);
                 GameData.EquipLevel.TryGetValue(slot, out int lv);
                 GameData.EquipSlots.TryGetValue(slot, out var es);
-                string label = tpl > 0 ? $"<size=12><color=#7a6470>{GameData.SlotNames[slot]}</color></size>\n{GameData.ColoredName(tpl, lv)}{Extras(es)}"
-                                       : $"<color=#a08a9a>{GameData.SlotNames[slot]}</color>";
-                var b = UIKit.Button("Slot" + slot, _equipGrid, label, () => SelectEquip(s), 13);
+                var b = UIKit.Button("Slot" + slot, _equipGrid, EquipLabel(slot, tpl, lv, es), () => SelectEquip(s), 11);
                 b.image.color = slot == _selectedEquipSlot ? UIKit.ButtonHot : tpl > 0 ? UIKit.SlotColor : new Color(0.42f, 0.24f, 0.38f, 0.75f);   // ô trống: tím mận nhạt (trước gần đen; đủ sắc để UISkin không coi là "xám cũ" mà đổi sang nút kem)
-                if (tpl > 0) ItemIcon.ForItem(b, tpl, ItemIcon.Place.Top, 30);
+                if (tpl > 0) ItemIcon.ForItem(b, tpl, ItemIcon.Place.Top, 38);
                 if (tpl > 0) ItemGlow.Add(b, lv);
             }
 
@@ -155,11 +169,21 @@ namespace Assets.Script.UI.Windows
             UpdateDetail();
         }
 
+        /// <summary>Chữ trong 1 ô trang bị (ô nhỏ): trống → tên ô; có icon → chỉ "+N" và phẩm chất; món chưa có icon → tên món.</summary>
+        private static string EquipLabel(int slot, int tpl, int lv, BagSlot es)
+        {
+            if (tpl <= 0) return $"<color=#a08a9a>{GameData.SlotNames[slot]}</color>";
+            bool hasIcon = GameData.Items.TryGetValue(tpl, out var t) && t.iconId > 0;
+            string up = lv > 0 ? $"<color={GameData.LevelColor(lv)}>+{lv}</color>" : "";
+            string q = es != null && es.bonus > 0 ? $"<color={(es.bonus >= 12 ? "#d0600a" : "#1a78b8")}>{es.bonus}%</color>" : "";
+            return hasIcon ? up + (up != "" && q != "" ? " " : "") + q : GameData.ColoredName(tpl, lv);
+        }
+
         /// <summary>Chữ nhỏ dưới tên ô: phẩm chất "+7%" (xanh, 8% trở lên màu cam) + số ngọc "2 ngọc".</summary>
         public static string Extras(BagSlot s)
         {
             if (s == null || (s.bonus == 0 && s.gems.Count == 0)) return "";
-            string q = s.bonus > 0 ? $"<color={(s.bonus >= 8 ? "#d0600a" : "#1a78b8")}>+{s.bonus}%</color>" : "";
+            string q = s.bonus > 0 ? $"<color={(s.bonus >= 12 ? "#d0600a" : "#1a78b8")}>+{s.bonus}%</color>" : "";
             string g = s.gems.Count > 0 ? $"<color=#9a38b8>{s.gems.Count} ngọc</color>" : "";
             return $"\n<size=11>{q}{(q != "" && g != "" ? " " : "")}{g}</size>";
         }
@@ -217,7 +241,7 @@ namespace Assets.Script.UI.Windows
         {
             if (!GameData.Items.TryGetValue(tplId, out var t)) return $"Vật phẩm {tplId}";
             var sb = new StringBuilder($"<b>{GameData.ColoredName(tplId, level)}</b>");
-            if (t.IsEquip) sb.Append($"  <color=#9aa>[{GameData.SlotNames[Mathf.Clamp(t.slot, 0, 9)]}]</color>");
+            if (t.IsEquip) sb.Append($"  <color=#9aa>[{GameData.SlotNames[Mathf.Clamp(t.slot, 0, GameData.EquipSlotCount)]}]</color>");
             sb.Append('\n');
             if (locked) sb.Append("<color=#aaa>[Khoá] Đồ khoá: không giao dịch/gửi thư được, bán NPC 0 yên</color>\n");
             if (!string.IsNullOrEmpty(t.description)) sb.Append($"<color=#bbb>{t.description}</color>\n");

@@ -198,8 +198,14 @@ namespace Assets.Script.UI
             return $"{s / 60:00}:{s % 60:00}";
         }
 
+        private float _nextEventPanel;
+        private string _eventShown;
+
+        /// <summary>Khung sự kiện (bảo trì / phó bản / boss / Lôi đài): đồng hồ chỉ tới giây → vẽ lại 4 lần/giây, chữ không đổi thì không gán lại.</summary>
         private void UpdateEventPanel()
         {
+            if (Time.unscaledTime < _nextEventPanel) return;
+            _nextEventPanel = Time.unscaledTime + 0.25f;
             var sb = new StringBuilder();
             if (GameData.MaintEndTime > Time.time)
                 sb.Append($"<color=#f66><b>Bảo trì máy chủ</b></color> sau <color=#fd5>{Clock(GameData.MaintEndTime)}</color>");
@@ -224,8 +230,9 @@ namespace Assets.Script.UI
             // Sự kiện đã hết giờ mà chưa nhận gói kết thúc (vd đổi map) → tự ẩn sau 5 giây
             if (GameData.EventState != 0 && GameData.EventEndTime > 0 && Time.time > GameData.EventEndTime + 5 && GameData.EventType == 1 && GameData.EventState == 1)
                 GameData.EventState = 0;
-            _v.eventText.text = sb.ToString();
-            _v.eventPanel.gameObject.SetActive(sb.Length > 0);
+            string txt = sb.ToString();
+            if (txt != _eventShown) { _v.eventText.text = txt; _eventShown = txt; }
+            if (_v.eventPanel.gameObject.activeSelf != (txt.Length > 0)) _v.eventPanel.gameObject.SetActive(txt.Length > 0);
             if (_leaveDungeon != null) _leaveDungeon.gameObject.SetActive(GameData.DungeonState == 2);
         }
 

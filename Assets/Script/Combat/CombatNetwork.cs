@@ -205,7 +205,9 @@ namespace Assets.Script.Combat
                 var t = GetPlayerTransform(LocalPlayerState.Id);
                 if (t != null) DamagePopup.Show(t.position + Vector3.up * 0.6f, "LÊN CẤP " + level + "!", new Color(1f, 0.75f, 0f), 6f);
             }
-            Debug.Log($"[EXP] Level {level} — EXP {exp}");
+#if UNITY_EDITOR
+            Debug.Log($"[EXP] Level {level} — EXP {exp}");   // chỉ trong Editor: bản build ghi log kèm stack trace mỗi lần hạ quái
+#endif
         }
 
         /// <summary>PLAYER_STATS: int maxHp, int maxMp, int hp, int mp, int bonusDamage, long yen (sau khi mặc đồ / mua bán / thưởng)</summary>

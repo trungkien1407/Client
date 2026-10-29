@@ -153,9 +153,12 @@ namespace Assets.Script.Manager
             // Quái còn đang tải hình: huỷ luôn (không thì tải xong hiện ra "sống" tới lần hồi sinh)
             if (!activeMobs.TryGetValue(mobId, out var mob)) { pendingSpawns.Remove(mobId); return; }
             mob.PlayDeath();
-            FindAnyObjectByType<Assets.Script.Player.PlayerTargeting>()?.ClearIfTarget(mob);
+            if (_targeting == null) _targeting = FindAnyObjectByType<Assets.Script.Player.PlayerTargeting>();   // nhớ lại: chiêu diện rộng hạ 10 quái = 10 lần quét cả scene
+            if (_targeting != null) _targeting.ClearIfTarget(mob);
             StartCoroutine(RemoveCorpseLater(mobId, mob, 1.0f, _clearGen));
         }
+
+        private Assets.Script.Player.PlayerTargeting _targeting;
 
         private System.Collections.IEnumerator RemoveCorpseLater(int mobId, MobController mob, float delay, int gen)
         {

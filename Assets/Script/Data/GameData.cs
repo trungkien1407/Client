@@ -87,7 +87,7 @@ namespace Assets.Script.Data
     {
         public int tpl, qty, level;
         public bool locked;
-        public int bonus;                                   // GĐ9 phẩm chất 0..10 (% chỉ số gốc)
+        public int bonus;                                   // phẩm chất 0..15 (% chỉ số gốc, GĐ23 mọi trang bị)
         public List<int> gems = new List<int>();            // GĐ9 ngọc đã khảm (templateId)
         // GĐ22 hạn dùng (đuôi gói INVENTORY): 0 = vĩnh viễn, < 0 = đã hết hạn, > 0 = Time.realtimeSinceStartup lúc hết hạn
         public float expireAt;
@@ -321,9 +321,12 @@ namespace Assets.Script.Data
         public static string ColoredName(int tpl, int level) =>
             level > 0 ? $"<color={LevelColor(level)}>{ItemName(tpl)} +{level}</color>" : ItemName(tpl);
 
-        /// <summary>Tên ô trang bị theo số slot (khớp quy ước item_template.slot bên server).</summary>
-        public static readonly string[] SlotNames = { "", "Vũ khí", "Áo", "Ngọc bội", "Quần", "Găng", "Giày", "Nhẫn", "Dây chuyền", "Phù" };
-        public const int EquipSlotCount = 9;
+        /// <summary>Tên ô trang bị theo số slot (khớp quy ước item_template.slot bên server). GĐ23 thêm ô 10 = Nón.</summary>
+        public static readonly string[] SlotNames = { "", "Vũ khí", "Áo", "Ngọc bội", "Quần", "Găng", "Giày", "Nhẫn", "Dây chuyền", "Phù", "Nón" };
+        public const int EquipSlotCount = 10;
+
+        /// <summary>Thứ tự vẽ ô trang bị = thứ tự cấp yêu cầu trong 1 bộ đồ (vũ khí +0, áo +1 … phù +9 — server gen_content.py GĐ23).</summary>
+        public static readonly int[] EquipOrder = { 1, 2, 4, 5, 10, 8, 3, 7, 6, 9 };
 
         /// <summary>Hết phiên (đăng nhập mới / mất kết nối): các kho tạm ngoài GameData (đồ dưới đất, chữ cổng, chat...) tự dọn theo.</summary>
         public static event Action OnSessionReset;

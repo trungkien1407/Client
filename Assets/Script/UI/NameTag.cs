@@ -20,6 +20,7 @@ namespace Assets.Script.UI
         private RemotePlayer _owner;
         private TextMeshPro _text;
         private string _last;
+        private float _nextStyle;   // màu / bang chỉ đổi khi PK, nhóm, bang thay đổi → tính lại 4 lần/giây thay vì mỗi khung hình
 
         public static void Attach(RemotePlayer rp)
         {
@@ -60,11 +61,13 @@ namespace Assets.Script.UI
             float sx = Mathf.Abs(ls.x) > 0.0001f ? 1f / ls.x : 1f, sy = Mathf.Abs(ls.y) > 0.0001f ? 1f / ls.y : 1f;
             transform.localScale = new Vector3(sx, sy, 1); // chữ luôn cùng cỡ, không bị ngược
 
+            if (Time.unscaledTime < _nextStyle && _last != null) return;
+            _nextStyle = Time.unscaledTime + 0.25f;
             int id = _owner.GetId();
             GameData.Pvp.TryGetValue(id, out var pvp);
             string color = "#ffffff";
-            bool ally = GameData.Party.Exists(m => m.id == id)
-                        || (pvp != null && !string.IsNullOrEmpty(pvp.guild) && GameData.Guild.Has && pvp.guild == GameData.Guild.name);
+            bool ally = pvp != null && !string.IsNullOrEmpty(pvp.guild) && GameData.Guild.Has && pvp.guild == GameData.Guild.name;
+            for (int i = 0; i < GameData.Party.Count && !ally; i++) ally = GameData.Party[i].id == id;
             if (pvp != null && pvp.pkPoint > 0) color = "#ff4a4a";
             else if (pvp != null && pvp.pkMode == 1) color = "#ffa030";
             else if (ally) color = "#6cff6c";

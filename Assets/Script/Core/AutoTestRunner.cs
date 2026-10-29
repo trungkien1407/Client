@@ -612,6 +612,22 @@ namespace Assets.Script.Core
             GameData.EquipLevel.TryGetValue(1, out int oldLv);
             Check("Trả vũ khí cũ → hào quang về đúng bậc của nó", GameData.Pvp.TryGetValue(LocalPlayerState.Id, out var pv1) && pv1.glow == GameData.GlowTier(oldLv));
 
+            // 5i2. GĐ23 — ô Nón (slot 10): mặc Nón Vải (id 123, cấp 5) → server trả EQUIPMENT có ô 10; Hành trang vẽ đủ 10 ô
+            GameActions.Chat(1, "/item 123 1");
+            yield return WaitUntil(() => GameData.Inventory.Exists(x => x.tpl == 123), 5);
+            GameActions.Equip(GameData.Inventory.FindIndex(x => x.tpl == 123));
+            yield return WaitUntil(() => GameData.Equipment.TryGetValue(10, out int h0) && h0 == 123, 5);
+            Check("Mặc Nón Vải → ô trang bị 10 (Nón)", GameData.Equipment.TryGetValue(10, out int hat) && hat == 123);
+            var invHat = GameWindow.Open<InventoryWindow>();
+            yield return new WaitForSecondsRealtime(0.5f);
+            int eqCells = 0;
+            foreach (var bt in invHat.GetComponentsInChildren<UnityEngine.UI.Button>(true)) if (bt.name.StartsWith("Slot")) eqCells++;
+            Check($"Hành trang vẽ đủ 10 ô trang bị (đếm được {eqCells})", eqCells == GameData.EquipSlotCount);
+            yield return Shot("EquipHat");
+            invHat.Hide();
+            GameActions.Unequip(10);
+            yield return WaitUntil(() => !GameData.Equipment.ContainsKey(10), 5);
+
             // 5j. Bình thuốc (GĐ18): Đan Hồi Chakra (type 3) + Đan Hồi Phục (type 2) có hồi chiêu RIÊNG → dùng liền nhau đều ăn;
             //     phím Q / icon "HP" tự chọn bình (trước đây chỉ Bình Nhỏ id 1); icon HP / MP trên HUD là nút thật.
             GameActions.Chat(1, "/item 24 2"); GameActions.Chat(1, "/item 3 2"); GameActions.Chat(1, "/item 5 1");   // Bình Máu Lớn (cấp 10)

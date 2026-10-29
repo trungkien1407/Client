@@ -47,11 +47,14 @@ namespace Assets.Script.UI.Windows
              "Đi qua cổng ở mép map (có chữ chỉ đường). Ở làng có <b>xe</b> đi nhanh giữa các làng (tốn yên, cần đủ cấp). " +
              "Nút <b>Khu</b> dưới bản đồ nhỏ để đổi sang khu vắng hơn. Làng và trường là <b>khu an toàn</b> (không PK)."),
             ("Trang bị & nâng cấp",
-             "Mặc đồ trong <b>Túi (I)</b>: 9 ô trang bị. Đồ rơi từ quái, mua ở cửa hàng, hoặc thưởng nhiệm vụ.\n\n" +
+             "Mặc đồ trong <b>Túi (I)</b>: 10 ô trang bị — vũ khí, áo, quần, găng, nón, dây chuyền, ngọc bội, nhẫn, giày, phù. " +
+             "Đồ chia thành <b>bộ</b> ở cấp 1 / 10 / 20 / 30: mỗi món trong bộ cần cao hơn món trước 1 cấp (VD bộ 10: vũ khí cấp 10, áo 11 … phù 19) " +
+             "nên gần như cấp nào cũng có đồ mới để mặc. Vũ khí theo hệ (kiếm / quạt / kunai), còn lại dùng chung. " +
+             "Đồ rơi từ quái, mua ở cửa hàng, hoặc thưởng nhiệm vụ.\n\n" +
              "<b>Thợ Rèn</b> (có ở mọi làng) nâng cấp đồ +1 → +16 bằng đá cường hoá + yên. Cấp càng cao càng dễ thất bại, thất bại có thể <b>tụt cấp</b> — " +
              "dùng <b>Bùa bảo hộ</b> để giữ cấp. Tên đồ đổi màu theo cấp. Thợ Rèn còn giữ <b>Rương đồ</b> cho ngươi.\n\n" +
              "<b>Đồ khoá</b> (thưởng nhiệm vụ, mua bằng xu/lượng) không giao dịch được.\n\n" +
-             "<b>Phẩm chất</b>: trang bị nhặt từ quái được tăng ngẫu nhiên <b>0–10%</b> mọi chỉ số gốc (chữ xanh \"+N%\" dưới tên; 8% trở lên màu cam, rất hiếm).\n" +
+             "<b>Phẩm chất</b>: mọi trang bị (nhặt, mua, thưởng) được tăng ngẫu nhiên <b>0–15%</b> mọi chỉ số gốc (chữ xanh \"+N%\" dưới tên; 12% trở lên màu cam, rất hiếm).\n" +
              "<b>Khảm ngọc</b> (Thợ Rèn → Khảm ngọc): Xích Ngọc +sát thương · Lục Ngọc +HP · Lam Ngọc +MP · Hoàng Ngọc +phòng thủ, mỗi loại 3 cấp. " +
              "Đồ dưới cấp 15 có 1 lỗ, từ cấp 15 có 2 lỗ. 3 viên cùng cấp <b>ghép</b> thành 1 viên cấp cao hơn. Tháo ngọc ra vẫn giữ lại ngọc. " +
              "Ngọc khoá khảm vào đồ thường thì đồ thành đồ khoá."),
