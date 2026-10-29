@@ -28,6 +28,7 @@ unity run "D:\Game\Naruto" --editor-version 2022.3.62f3 -- -logFile compile.log
 ```
 Build: **Tools → Naruto → Build → PC (Windows) / Android (APK)** → thư mục `Builds/`.
 Tự chơi bản build: `Builds\PC\NinjaOnline.exe -autotest -user clientbot -pass test1234 -logFile test.log`.
+Unit test (hàm thuần, đọc / ghi gói tin — không cần server): `bash chay_unit_test.sh` (đóng Unity Editor trước) hoặc Unity → Window → General → Test Runner → EditMode; test ở `Assets/Editor/Tests/` — cách viết: repo Server `docs/hoc/VIET_UNIT_TEST.md` §10.
 
 ## Cấu trúc `Assets/Script` (namespace = thư mục: `Assets.Script.<Thư mục>`)
 
