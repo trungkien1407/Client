@@ -30,8 +30,18 @@ namespace Assets.Script.Player
         public bool IsActionLocked => Time.time < _actionLockUntil;
         /// <summary>Còn bao lâu nữa hết động tác đang diễn (giây, 0 = rảnh).</summary>
         public float ActionLockRemaining => Mathf.Max(0f, _actionLockUntil - Time.time);
+        // ---- ĐI TRÊN NƯỚC: hạ phần hình xuống ngang ngọn sóng (Map/WaterLine) — vật lý không đổi ----
+        private float _visualBaseY, _sink, _sinkTarget;
+
+        /// <summary>Đang đi trên mặt nước → hình hạ WaterLine.Depth cho chân chạm sóng (trượt mượt, không giật).</summary>
+        public void SetWaterSink(bool onWater) => _sinkTarget = onWater ? Map.WaterLine.Sink : 0f;
+
+        /// <summary>Hình đang hạ bao nhiêu (ô) — AutoTestRunner kiểm.</summary>
+        public float WaterSink => _sink;
+
         private void Awake()
         {
+            if (mainVisualObj != null) _visualBaseY = mainVisualObj.transform.localPosition.y;
             // Đảm bảo trạng thái ban đầu chuẩn
             if (jumpFXObj != null) jumpFXObj.SetActive(false);
             if (deathVisualObj != null) deathVisualObj.SetActive(false);
@@ -44,12 +54,27 @@ namespace Assets.Script.Player
         /// <summary>Hệ của nhân vật (1 Đấu sĩ = Naruto · 2 Hỗ trợ = Sakura · 3 Sát thủ = Sasuke) — chọn anim chiêu trong bảng SkillAnim.</summary>
         public int ClassType { get; private set; }
 
+        /// <summary>Ẩn hình nhân vật (thân vừa tạo / lấy từ pool, chưa có bộ Spine đúng) — SetupVisual hiện lại.</summary>
+        public void HideBody()
+        {
+            if (mainSkeleton != null && mainSkeleton.TryGetComponent(out MeshRenderer mr)) mr.enabled = false;
+        }
+
+        /// <summary>Hiện lại hình (không có bộ Spine để gắn — vẫn hiện hình mẫu còn hơn tàng hình).</summary>
+        public void ShowBody()
+        {
+            if (mainSkeleton != null && mainSkeleton.TryGetComponent(out MeshRenderer mr)) mr.enabled = true;
+        }
+
         public void SetupVisual(SkeletonDataAsset charData, Sprite customDeathImg = null, int classType = 0)
         {
             ClassType = classType;
             Fx.BodyAura.ResetOn(this, true);   // thân lấy lại từ pool: bỏ trạng thái + hào quang của người dùng trước
             isdead = false;                     // cờ chết của người dùng trước (thanh máu đứng yên, ẩn hào quang)
             _ghostUntil = 0f;
+            _transformUntil = 0f; _transformed = false;   // Initialize dưới đặt lại skin Normal
+            _sink = _sinkTarget = 0f;                       // thân lấy từ pool có thể đang hạ (người trước đứng trên nước)
+            if (mainVisualObj != null) { var lp0 = mainVisualObj.transform.localPosition; mainVisualObj.transform.localPosition = new Vector3(lp0.x, _visualBaseY, lp0.z); }
             // 1. Reset trạng thái sống
             if (mainVisualObj != null) mainVisualObj.SetActive(true);
             if (deathVisualObj != null) deathVisualObj.SetActive(false);
@@ -63,8 +88,9 @@ namespace Assets.Script.Player
                 mainSkeleton.Initialize(true);
                 FxSet = Fx.CharFx.SetFor(charData);
                 Fx.CharFx.Preload(FxSet);   // bộ hiệu ứng riêng (vật bay, nổ ở mục tiêu) — tải sẵn
-                
                 PlayAnimation(idleAnimation, true);
+                mainSkeleton.Update(0f);    // áp tư thế Idle ngay — không lộ 1 khung tư thế gốc (setup pose)
+                ShowBody();                 // HideBody lúc tạo thân
             }
 
             // 3. Nạp ảnh chết nếu có
@@ -180,6 +206,7 @@ namespace Assets.Script.Player
             { (1, 6), new SkillMotion("Skill10", 1.5f, 0.3f) },  // Trảm Phong: liên hoàn chém diện rộng
             { (1, 10), new SkillMotion(AnimNames.Jutsu1) },      // Thiết Thể: kết ấn gồng mình
             { (1, 4), new SkillMotion("Skill20") },              // Phân Thân Chi Thuật: phân thân hiện trong khói
+            { (1, 24), new SkillMotion(AnimNames.Jutsu2) },      // Tiên Nhân Thuật (biến thân → skin Hiennhan)
             { (1, 12), new SkillMotion("Skill40", 1.5f, 0.35f, impact: "Skill40_hit1") },                   // Tam Liên Trảm: lao tới chém 3 nhát
             { (1, 13), new SkillMotion("Skill50", 1.5f, 0.4f, impact: "Skill50") },                         // Rasengan: ép cầu chakra
             { (1, 14), new SkillMotion("Skill80", 1.5f, 0.55f, impact: "Skill80", impactOnce: true) },      // Rasen Shuriken: nổ đĩa gió
@@ -188,6 +215,7 @@ namespace Assets.Script.Player
             { (2, 7), new SkillMotion("Skill40") },              // Y Thuật: Hồi Phục — vầng sáng xanh lá
             { (2, 9), new SkillMotion("Skill30", 1.2f) },        // Cổ Vũ: hào quang vàng
             { (2, 4), new SkillMotion(AnimNames.Jutsu2) },       // Phân Thân Chi Thuật: khói
+            { (2, 25), new SkillMotion(AnimNames.Jutsu1) },      // Bách Hào Thuật (biến thân → skin AnBachHao)
             { (2, 16), new SkillMotion("Skill20", 1.5f, 0.5f, impact: "Skill10_Impact") },                  // Anh Hoa Quyền: nắm đấm chakra xanh
             { (2, 17), new SkillMotion("Skill50", 1.5f, 0.45f, fly: "Skill50_Shuriken", impact: "Skill50_Impact") }, // Băng Tiêu: phi tiêu băng bay
             { (2, 18), new SkillMotion("Skill80", 1.5f, 0.45f, impact: "Skill80") },                        // Băng Phong Trảm: sóng băng
@@ -196,6 +224,7 @@ namespace Assets.Script.Player
             { (3, 8), new SkillMotion("Skill10", 1.3f, 0.3f, impact: "Skill10") },  // Ám Sát: nhát chém kiếm + tia sáng ở mục tiêu
             { (3, 11), new SkillMotion("Skill50", 1.4f) },       // Ảnh Bộ: hoà vào bóng tối, mở Sharingan
             { (3, 4), new SkillMotion(AnimNames.Jutsu1) },       // Phân Thân Chi Thuật: khói
+            { (3, 26), new SkillMotion("Skill80", 1.2f) },       // Susanoo: khói đen + Sharingan xoáy (biến thân → skin Sasuno)
             { (3, 20), new SkillMotion("Skill20", 1.5f, 0.65f, impact: "Skill20") },                        // Hào Hỏa Cầu: thổi lửa → nổ
             { (3, 21), new SkillMotion("Skill40", 1.5f, 0.4f, impact: "Skill40") },                         // Chidori: tay sấm sét
             { (3, 22), new SkillMotion("Skill80_Amaterasu", 1.5f, 0.5f, impact: "Skill80_Amaterasu", ground: true) }, // Amaterasu: lửa đen
@@ -280,6 +309,43 @@ namespace Assets.Script.Player
             if (PlayActionOnce(m.anim, speed)) HitTime = Time.time + anim.Duration * m.hit / speed;
         }
 
+        // ---- BIẾN THÂN (GĐ25): đổi skin Spine sang dạng biến thân tới hết giờ (server gửi EFFECT 6), chết / hết giờ → skin Normal ----
+        // Skin dạng biến thân của từng bộ (bộ nào có skin nào thì dùng skin đó): Naruto Tiên nhân · Sakura Âm Bách Hào · Sasuke Susanoo.
+        private static readonly string[] TransformSkins = { "Hiennhan", "AnBachHao", "Sasuno" };
+        private float _transformUntil;
+        private bool _transformed;
+
+        /// <summary>Đang ở dạng biến thân (skin đã đổi).</summary>
+        public bool IsTransformed => _transformed;
+
+        /// <summary>Tên skin đang dùng (AutoTestRunner kiểm).</summary>
+        public string SkinName => mainSkeleton != null && mainSkeleton.Skeleton != null && mainSkeleton.Skeleton.Skin != null ? mainSkeleton.Skeleton.Skin.Name : null;
+
+        /// <summary>Biến thân {seconds} giây (cộng dồn tới mốc xa hơn). Bộ Spine không có skin biến thân → không đổi gì.</summary>
+        public void Transform(float seconds)
+        {
+            if (seconds <= 0f || isdead) return;
+            _transformUntil = Mathf.Max(_transformUntil, Time.time + seconds);
+            if (!_transformed) SetTransformSkin(true);
+        }
+
+        private void SetTransformSkin(bool on)
+        {
+            var sk = mainSkeleton != null ? mainSkeleton.Skeleton : null;
+            if (sk == null) return;
+            string name = "Normal";
+            if (on)
+            {
+                name = null;
+                foreach (var s in TransformSkins) if (sk.Data.FindSkin(s) != null) { name = s; break; }
+                if (name == null) return;
+            }
+            sk.SetSkin(name);
+            sk.SetSlotsToSetupPose();                        // gắn lại attachment theo skin mới (cả hào quang vẽ sẵn trong skin)
+            mainSkeleton.AnimationState.Apply(sk);           // giữ đúng tư thế của anim đang diễn
+            _transformed = on;
+        }
+
         // ---- PHÂN THÂN (né tránh): nhân vật mờ, nhấp nháy nhẹ tới hết hiệu ứng ----
         private float _ghostUntil;
 
@@ -289,6 +355,13 @@ namespace Assets.Script.Player
         private void Update()
         {
             if (mainSkeleton == null || mainSkeleton.Skeleton == null) return;
+            if (!Mathf.Approximately(_sink, _sinkTarget) && mainVisualObj != null)
+            {
+                _sink = Mathf.MoveTowards(_sink, _sinkTarget, Time.deltaTime * 2.5f);
+                var lp = mainVisualObj.transform.localPosition;
+                mainVisualObj.transform.localPosition = new Vector3(lp.x, _visualBaseY - _sink, lp.z);
+            }
+            if (_transformed && (isdead || Time.time >= _transformUntil)) SetTransformSkin(false);   // hết giờ / chết → dạng thường
             float a = Time.time < _ghostUntil && !isdead ? 0.45f + 0.15f * Mathf.Sin(Time.time * 12f) : 1f;
             if (!Mathf.Approximately(mainSkeleton.Skeleton.A, a)) mainSkeleton.Skeleton.A = a;
             var sk = mainSkeleton.Skeleton;

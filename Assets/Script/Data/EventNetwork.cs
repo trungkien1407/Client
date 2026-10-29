@@ -30,7 +30,7 @@ namespace Assets.Script.Data
             Listen(Cmd.GUIDE_TIP, OnGuideTip);
         }
 
-        private static readonly string[] EffectNames = { "", "Choáng", "Chậm", "Bỏng", "Tăng sức mạnh", "Phân thân" };
+        private static readonly string[] EffectNames = { "", "Choáng", "Chậm", "Bỏng", "Tăng sức mạnh", "Phân thân", "Biến thân" };
 
         private static Color[] EffectColors => UI.StatusIconsHud.Colors;   // cùng màu với icon trên HUD
 
@@ -66,8 +66,14 @@ namespace Assets.Script.Data
                 var mob = NetworkMobManager.Instance != null ? NetworkMobManager.Instance.GetMob(id) : null;
                 if (mob != null) t = mob.transform;
             }
+            // Biến thân: nhớ theo id (nhân vật chưa tải xong thì NetworkPlayerManager áp lúc tạo) + đổi skin Spine tới hết giờ
+            if (effect == (int)StatusEffect.Transform && type == (int)AttackTarget.Player)
+            {
+                GameData.TransformUntil[id] = Time.time + ms / 1000f;
+                if (t != null && t.TryGetComponent(out PlayerVisualController tv)) tv.Transform(ms / 1000f);
+            }
             // Phân thân: nhân vật mờ / nhấp nháy tới hết hiệu ứng (mình và người khác đều thấy)
-            if (t != null && effect == (int)StatusEffect.Dodge && t.TryGetComponent(out PlayerVisualController pvc)) pvc.Ghost(ms / 1000f);
+            else if (t != null && effect == (int)StatusEffect.Dodge && t.TryGetComponent(out PlayerVisualController pvc)) pvc.Ghost(ms / 1000f);
             // Choáng / chậm / bỏng / tăng sức mạnh: hình trên thân tới hết hiệu ứng (sao trên đầu, nhuộm màu, tia lửa — Fx.BodyAura)
             else if (t != null) Fx.BodyAura.On(t).Add((StatusEffect)effect, ms / 1000f);
             // Chữ nổi báo lúc dính hiệu ứng; mình thì có thêm icon + đồng hồ trên HUD (StatusIconsHud)

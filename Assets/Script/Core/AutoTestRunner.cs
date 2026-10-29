@@ -138,6 +138,26 @@ namespace Assets.Script.Core
             GameActions.UpgradeSkill(skill);
             yield return WaitUntil(() => GameData.MySkills.ContainsKey(skill), 4);
             Check($"Học chiêu cấp 100: {GameData.Skills[skill].name}", GameData.MySkills.ContainsKey(skill));
+
+            // GĐ25 — biến thân: học + dùng chiêu biến thân của hệ → skin Spine đổi sang dạng biến thân, HUD có icon "BT" + đồng hồ
+            int tf = vis.ClassType == 1 ? 24 : vis.ClassType == 2 ? 25 : 26;
+            bool tfOn = false;
+            if (GameData.Skills.ContainsKey(tf))
+            {
+                GameActions.Chat(1, "/sp 1");
+                yield return new WaitForSecondsRealtime(0.5f);
+                GameActions.UpgradeSkill(tf);
+                yield return WaitUntil(() => GameData.MySkills.ContainsKey(tf), 4);
+                yield return WaitUntil(() => !vis.IsActionLocked, 3);
+                SkillCaster.TryCast(tf);
+                yield return WaitUntil(() => vis.IsTransformed, 4);
+                tfOn = vis.IsTransformed;
+                Check($"Biến thân {GameData.Skills[tf].name} → skin Spine {vis.SkinName} (khác Normal)", tfOn && vis.SkinName != "Normal");
+                Check($"HUD: icon biến thân + đồng hồ ({LocalPlayerState.EffectLeft(StatusEffect.Transform):0} giây)",
+                    LocalPlayerState.EffectLeft(StatusEffect.Transform) > 10f);
+                yield return new WaitForSecondsRealtime(1f);
+                yield return Shot("BienThan");
+            }
             var mob = NetworkMobManager.Instance?.FindNearestAlive(vis.transform.position, 60f);
             if (mob == null || !CharFx.Loaded(vis.FxSet)) Debug.Log("[AutoTest] INFO không có quái gần / bộ FX demo — bỏ qua vật bay");
             else if (GameData.MySkills.ContainsKey(skill))
@@ -156,6 +176,12 @@ namespace Assets.Script.Core
                 Check($"{GameData.Skills[skill].name}: tới nơi mới nổ ({vis.MotionOf(skill).impact}) + server xác nhận trúng",
                     CharFx.Impacts > i0 && CombatNetwork.MyMobHits > h0);
                 yield return Shot("ChieuCao_No");
+            }
+            if (tfOn)
+            {
+                float left = LocalPlayerState.EffectLeft(StatusEffect.Transform);
+                yield return WaitUntil(() => !vis.IsTransformed, left + 3f);
+                Check($"Hết giờ biến thân → tự về dạng thường (skin {vis.SkinName})", !vis.IsTransformed && vis.SkinName == "Normal");
             }
             GameActions.Chat(1, "/lv " + oldLv);
             yield return WaitUntil(() => GameData.Me.level == oldLv, 4);
@@ -610,7 +636,10 @@ namespace Assets.Script.Core
             me.AutoMoveX = 1f;
             yield return WaitUntil(() => me.transform.position.x > 43f, 4);
             float ySurface = me.transform.position.y;
+            yield return new WaitForSecondsRealtime(0.3f);   // hình trượt xuống ngang sóng
+            float sink = me.GetComponent<PlayerVisualController>().WaterSink;
             yield return Shot("Water");
+            Check($"Đi trên nước: hình hạ {sink:0.00} ô cho chân chạm ngọn sóng (Map/WaterLine {Map.WaterLine.Sink:0.00})", sink > Map.WaterLine.Sink - 0.03f);
             Check($"Chạy vào nước → đi trên mặt nước (x = {me.transform.position.x:0.0}, y = {ySurface:0.00}, cần ~4)", me.transform.position.x > 43f && Mathf.Abs(ySurface - 4f) < 0.25f);
             me.AutoMoveX = 0f;
             yield return new WaitForSecondsRealtime(2f);

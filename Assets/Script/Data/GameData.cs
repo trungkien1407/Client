@@ -232,6 +232,8 @@ namespace Assets.Script.Data
         // ---- GĐ3 ----
         public static int MyPkMode;
         public static readonly Dictionary<int, PvpInfo> Pvp = new Dictionary<int, PvpInfo>();
+        /// <summary>GĐ25: id người chơi → hết dạng biến thân lúc (Time.time). Gói EFFECT có thể tới TRƯỚC khi nhân vật tải xong → NetworkPlayerManager áp lúc tạo.</summary>
+        public static readonly Dictionary<int, float> TransformUntil = new Dictionary<int, float>();
         public static readonly List<PartyMember> Party = new List<PartyMember>();
         public static int PartyLeader;
         public static readonly List<FriendInfo> Friends = new List<FriendInfo>();
@@ -338,7 +340,7 @@ namespace Assets.Script.Data
             Storage.Clear(); StorageNpc = -1; Upgrade = null; TradeWith = 0;
             MapName = ""; GemMessage = ""; BagCapacity = 40;
             foreach (var side in new[] { TradeMine, TradeTheirs }) { side.locked = side.confirmed = false; side.yen = 0; side.items.Clear(); }
-            MyPkMode = 0; Pvp.Clear(); Party.Clear(); PartyLeader = 0; Friends.Clear(); Mails.Clear(); OpenMail = null; MailUnread = 0;
+            MyPkMode = 0; Pvp.Clear(); TransformUntil.Clear(); Party.Clear(); PartyLeader = 0; Friends.Clear(); Mails.Clear(); OpenMail = null; MailUnread = 0;
             Guild.id = 0; Guild.members.Clear(); Tops.Clear();
             DungeonState = 0; EventState = 0; ArenaScore.Clear(); MaintEndTime = 0;
             ActivityPoints = 0; ActivityClaimed = 0; Activities.Clear(); Milestones.Clear(); EventSchedule.Clear(); QuestGuide.Clear();

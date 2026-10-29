@@ -37,8 +37,8 @@ namespace Assets.Script.Player
         public static float BuffedUntil;   // GĐ8: đang được tăng sức mạnh (Cổ Vũ / Thiết Thể / Ảnh Bộ)
         public static bool IsBuffed => UnityEngine.Time.time < BuffedUntil;
 
-        // Mọi hiệu ứng đang có trên mình (mã 1..5 = StatusEffect) — HUD vẽ icon + đồng hồ (UI/StatusIconsHud)
-        private static readonly float[] _effUntil = new float[6], _effTotal = new float[6];
+        // Mọi hiệu ứng đang có trên mình (mã 1..6 = StatusEffect) — HUD vẽ icon + đồng hồ (UI/StatusIconsHud)
+        private static readonly float[] _effUntil = new float[7], _effTotal = new float[7];
 
         /// <summary>EventNetwork gọi khi nhận EFFECT cho chính mình.</summary>
         public static void SetEffect(Constants.StatusEffect e, float seconds)

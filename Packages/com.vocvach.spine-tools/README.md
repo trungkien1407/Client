@@ -8,6 +8,7 @@ Công cụ Editor cho nhân vật Spine. Dùng lại được ở dự án khác
 |---|---|
 | Tools/VocVach/Spine/Chụp bảng anim (tất cả) | Chụp mọi `SkeletonDataAsset` trong `Assets/` |
 | Tools/VocVach/Spine/Chụp bảng anim (đang chọn) | Chỉ các SkeletonDataAsset đang chọn ở cửa sổ Project |
+| Tools/VocVach/Spine/Chụp bảng skin (tất cả) | Mỗi bộ xương → `_SKINS.png`: mỗi hàng 1 skin (bỏ `default`, `WEAPON_*`), 8 khung anim `Idle` — xem skin biến thân / trang phục (batch: `-executeMethod VocVach.SpineTools.AnimSheet.RunSkins`) |
 
 Kết quả nằm ở `Builds/AnimSheets/{tên bộ xương}/`:
 - `{anim}.png`: 8 khung hình chia đều độ dài anim.

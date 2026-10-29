@@ -8,20 +8,21 @@ using UnityEngine.UI;
 namespace Assets.Script.UI
 {
     /// <summary>
-    /// ICON TRẠNG THÁI của nhân vật mình (dưới khung máu): choáng · chậm · bỏng · tăng sức mạnh · phân thân,
+    /// ICON TRẠNG THÁI của nhân vật mình (dưới khung máu): choáng · chậm · bỏng · tăng sức mạnh · phân thân · biến thân,
     /// mỗi icon có vòng tối quay theo thời gian còn lại + số giây. Server gửi EFFECT → EventNetwork ghi vào LocalPlayerState.Effects.
-    /// Hình: Resources/UISkin/fx_1 … fx_5 (demo: Tools → Naruto → Demo art, icon trong 08_UI/IconMenu) nhuộm màu hiệu ứng;
+    /// Hình: Resources/UISkin/fx_1 … fx_6 (fx_6 biến thân chưa có hình demo → ô cam chữ "BT") (demo: Tools → Naruto → Demo art, icon trong 08_UI/IconMenu) nhuộm màu hiệu ứng;
     /// không có hình → ô màu + chữ viết tắt. Dựng bằng code (GameHud.CreateHud), không cần prefab.
     /// </summary>
     public class StatusIconsHud : MonoBehaviour
     {
-        private const int Kinds = 5;             // mã 1..5 (StatusEffect)
+        private const int Kinds = 6;             // mã 1..6 (StatusEffect)
         private const float Size = 34f, Gap = 4f;
 
-        public static readonly string[] Short = { "", "Ch", "Cm", "B", "+", "PT" };
+        public static readonly string[] Short = { "", "Ch", "Cm", "B", "+", "PT", "BT" };
         public static readonly Color[] Colors =
         {
             Color.white, new Color(1f, 0.9f, 0.2f), new Color(0.4f, 0.8f, 1f), new Color(1f, 0.45f, 0.1f), new Color(0.5f, 1f, 0.5f), new Color(0.75f, 0.6f, 1f),
+            new Color(1f, 0.6f, 0.15f),   // 6 biến thân
         };
 
         private readonly Image[] _icons = new Image[Kinds + 1];

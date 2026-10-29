@@ -123,11 +123,26 @@ namespace Assets.Script.UI
             if (maxHp <= 0) maxHp = 1;
             if (maxMp <= 0) maxMp = 1;
 
+            FitText(hpText);
+            FitText(mpText);
             if (hpText != null) hpText.text = $"{currentHp}/{maxHp}";
             if (mpText != null) mpText.text = $"{currentMp}/{maxMp}";
 
             if (hpFillImage != null) hpFillImage.fillAmount = (float)currentHp / maxHp;
             if (mpFillImage != null) mpFillImage.fillAmount = (float)currentMp / maxMp;
+        }
+
+        /// <summary>
+        /// Chữ máu / chakra tự thu nhỏ khi số dài (cấp cao máu 5 chữ số: "16650/16650" bị cắt thành "16650/1665") —
+        /// bật TMP auto size 1 lần, cỡ lớn nhất = cỡ đang đặt trong prefab, nhỏ nhất 55%.
+        /// </summary>
+        private static void FitText(TMP_Text t)
+        {
+            if (t == null || t.enableAutoSizing) return;
+            t.fontSizeMax = t.fontSize;
+            t.fontSizeMin = t.fontSize * 0.55f;
+            t.enableWordWrapping = false;
+            t.enableAutoSizing = true;
         }
 
         // ===============================================
@@ -159,6 +174,7 @@ namespace Assets.Script.UI
         {
             if (maxHp <= 0) maxHp = 1;
 
+            FitText(hpTextTarget);   // máu boss 6 chữ số
             if (hpTextTarget != null) hpTextTarget.text = $"{currentHP}/{maxHp}";
             if (targetHpFill != null) targetHpFill.fillAmount = (float)currentHP / maxHp;
         }

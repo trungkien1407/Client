@@ -141,7 +141,8 @@ namespace Assets.Script.UI
             float pct = c.expToNext > 0 ? Mathf.Clamp01((float)c.exp / c.expToNext) : 0;
             _v.expFill.fillAmount = pct;
             // "12  76.4%" — số cấp vàng to, % EXP trắng nhỏ ngay sau (đỡ phải nhìn xuống thanh EXP dưới màn hình)
-            _v.levelText.text = c.level > 0 ? $"{c.level} <size=72%><color=#f2f2f2>{pct * 100:F1}%</color></size>" : "";
+            _v.levelText.text = c.level <= 0 ? "" : c.expToNext > 0 ? $"{c.level} <size=72%><color=#f2f2f2>{pct * 100:F1}%</color></size>"
+                : $"{c.level} <size=72%><color=#f2f2f2>MAX</color></size>";   // cấp tối đa: không còn % EXP
             _v.expText.text = (c.expToNext > 0 ? $"Cấp {c.level}   EXP {pct * 100:F1}%   ({c.exp:N0}/{c.expToNext:N0})" : $"Cấp {c.level}   (cấp tối đa)") +
                             (c.potential > 0 ? $"   <color=#fd5>+{c.potential} điểm tiềm năng (C)</color>" : "") +
                             (c.skillPoints > 0 ? $"   <color=#7cf>+{c.skillPoints} điểm kỹ năng (K)</color>" : "");

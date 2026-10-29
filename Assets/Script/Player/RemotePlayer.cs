@@ -103,6 +103,9 @@ namespace Assets.Script.Player
         void UpdateVisuals()
         {
             if (visualCtrl == null) return;
+            // Đi trên mặt nước (chân ngang mép trên ô nước) → hạ hình cho chân chạm sóng như nhân vật mình
+            visualCtrl.SetWaterSink(currentState != MoveState.JumpUp && currentState != MoveState.Fall
+                                    && Map.WaterLine.StandingOnWater(transform.position));
 
             if (currentState == MoveState.Run) visualCtrl.PlayAnimation(AnimNames.Run, true);
             else if (currentState == MoveState.JumpUp || currentState == MoveState.Fall) visualCtrl.PlayAnimation(AnimNames.Fall, true);

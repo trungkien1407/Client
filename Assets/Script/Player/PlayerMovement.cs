@@ -248,6 +248,7 @@ namespace Assets.Script.Player
         void FixedUpdate()
         {
             if (rb == null) return;
+            if (visualCtrl != null) visualCtrl.SetWaterSink(isOnWaterSurface);   // chân chạm ngọn sóng (Map/WaterLine)
 
             if (isOnWaterSurface)
             {

@@ -163,6 +163,9 @@ namespace Assets.Script.Manager
                 else remotePlayers.Add(p.id, PlayerSpawner.SetupRemote(obj, p, spine));
                 // Hào quang vũ khí (PLAYER_PVP_INFO có thể tới TRƯỚC khi nhân vật tải xong)
                 if (Data.GameData.Pvp.TryGetValue(p.id, out var pvp) && pvp.glow > 0) Fx.BodyAura.On(obj.transform).GlowTier = pvp.glow;
+                // Đang biến thân (EFFECT 6 tới trước khi tải xong, hoặc vừa đổi map / khu)
+                if (Data.GameData.TransformUntil.TryGetValue(p.id, out float tfUntil) && tfUntil > Time.time && obj.TryGetComponent(out PlayerVisualController tfv))
+                    tfv.Transform(tfUntil - Time.time);
             }
             catch (Exception e) { Debug.LogError($"Spawn Error: {e.Message}"); }
             finally { loadingPlayers.Remove(p.id); }

@@ -14,7 +14,7 @@ namespace Assets.Script.Constants
     public enum SkillType { Active = 1, Passive = 2, Support = 3 }
 
     /// <summary>EFFECT: hiệu ứng trên người / quái.</summary>
-    public enum StatusEffect : byte { None = 0, Stun = 1, Slow = 2, Burn = 3, Buff = 4, Dodge = 5 }   // 5 = Phân Thân (tăng né)
+    public enum StatusEffect : byte { None = 0, Stun = 1, Slow = 2, Burn = 3, Buff = 4, Dodge = 5, Transform = 6 }   // 5 = Phân Thân (tăng né) · 6 = biến thân (đổi skin Spine)
 
     /// <summary>quest_template.type.</summary>
     public enum QuestType { Kill = 0, Talk = 1, Collect = 2 }

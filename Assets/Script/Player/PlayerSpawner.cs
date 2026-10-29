@@ -25,10 +25,16 @@ namespace Assets.Script.Player
                 while (MapManager.Instance == null || MapManager.Instance.currentMapInstance == null) await Task.Yield();
 
             GameObject obj = isLocal ? null : ObjectPoolManager.Instance.GetFromPool(BasePrefab);
-            if (obj != null) return obj;
-            var handle = Addressables.InstantiateAsync(BasePrefab, new Vector3(p.x, p.y, 0), Quaternion.identity);
-            await handle.Task;
-            return handle.Status == AsyncOperationStatus.Succeeded ? handle.Result : null;
+            if (obj == null)
+            {
+                var handle = Addressables.InstantiateAsync(BasePrefab, new Vector3(p.x, p.y, 0), Quaternion.identity);
+                await handle.Task;
+                obj = handle.Status == AsyncOperationStatus.Succeeded ? handle.Result : null;
+            }
+            // Ẩn hình tới khi gắn xong bộ Spine đúng hệ (SetupVisual) — không thì thấy nhân vật mẫu của prefab
+            // (hoặc người dùng thân này trước, lấy từ pool) vài khung hình rồi mới "biến" sang nhân vật thật
+            if (obj != null && obj.TryGetComponent(out PlayerVisualController vc)) vc.HideBody();
+            return obj;
         }
 
         /// <summary>Xương Spine của hệ phái; không có → null (nhân vật vẫn chạy, chỉ thiếu hình).</summary>
@@ -59,6 +65,7 @@ namespace Assets.Script.Player
                 vc.SetupVisual(spine, null, p.class_type);
                 obj.GetComponentInChildren<MeshRenderer>().sortingOrder = 2;   // mình vẽ đè lên người khác
             }
+            else if (obj.TryGetComponent(out PlayerVisualController hidden)) hidden.ShowBody();   // tải xương lỗi: vẫn hiện hình mẫu
             pm.Initialize(p, 1);
             if (obj.TryGetComponent(out Rigidbody2D rb)) rb.velocity = Vector2.zero;
             Object.FindAnyObjectByType<PlayerTargeting>()?.SetPlayer(obj.transform);
@@ -74,6 +81,7 @@ namespace Assets.Script.Player
             rp.poolKey = BasePrefab;
             rp.Initialize(p);
             if (spine != null && obj.TryGetComponent(out PlayerVisualController vc)) vc.SetupVisual(spine, null, p.class_type);
+            else if (obj.TryGetComponent(out PlayerVisualController hidden)) hidden.ShowBody();   // tải xương lỗi: vẫn hiện hình mẫu
 
             // Người khác chỉ đi theo vị trí server gửi (RemotePlayer nội suy) → không chịu vật lý:
             // body Kinematic (không rơi), collider Trigger (không đẩy nhân vật mình, vẫn bấm chọn được)
