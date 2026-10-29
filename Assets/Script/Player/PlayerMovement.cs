@@ -56,6 +56,7 @@ namespace Assets.Script.Player
         public float waterSpeedDebuff = 0.5f;   // tốc độ khi đã chìm
         private bool isInWater = false;
         private bool isOnWaterSurface = false;
+        private float _nextWaterJump;   // chống nhảy đôi khi đang chìm (OnJump)
         private float timeStandingStill = 0f;
         private float waterSurfaceY = 0f;
         private UnityEngine.Tilemaps.Tilemap waterMap;   // tilemap nước đang ở trong (để biết dưới chân còn nước không)
@@ -229,8 +230,12 @@ namespace Assets.Script.Player
                 || Assets.Script.UI.Kit.UIRoot.GameplayBlocked) return;
             // Giữ xuống + nhảy trên bục 1 chiều = nhảy xuống (kiểu NSO)
             if (ManualInput.y < -0.5f && TryDropThrough()) return;
-            if (isGrounded || isOnWaterSurface || isInWater)
+            // Đang chìm: được nhảy để lên bờ, nhưng chỉ khi KHÔNG đang bay lên + cách lần nhảy nước trước ≥ 0,35 giây — vừa bật lên thân
+            // vẫn còn chạm vùng nước (hồ sâu 1 ô, thân cao 1,6 ô) → trước đây bấm lần 2 lại tính "trong nước" = nhảy đôi giữa không trung
+            bool waterJump = isInWater && !isOnWaterSurface && rb.velocity.y <= 0.5f && Time.time >= _nextWaterJump;
+            if (isGrounded || isOnWaterSurface || waterJump)
             {
+                if (isInWater) _nextWaterJump = Time.time + 0.35f;
                 if (isOnWaterSurface)
                 {
                     // Nhảy từ mặt nước: thoát hẳn trạng thái nước (thân đã ở trên trigger — không có sự kiện rời nữa,

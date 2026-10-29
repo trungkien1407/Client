@@ -157,6 +157,9 @@ namespace Assets.Script.Data
             // GĐ20: [short art] × n ở cuối (server cũ không gửi → giữ hình mặc định)
             if (r.Available() >= n * 2)
                 for (int i = 0; i < n; i++) GameData.NpcArt[ids[i]] = r.ReadShort();
+            // GĐ26: [short cỡ vẽ × 100] × n (server cũ không gửi → cỡ ảnh gốc)
+            if (r.Available() >= n * 2)
+                for (int i = 0; i < n; i++) GameData.NpcScale[ids[i]] = Mathf.Clamp(r.ReadShort() / 100f, 0.3f, 3f);
             r.Cleanup();
             GameData.Notify(DataKind.Templates);
         }

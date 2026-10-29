@@ -60,10 +60,11 @@ namespace Assets.Script.Manager
         private void OnDataChanged(Data.DataKind k)
         {
             if (k != Data.DataKind.Templates) return;
-            foreach (var e in activeNpcs.Values) if (e != null) e.ApplyArt(ArtOf(e.TemplateId));
+            foreach (var e in activeNpcs.Values) if (e != null) e.ApplyArt(ArtOf(e.TemplateId), ScaleOf(e.TemplateId));
         }
 
         private static int ArtOf(int templateId) => Data.GameData.NpcArt.TryGetValue(templateId, out var a) ? a : -1;
+        private static float ScaleOf(int templateId) => Data.GameData.NpcScale.TryGetValue(templateId, out var s) ? s : 1f;
 
         private void LoadResources()
         {
@@ -156,7 +157,7 @@ namespace Assets.Script.Manager
                     if (entity != null)
                     {
                         entity.Setup(config, npcId, _loadedAtlas);
-                        entity.ApplyArt(ArtOf(templateId));   // có hình riêng (GĐ20) thì thay hình mặc định
+                        entity.ApplyArt(ArtOf(templateId), ScaleOf(templateId));   // có hình riêng (GĐ20) thì thay hình mặc định, cỡ theo npc_template.scale
                         activeNpcs[npcId] = entity;
                     }
                 }

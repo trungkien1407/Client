@@ -336,6 +336,15 @@ namespace Assets.Script.Core
                     int withArt = 0, total = 0;
                     foreach (var npc in NetworkNpcManager.Instance.All) { total++; if (npc != null && npc.AppliedArt >= 0) withArt++; }
                     Check($"NPC dùng hình riêng theo server: {withArt}/{total}", total > 0 && withArt == total);
+                    // GĐ26: cỡ vẽ theo npc_template.scale (demo_art.sql đặt cho cao ~150 px như người chơi)
+                    int scaled = 0, wrong = 0;
+                    foreach (var npc in NetworkNpcManager.Instance.All)
+                    {
+                        if (npc == null || !GameData.NpcScale.TryGetValue(npc.TemplateId, out float wantScale)) continue;
+                        if (Mathf.Abs(npc.AppliedScale - wantScale) < 0.01f) scaled++; else wrong++;
+                    }
+                    if (GameData.NpcScale.Count > 0)
+                        Check($"NPC vẽ đúng cỡ theo npc_template.scale ({scaled} đúng, {wrong} sai)", scaled > 0 && wrong == 0);
                 }
                 var marker = GameObject.Find("PortalMarker");
                 Check("Cổng chuyển map có mũi tên + tên map", marker != null && marker.transform.Find("Arrow") != null && marker.transform.Find("Name") != null);
@@ -677,6 +686,17 @@ namespace Assets.Script.Core
             me.AutoMoveX = 0f;
             yield return new WaitForSecondsRealtime(2f);
             Check($"Đứng yên trên mặt nước → chìm xuống đáy hồ (y = {me.transform.position.y:0.00}, cần ~3)", Mathf.Abs(me.transform.position.y - 3f) < 0.3f);
+            // Đang chìm: nhảy 1 lần (đo đỉnh) rồi nhảy + bấm thêm lần nữa giữa lúc bay lên → đỉnh không cao hơn (trước 2026-10-29 nhảy đôi được)
+            float wy0 = me.transform.position.y, peak1 = wy0, peak2 = wy0;
+            me.Jump();
+            for (float t = 0; t < 1.6f; t += Time.unscaledDeltaTime) { peak1 = Mathf.Max(peak1, me.transform.position.y); yield return null; }
+            yield return new WaitForSecondsRealtime(1f);   // rơi lại xuống, chìm
+            me.Jump();
+            yield return new WaitForSecondsRealtime(0.12f);
+            me.Jump();                                      // lần 2 giữa không trung — phải bị bỏ qua
+            for (float t = 0; t < 1.6f; t += Time.unscaledDeltaTime) { peak2 = Mathf.Max(peak2, me.transform.position.y); yield return null; }
+            yield return new WaitForSecondsRealtime(1f);
+            Check($"Đang chìm nhảy lên không nhảy đôi được (đỉnh 1 lần {peak1 - wy0:0.00} ô, bấm 2 lần {peak2 - wy0:0.00} ô)", peak1 > wy0 + 0.5f && peak2 <= peak1 + 0.2f);
             me.AutoMoveX = 1f;
             me.Jump();
             yield return WaitUntil(() => me.transform.position.x > 47f && me.IsGrounded, 5);

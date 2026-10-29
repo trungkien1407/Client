@@ -55,24 +55,32 @@ namespace Assets.Script.Entities
 
         /// <summary>Số bộ hình đang dùng (-1 = hình mặc định trong atlas).</summary>
         public int AppliedArt { get; private set; } = -1;
+        private float _appliedScale = 1f;
+
+        /// <summary>Cỡ vẽ đang dùng (npc_template.scale) — AutoTestRunner kiểm.</summary>
+        public float AppliedScale => _appliedScale;
 
         /// <summary>
         /// Hình theo server (npc_template.art → NpcArtSO "NpcArt_{art}"): thay thân + chân, dời tên / mũi tên chọn lên trên đầu.
         /// art &lt; 0 hoặc chưa có hình trong kho → giữ hình mặc định (atlas). Gọi lại được khi GAME_DATA_NPCS tới muộn.
+        /// scale = npc_template.scale (GĐ26): ảnh NPC mỗi bộ vẽ một tỉ lệ → nhân cỡ thân + chân (chân vẫn chạm đất) cho cao ngang người chơi.
         /// </summary>
-        public void ApplyArt(int art)
+        public void ApplyArt(int art, float scale = 1f)
         {
-            if (art < 0 || art == AppliedArt) return;
+            if (art < 0 || (art == AppliedArt && Mathf.Approximately(scale, _appliedScale))) return;
             AppliedArt = art;
+            _appliedScale = scale;
             Core.AssetSource.Load<Models.NpcArtSO>(Models.NpcArtSO.Address(art), "NpcArt/" + Models.NpcArtSO.Address(art), so =>
             {
                 if (this == null || so == null || so.body == null || AppliedArt != art) return;
                 legRenderer.sprite = so.legs;
                 legRenderer.transform.localPosition = Vector3.zero;
+                legRenderer.transform.localScale = new Vector3(scale, scale, 1f);   // gốc chân (pivot giữa-đáy) giữ nguyên → vẫn đứng trên đất
                 headRenderer.sprite = so.body;
-                var bp = so.BodyPos;   // thân lệch theo eo (đo sẵn), không đặt thẳng tâm ảnh
+                var bp = so.BodyPos * scale;   // thân lệch theo eo (đo sẵn), không đặt thẳng tâm ảnh
                 headRenderer.transform.localPosition = new Vector3(bp.x, bp.y, 0f);
-                float top = so.TopY;
+                headRenderer.transform.localScale = new Vector3(scale, scale, 1f);
+                float top = so.TopY * scale;
                 if (npcNameText != null)
                 {
                     _originalNamePosition = new Vector3(_originalNamePosition.x, top + 0.35f, _originalNamePosition.z);

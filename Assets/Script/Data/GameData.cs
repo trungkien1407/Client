@@ -186,6 +186,8 @@ namespace Assets.Script.Data
         public static readonly Dictionary<int, string> NpcNames = new Dictionary<int, string>();
         /// <summary>Số bộ hình NPC theo templateId (npc_template.art, -1 = hình mặc định) — GAME_DATA_NPCS.</summary>
         public static readonly Dictionary<int, int> NpcArt = new Dictionary<int, int>();
+        /// <summary>Cỡ vẽ NPC theo templateId (npc_template.scale, 1 = ảnh gốc) — GAME_DATA_NPCS khối cuối (GĐ26).</summary>
+        public static readonly Dictionary<int, float> NpcScale = new Dictionary<int, float>();
         public static readonly Dictionary<int, EffectTpl> Effects = new Dictionary<int, EffectTpl>();
 
         // ---- trạng thái của mình ----
