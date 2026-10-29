@@ -86,6 +86,7 @@ namespace Assets.Script.Map
         {
             PopupAndLoad.Instance?.ShowLoading();
             Fx.EffectPlayer.StopAll();   // hiệu ứng chiêu đang bay / bám người: bỏ, không mang sang map mới
+            Fx.CharFx.StopAll();
             LocalPlayerState.ClearHarmfulEffects();   // server xoá choáng / chậm / bỏng khi rời khu (Zone.leave)
             if (Players == null) return;
             if (Players.localPlayer != null)

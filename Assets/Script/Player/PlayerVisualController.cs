@@ -61,6 +61,8 @@ namespace Assets.Script.Player
                 mainSkeleton.skeletonDataAsset = charData;
                 mainSkeleton.initialSkinName = "Normal";
                 mainSkeleton.Initialize(true);
+                FxSet = Fx.CharFx.SetFor(charData);
+                Fx.CharFx.Preload(FxSet);   // bộ hiệu ứng riêng (vật bay, nổ ở mục tiêu) — tải sẵn
                 
                 PlayAnimation(idleAnimation, true);
             }
@@ -140,14 +142,26 @@ namespace Assets.Script.Player
         //   3. chiêu chưa có trong bảng (vd chiêu mới thêm ở AdminTool) → anim dự phòng theo LOẠI chiêu: đánh → AttackFallback,
         //      hỗ trợ / buff → BuffFallback; bộ Spine thiếu anim nào thì thử anim kế tiếp
         //   4. cuối cùng: đấm – đá.
-        // Anim chưa dùng (để dành chiêu mới): Naruto Skill40/50/80/100 · Sakura Skill20/50/80/Jutsu1 · Sasuke Skill20/40*/80*/100*.
+        // Hiệu ứng ở xa (vật bay, vụ nổ ở mục tiêu) nằm ở bộ xương thứ 2 "<Tên>FX" (Fx.CharFx) — khai trong SkillMotion: fly / impact.
+        // Anim chưa dùng: Naruto Jutsu2 · Sakura Skill20(FX hồi máu) / Skill40(FX) · Sasuke Skill80 / Skill100_A (Susanoo).
 
-        /// <summary>Cách diễn 1 chiêu: anim Spine, tốc độ (1 = gốc), mốc trúng đòn (0..1 độ dài anim: lúc nắm đấm / shuriken chạm mục tiêu).</summary>
+        /// <summary>
+        /// Cách diễn 1 chiêu: anim Spine, tốc độ (1 = gốc), mốc trúng đòn (0..1 độ dài anim: lúc nắm đấm chạm / lúc BUÔNG vật bay).
+        /// fly = anim vật bay trong bộ FX (bay từ tay tới mục tiêu, số sát thương hiện lúc tới) · impact = anim nổ ở mục tiêu ·
+        /// impactOnce = chiêu diện rộng chỉ nổ 1 lần ở mục tiêu chính (vụ nổ lớn) · ground = đặt vụ nổ ở chân thay vì giữa thân.
+        /// </summary>
         public readonly struct SkillMotion
         {
-            public readonly string anim;
+            public readonly string anim, fly, impact;
             public readonly float speed, hit;
-            public SkillMotion(string anim, float speed = SkillSpeed, float hit = DefaultHit) { this.anim = anim; this.speed = speed; this.hit = hit; }
+            public readonly bool impactOnce, ground;
+            public SkillMotion(string anim, float speed = SkillSpeed, float hit = DefaultHit, string fly = null, string impact = null,
+                               bool impactOnce = false, bool ground = false)
+            {
+                this.anim = anim; this.speed = speed; this.hit = hit;
+                this.fly = fly; this.impact = impact; this.impactOnce = impactOnce; this.ground = ground;
+            }
+            public bool HasFx => fly != null || impact != null;
         }
         public const float SkillSpeed = 1.5f;   // anim chiêu gốc dài 1,2–2 giây → nhanh 1,5 lần cho đỡ đứng im lâu
         public const float DefaultHit = 0.35f;
@@ -157,7 +171,7 @@ namespace Assets.Script.Player
         private static readonly Dictionary<int, SkillMotion[]> BasicMotion = new Dictionary<int, SkillMotion[]>
         {
             { 1, PunchKick },                                               // Naruto: đấm – đá (cận chiến 1,8 ô)
-            { 2, new[] { new SkillMotion(AnimNames.Throw, 1.7f, 0.5f) } },  // Sakura: Phi Tiêu đánh xa 5 ô → ném shuriken
+            { 2, new[] { new SkillMotion(AnimNames.Throw, 1.7f, 0.45f, fly: "Skill10_Shuriken", impact: "Skill10_Impact") } },  // Sakura: Phi Tiêu đánh xa 5 ô → shuriken bay
             { 3, PunchKick },                                               // Sasuke: đòn nhanh cận chiến
         };
         private static readonly Dictionary<(int cls, int skill), SkillMotion> SkillAnim = new Dictionary<(int, int), SkillMotion>
@@ -166,14 +180,26 @@ namespace Assets.Script.Player
             { (1, 6), new SkillMotion("Skill10", 1.5f, 0.3f) },  // Trảm Phong: liên hoàn chém diện rộng
             { (1, 10), new SkillMotion(AnimNames.Jutsu1) },      // Thiết Thể: kết ấn gồng mình
             { (1, 4), new SkillMotion("Skill20") },              // Phân Thân Chi Thuật: phân thân hiện trong khói
+            { (1, 12), new SkillMotion("Skill40", 1.5f, 0.35f, impact: "Skill40_hit1") },                   // Tam Liên Trảm: lao tới chém 3 nhát
+            { (1, 13), new SkillMotion("Skill50", 1.5f, 0.4f, impact: "Skill50") },                         // Rasengan: ép cầu chakra
+            { (1, 14), new SkillMotion("Skill80", 1.5f, 0.55f, impact: "Skill80", impactOnce: true) },      // Rasen Shuriken: nổ đĩa gió
+            { (1, 15), new SkillMotion("Skill100", 1.5f, 0.4f, fly: "Skill100", impact: "Skill101", impactOnce: true) }, // Vĩ Thú Ngọc: Cửu Vĩ bắn cầu tím
             // Hỗ trợ — Sakura
             { (2, 7), new SkillMotion("Skill40") },              // Y Thuật: Hồi Phục — vầng sáng xanh lá
             { (2, 9), new SkillMotion("Skill30", 1.2f) },        // Cổ Vũ: hào quang vàng
             { (2, 4), new SkillMotion(AnimNames.Jutsu2) },       // Phân Thân Chi Thuật: khói
+            { (2, 16), new SkillMotion("Skill20", 1.5f, 0.5f, impact: "Skill10_Impact") },                  // Anh Hoa Quyền: nắm đấm chakra xanh
+            { (2, 17), new SkillMotion("Skill50", 1.5f, 0.45f, fly: "Skill50_Shuriken", impact: "Skill50_Impact") }, // Băng Tiêu: phi tiêu băng bay
+            { (2, 18), new SkillMotion("Skill80", 1.5f, 0.45f, impact: "Skill80") },                        // Băng Phong Trảm: sóng băng
+            { (2, 19), new SkillMotion(AnimNames.Jutsu1, 1.5f, 0.5f, impact: "Skill30", impactOnce: true, ground: true) }, // Thiên Lôi Phiến: cột sét
             // Sát thủ — Sasuke
-            { (3, 8), new SkillMotion("Skill10", 1.3f, 0.3f) },  // Ám Sát: nhát chém kiếm
+            { (3, 8), new SkillMotion("Skill10", 1.3f, 0.3f, impact: "Skill10") },  // Ám Sát: nhát chém kiếm + tia sáng ở mục tiêu
             { (3, 11), new SkillMotion("Skill50", 1.4f) },       // Ảnh Bộ: hoà vào bóng tối, mở Sharingan
             { (3, 4), new SkillMotion(AnimNames.Jutsu1) },       // Phân Thân Chi Thuật: khói
+            { (3, 20), new SkillMotion("Skill20", 1.5f, 0.65f, impact: "Skill20") },                        // Hào Hỏa Cầu: thổi lửa → nổ
+            { (3, 21), new SkillMotion("Skill40", 1.5f, 0.4f, impact: "Skill40") },                         // Chidori: tay sấm sét
+            { (3, 22), new SkillMotion("Skill80_Amaterasu", 1.5f, 0.5f, impact: "Skill80_Amaterasu", ground: true) }, // Amaterasu: lửa đen
+            { (3, 23), new SkillMotion("Skill100_B", 1.5f, 0.55f, fly: "Skill100_B_Arrow", impact: "Skill100_B", impactOnce: true, ground: true) }, // Mũi Tên Indra
         };
         private static readonly SkillMotion[] AttackFallback = { new SkillMotion("Skill10", 1.5f, 0.3f), new SkillMotion("Skill40"), new SkillMotion("Skill50") };
         private static readonly SkillMotion[] BuffFallback = { new SkillMotion(AnimNames.Jutsu1), new SkillMotion(AnimNames.Jutsu2), new SkillMotion("Skill30") };
@@ -222,6 +248,21 @@ namespace Assets.Script.Player
         /// <summary>Lúc anim chiêu vừa diễn chạm mục tiêu (Time.time) — CombatNetwork giữ số sát thương / hiệu ứng trúng tới mốc này.</summary>
         public float HitTime { get; private set; }
 
+        /// <summary>Tên bộ hiệu ứng riêng của nhân vật ("NarutoFX"...) — Fx.CharFx.</summary>
+        public string FxSet { get; private set; }
+
+        private int _lastSkill = -1;
+        private SkillMotion _lastMotion;
+
+        /// <summary>
+        /// Cách diễn của chiêu {skillId} vừa ra (đúng cú đấm / đá đã diễn, không xoay vòng combo) — CombatNetwork lấy vật bay / vụ nổ.
+        /// Chưa diễn chiêu này (VD gói tới trước khi diễn) → chọn lại theo bảng.
+        /// </summary>
+        public SkillMotion MotionOf(int skillId) => skillId == _lastSkill ? _lastMotion : ResolveMotion(skillId);
+
+        /// <summary>Cỡ hiệu ứng Spine riêng theo nhân vật này.</summary>
+        public float FxScale => Fx.CharFx.ScaleFor(mainSkeleton, FxSet);
+
         /// <summary>
         /// Diễn anim của chiêu skillId (bấm đánh, kể cả khi đòn không gửi lên server). Đòn cơ bản: tốc độ tự tăng để anim
         /// xong trong thời gian hồi chiêu (Sasuke 0,5 giây) — không thì khoá đứng yên lâu hơn nhịp đánh.
@@ -229,6 +270,7 @@ namespace Assets.Script.Player
         public void PlaySkill(int skillId)
         {
             var m = ResolveMotion(skillId, true);
+            _lastSkill = skillId; _lastMotion = m;
             HitTime = Time.time;
             if (!HasAnim(m.anim)) return;
             var anim = mainSkeleton.Skeleton.Data.FindAnimation(m.anim);

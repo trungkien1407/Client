@@ -79,23 +79,55 @@ namespace Assets.Script.Combat
 
             Color color = targetId == LocalPlayerState.Id && targetType == AttackTarget.Player ? HurtColor : mine ? MyHitColor : OtherHitColor;
             Vector3 lastPos = to != null ? to.position : Vector3.zero;
-            float delay = HitDelay(from);
+            PlayerVisualController pvc = null;
+            if (from != null) from.TryGetComponent(out pvc);
+            var motion = pvc != null ? pvc.MotionOf(skillId) : default;
+            bool firstOfCast = !(attackerId == _lastHitAttacker && skillId == _lastHitSkill && Time.time - _lastHitTime < 0.25f);
+            float delay = motion.HasFx ? SpineFxDelay(pvc, motion, from, to, firstOfCast) : HitDelay(pvc);
+            if (firstOfCast) { _lastHitAttacker = attackerId; _lastHitSkill = skillId; _lastHitTime = Time.time; }
             AtHit(delay, () =>
             {
                 if (to != null && to.gameObject.activeInHierarchy) lastPos = to.position;   // quái chết / bị thu hồi → số hiện ở chỗ cuối
                 if (to != null || lastPos != Vector3.zero) DamagePopup.Show(lastPos, DamageText(damage), color);
-                PlayHitFx(from, to, skillId);
+                // Vụ nổ Spine của chiêu (bộ <Tên>FX) thay hiệu ứng trúng theo dữ liệu; chiêu diện rộng nổ lớn chỉ 1 lần
+                bool spine = motion.impact != null && to != null && to.gameObject.activeInHierarchy && (firstOfCast || !motion.impactOnce)
+                             && Fx.CharFx.Play(pvc.FxSet, motion.impact, motion.ground ? to.position : BodyCenter(to), pvc.FxScale,
+                                               from != null && to.position.x > from.position.x,
+                                               motion.ground ? Fx.CharFx.Anchor.Ground : Fx.CharFx.Anchor.Center);
+                if (!spine && !(motion.impact != null && Fx.CharFx.Has(pvc != null ? pvc.FxSet : null, motion.impact))) PlayHitFx(from, to, skillId);
             });
         }
 
+        // Chiêu diện rộng: mỗi mục tiêu 1 gói → vật bay / vụ nổ lớn chỉ 1 lần, mọi số hiện cùng lúc vật bay tới
+        private int _lastHitAttacker, _lastHitSkill;
+        private float _lastHitTime, _lastArrive;
+
         /// <summary>Tối đa giữ số sát thương bao lâu (giây) — anim dài cũng không để số chậm quá so với máu.</summary>
         private const float MaxHitDelay = 0.4f;
+        /// <summary>Chiêu có hiệu ứng Spine riêng (anim dài hơn: Rasengan, Vĩ Thú Ngọc...): chờ tới khung buông tay tối đa bấy nhiêu.</summary>
+        private const float MaxReleaseDelay = 1.2f;
+        /// <summary>Tốc độ vật bay (ô / giây) và thời gian bay tối đa.</summary>
+        private const float FlySpeed = 14f, MaxFlight = 0.7f;
 
         /// <summary>Còn bao lâu tới khung trúng đòn của anim người ra chiêu (0 = hiện ngay).</summary>
-        private static float HitDelay(Transform attacker)
+        private static float HitDelay(PlayerVisualController pvc) =>
+            pvc == null ? 0f : Mathf.Clamp(pvc.HitTime - Time.time, 0f, MaxHitDelay);
+
+        /// <summary>
+        /// Chiêu có hiệu ứng Spine riêng: chờ tới khung buông tay; có vật bay thì phóng (1 lần mỗi chiêu) từ trước mặt người ra chiêu
+        /// tới mục tiêu → trả thời gian tới khi vật bay chạm (số sát thương + vụ nổ hiện lúc đó).
+        /// </summary>
+        private float SpineFxDelay(PlayerVisualController pvc, PlayerVisualController.SkillMotion m, Transform from, Transform to, bool firstOfCast)
         {
-            if (attacker == null || !attacker.TryGetComponent(out PlayerVisualController pvc)) return 0f;
-            return Mathf.Clamp(pvc.HitTime - Time.time, 0f, MaxHitDelay);
+            float release = Mathf.Clamp(pvc.HitTime - Time.time, 0f, MaxReleaseDelay);
+            if (m.fly == null || to == null) return release;
+            if (!firstOfCast) return Mathf.Max(0f, _lastArrive - Time.time);   // mục tiêu phụ của chiêu diện rộng
+            Vector3 a = BodyCenter(from), b = BodyCenter(to);
+            a.x += (b.x >= a.x ? 1f : -1f) * 0.4f;   // ra từ tay, không từ giữa người
+            float flight = Mathf.Clamp(Vector3.Distance(a, b) / FlySpeed, 0.08f, MaxFlight);
+            if (!Fx.CharFx.Fly(pvc.FxSet, m.fly, a, to, release, flight, pvc.FxScale)) flight = 0f;
+            _lastArrive = Time.time + release + flight;
+            return release + flight;
         }
 
         /// <summary>Chạy {action} sau {delay} giây (≈ 0 → chạy ngay).</summary>

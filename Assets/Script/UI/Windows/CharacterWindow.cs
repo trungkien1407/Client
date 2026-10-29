@@ -70,7 +70,7 @@ namespace Assets.Script.UI.Windows
             float expPct = c.expToNext > 0 ? 100f * c.exp / c.expToNext : 0;
             _info.text =
                 $"<b>{LocalPlayerState.Name}</b>   Cấp <b>{c.level}</b>\n" +
-                $"EXP: {c.exp:N0} / {c.expToNext:N0}  ({expPct:F1}%)\n" +
+                (c.expToNext > 0 ? $"EXP: {c.exp:N0} / {c.expToNext:N0}  ({expPct:F1}%)\n" : "EXP: cấp tối đa\n") +
                 $"HP: {LocalPlayerState.Hp}/{c.maxHp}    MP: {LocalPlayerState.Mp}/{c.maxMp}\n" +
                 $"Sát thương cộng thêm: +{c.bonusDamage}\n" +
                 $"Né: {c.dodge * 100:F1}%    Chí mạng: {c.crit * 100:F1}%\n" +

@@ -120,6 +120,49 @@ namespace Assets.Script.Core
             yield return null;
         }
 
+        /// <summary>
+        /// GĐ24 — cấp tối đa 120 + chiêu cấp 100 có vật bay Spine riêng: /lv 125 → kẹt ở 120 → học chiêu có vật bay của hệ
+        /// (Vĩ Thú Ngọc / Băng Tiêu / Mũi Tên Indra) → đánh quái gần → vật bay phát rồi nổ ở mục tiêu. Xong trả cấp cũ.
+        /// </summary>
+        private IEnumerator CheckHighSkill(PlayerVisualController vis)
+        {
+            int skill = vis.ClassType == 1 ? 15 : vis.ClassType == 2 ? 17 : 23;
+            if (!GameData.Skills.ContainsKey(skill)) { Debug.Log("[AutoTest] INFO server chưa chạy patch_gd24_chieu_cao — bỏ qua chiêu cấp cao"); yield break; }
+            int oldLv = GameData.Me.level;
+            GameActions.Chat(1, "/lv 125");
+            yield return WaitUntil(() => GameData.Me.level >= 100, 4);
+            Check($"Cấp tối đa 120 (/lv 125 → cấp {GameData.Me.level})", GameData.Me.level == 120);
+            Check("Cấp tối đa: hết EXP lên cấp (expToNext = 0, HUD ghi \"cấp tối đa\")", GameData.Me.expToNext == 0);
+            GameActions.Chat(1, "/sp 1");
+            yield return new WaitForSecondsRealtime(0.5f);
+            GameActions.UpgradeSkill(skill);
+            yield return WaitUntil(() => GameData.MySkills.ContainsKey(skill), 4);
+            Check($"Học chiêu cấp 100: {GameData.Skills[skill].name}", GameData.MySkills.ContainsKey(skill));
+            var mob = NetworkMobManager.Instance?.FindNearestAlive(vis.transform.position, 60f);
+            if (mob == null || !CharFx.Loaded(vis.FxSet)) Debug.Log("[AutoTest] INFO không có quái gần / bộ FX demo — bỏ qua vật bay");
+            else if (GameData.MySkills.ContainsKey(skill))
+            {
+                var ci = System.Globalization.CultureInfo.InvariantCulture;
+                ChatBox.Send(1, "", "/go " + (mob.transform.position.x - 3.5f).ToString("0.0", ci) + " " + (mob.transform.position.y + 0.5f).ToString("0.0", ci));
+                yield return new WaitForSecondsRealtime(1.2f);
+                FindAnyObjectByType<PlayerTargeting>()?.SelectTarget(mob);
+                yield return WaitUntil(() => !LocalPlayerState.IsStunned && !vis.IsActionLocked, 3);
+                int f0 = CharFx.Flights, i0 = CharFx.Impacts, h0 = CombatNetwork.MyMobHits;
+                SkillCaster.TryCast(skill);
+                yield return WaitUntil(() => CharFx.Flights > f0, 3);
+                Check($"{GameData.Skills[skill].name}: vật bay Spine ({vis.MotionOf(skill).fly}) bay từ tay tới quái", CharFx.Flights > f0);
+                yield return Shot("ChieuCao_Bay");
+                yield return WaitUntil(() => CharFx.Impacts > i0, 3);
+                Check($"{GameData.Skills[skill].name}: tới nơi mới nổ ({vis.MotionOf(skill).impact}) + server xác nhận trúng",
+                    CharFx.Impacts > i0 && CombatNetwork.MyMobHits > h0);
+                yield return Shot("ChieuCao_No");
+            }
+            GameActions.Chat(1, "/lv " + oldLv);
+            yield return WaitUntil(() => GameData.Me.level == oldLv, 4);
+            GameActions.Chat(1, "/hp");
+            yield return new WaitForSecondsRealtime(0.5f);
+        }
+
         private static IEnumerator WaitUntil(Func<bool> cond, float timeout)
         {
             float end = Time.realtimeSinceStartup + timeout;
@@ -529,6 +572,21 @@ namespace Assets.Script.Core
                 string basic = vis.ResolveMotion(cls).anim;
                 Check($"Hệ {cls}: đòn cơ bản → {basic}", cls == 2 ? basic == AnimNames.Throw : basic == AnimNames.Punch || basic == AnimNames.Kick);
                 Check($"Hệ {cls}: chiêu chưa có trong bảng → anim dự phòng ({vis.ResolveMotion(9999).anim})", vis.ResolveMotion(9999).anim != null);
+                // GĐ24: vật bay / vụ nổ khai trong bảng có thật trong bộ <Tên>FX (thiếu bộ FX demo → bỏ qua, chiêu vẫn chạy)
+                yield return WaitUntil(() => Fx.CharFx.Loaded(vis.FxSet), 5);
+                if (Fx.CharFx.Loaded(vis.FxSet))
+                {
+                    var badFx = new List<string>();
+                    foreach (var s in GameData.Skills.Values)
+                    {
+                        if (s.classId != cls) continue;
+                        var m = vis.ResolveMotion(s.id);
+                        if (m.fly != null && !Fx.CharFx.Has(vis.FxSet, m.fly)) badFx.Add(s.name + ":" + m.fly);
+                        if (m.impact != null && !Fx.CharFx.Has(vis.FxSet, m.impact)) badFx.Add(s.name + ":" + m.impact);
+                    }
+                    Check($"Hệ {cls}: hiệu ứng Spine của chiêu có trong {vis.FxSet} ({(badFx.Count == 0 ? "đủ" : "thiếu " + string.Join(", ", badFx))})", badFx.Count == 0);
+                }
+                else Debug.Log($"[AutoTest] INFO Hệ {cls}: chưa có bộ {vis.FxSet} (demo art) — bỏ qua kiểm vật bay");
             }
             {
                 var back = PlayerSpawner.LoadSkeleton(myClass);
@@ -536,6 +594,7 @@ namespace Assets.Script.Core
                 vis.SetupVisual(back.Result, null, myClass);
             }
             yield return Shot("Platform");
+            yield return CheckHighSkill(vis);
 
             // 5h. Nước (Đầm Lầy Sương Mù, hồ 2: ô nước x 41..45, mặt nước y = 4, đáy y = 3): chạy → đi trên mặt nước,
             //     đứng yên → chìm, nhảy + chạy → lên bờ. Trước 2026-10-22 nước không có collider / tag → rơi qua như không khí.

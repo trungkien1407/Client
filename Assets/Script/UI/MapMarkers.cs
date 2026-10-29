@@ -38,10 +38,16 @@ namespace Assets.Script.UI
             var me = Vector2.zero;
 
             foreach (var p in PortalMarkers.Current) Put(p.pos + new Vector2(0, 1f), Portal, 7, p.target);
-            foreach (var m in Object.FindObjectsOfType<MobController>())
-                if (!m.IsDead) Put(m.transform.position, Mob, 4, null);
-            foreach (var n in Object.FindObjectsOfType<NpcEntity>()) Put(n.transform.position, Npc, 6, n.GetTargetName());
-            foreach (var r in Object.FindObjectsOfType<RemotePlayer>()) Put(r.transform.position, Other, 5, null);
+            // Lấy từ sổ của các manager (không quét cả scene bằng FindObjectsOfType mỗi lần vẽ minimap)
+            if (NetworkMobManager.Instance != null)
+                foreach (var m in NetworkMobManager.Instance.All)
+                    if (m != null && !m.IsDead && m.gameObject.activeInHierarchy) Put(m.transform.position, Mob, 4, null);
+            if (NetworkNpcManager.Instance != null)
+                foreach (var n in NetworkNpcManager.Instance.All)
+                    if (n != null && n.gameObject.activeInHierarchy) Put(n.transform.position, Npc, 6, n.GetTargetName());
+            if (NetworkPlayerManager.Instance != null)
+                foreach (var r in NetworkPlayerManager.Instance.AllRemote)
+                    if (r != null && r.gameObject.activeInHierarchy) Put(r.transform.position, Other, 5, null);
             var local = NetworkPlayerManager.Instance != null ? NetworkPlayerManager.Instance.localPlayer : null;
             if (local != null) { me = local.transform.position; Put(me, Me, 7, "Bạn"); }
 

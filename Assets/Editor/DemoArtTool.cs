@@ -14,6 +14,7 @@ using UnityEngine;
 ///   1. Kho ảnh   07_VatPham_IconNho/imgN.png → _Demo/Resources/ImageBank/imgN.png    (icon vật phẩm / chiêu, khung hiệu ứng)
 ///   2. Hình quái 02_Quai/data_N/img_K.png + anim.json → _Demo/Resources/MobArt/N/ + MobAnim/MobAnim_N.asset
 ///   3. Skin UI   08_UI/... (khung cửa sổ, nút, ô...) → _Demo/Resources/UISkin/&lt;tên&gt;.png + viền 9-slice (UISkin dùng lúc chạy)
+///   4. FX nhân vật 01_NhanVat/Spine_NhanVat/export/&lt;Tên&gt;FX.json/.atlas/.png → _Demo/Resources/CharFX/&lt;Tên&gt;FX/ (vật bay, vụ nổ — Fx.CharFx)
 /// Code tải theo tên qua AssetSource: Addressables trước (hình chính thức), không có mới lấy _Demo → thay hình thật
 /// = đưa ảnh cùng tên vào Addressables (address "imgN", "MobAnim_N"), không sửa code.
 /// Không mở Editor: -executeMethod DemoArtTool.BatchImport -demoArt &lt;thư mục TaiNguyen&gt;
@@ -26,6 +27,8 @@ public static class DemoArtTool
     public const string MobAnimDir = Root + "/MobAnim";
     public const string SkinDir = Root + "/UISkin";
     public const string NpcArtDir = Root + "/NpcArt";
+    public const string CharFxDir = Root + "/CharFX";
+    private static readonly string[] CharFxSets = { "NarutoFX", "SakuraFX", "SasukeFX" };
     private const string DirKey = "Naruto.DemoArtDir";
 
     [MenuItem("Tools/Naruto/Demo art/1. Nhập kho ảnh + hình quái từ TaiNguyen", priority = 40)]
@@ -52,7 +55,9 @@ public static class DemoArtTool
         var mobDirs = CopyMobArt(Path.Combine(src, "02_Quai"));
         var npcArts = CopyNpcArt(Path.Combine(src, "03_NPC"));
         var skins = CopyUiSkin(Path.Combine(src, "08_UI"));
-        AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+        int fx = CopyCharFx(Path.Combine(src, "01_NhanVat", "Spine_NhanVat", "export"));
+        if (fx > 0) Debug.Log($"[DemoArt] FX nhân vật: {fx} bộ");
+        AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);   // spine-unity tự tạo _SkeletonData / _Atlas / vật liệu
         int mobs = 0, npcs = 0;
         foreach (var (art, anim) in mobDirs) if (BuildMobAnim(art, anim)) mobs++;
         foreach (var art in npcArts) if (BuildNpcArt(art)) npcs++;
@@ -150,6 +155,32 @@ public static class DemoArtTool
             if (!BankName.IsMatch(Path.GetFileName(f))) continue;
             string dst = Path.Combine(BankDir, Path.GetFileName(f));
             if (!File.Exists(dst) || new FileInfo(dst).Length != new FileInfo(f).Length) File.Copy(f, dst, true);
+            n++;
+        }
+        return n;
+    }
+
+    // ==================== FX NHÂN VẬT (Spine) ====================
+
+    /// <summary>Chép bộ Spine FX (json + atlas đổi đuôi .atlas.txt cho spine-unity nhận + các trang ảnh) — trả số bộ chép được.</summary>
+    private static int CopyCharFx(string dir)
+    {
+        if (!Directory.Exists(dir)) { Debug.LogWarning("[DemoArt] thiếu " + dir); return 0; }
+        int n = 0;
+        foreach (var set in CharFxSets)
+        {
+            string json = Path.Combine(dir, set + ".json"), atlas = Path.Combine(dir, set + ".atlas");
+            if (!File.Exists(json) || !File.Exists(atlas)) continue;
+            string dst = Path.Combine(CharFxDir, set);
+            Directory.CreateDirectory(dst);
+            File.Copy(json, Path.Combine(dst, set + ".json"), true);
+            File.Copy(atlas, Path.Combine(dst, set + ".atlas.txt"), true);
+            foreach (var line in File.ReadAllLines(atlas))   // dòng tên trang ảnh trong atlas (VD "NarutoFX.png")
+            {
+                string page = line.Trim();
+                if (page.EndsWith(".png", StringComparison.OrdinalIgnoreCase) && File.Exists(Path.Combine(dir, page)))
+                    File.Copy(Path.Combine(dir, page), Path.Combine(dst, page), true);
+            }
             n++;
         }
         return n;

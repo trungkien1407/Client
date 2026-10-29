@@ -20,6 +20,8 @@ namespace Assets.Script.Manager
         public int myPlayerId = -1;
         [HideInInspector] public PlayerMovement localPlayer; // gán lúc chạy khi spawn nhân vật, KHÔNG kéo tay
         private readonly Dictionary<int, RemotePlayer> remotePlayers = new Dictionary<int, RemotePlayer>();
+        /// <summary>Người chơi khác đang ở trong map (minimap vẽ chấm).</summary>
+        public IEnumerable<RemotePlayer> AllRemote => remotePlayers.Values;
         // Đang tải hình (bất đồng bộ). Bị xoá giữa chừng (rời map / đổi map) → tải xong thì trả lại, không thêm vào sổ.
         private readonly HashSet<int> loadingPlayers = new HashSet<int>();
 

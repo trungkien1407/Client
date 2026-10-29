@@ -47,7 +47,9 @@ namespace Assets.Script.UI.Windows
             var skills = new List<SkillTpl>();
             foreach (var s in GameData.Skills.Values)
                 if ((s.classId == 0 || s.classId == GameData.ClassType) && s.levels.Count > 0) skills.Add(s);
-            skills.Sort((a, b) => a.id.CompareTo(b.id));
+            // Xếp theo cấp mở chiêu (chiêu cấp 40 / 50 / 80 / 100 ở cuối), cùng cấp thì theo số
+            skills.Sort((a, b) => a.levels[0].levelRequire != b.levels[0].levelRequire
+                ? a.levels[0].levelRequire.CompareTo(b.levels[0].levelRequire) : a.id.CompareTo(b.id));
 
             foreach (var s in skills)
             {
