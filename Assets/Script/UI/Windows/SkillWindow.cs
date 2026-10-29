@@ -70,7 +70,7 @@ namespace Assets.Script.UI.Windows
                     : $"<size=14><color=#7cf>Cấp kế: {next.info} · {next.manaUse} MP</color></size>";
                 if (locked) info += $"  <size=14><color=#f77>(cần cấp {next.levelRequire})</color></size>";
                 var text = UIKit.Text("Info", row.transform, info, 16, TextAlignmentOptions.TopLeft);
-                text.rectTransform.Fill(8, 210, 4, 4);
+                text.rectTransform.Fill(8, 250, 4, 4);   // chừa chỗ nút Học / Nâng + 9 nút phím
                 ItemIcon.Add(row, s.iconId, ItemIcon.Place.Left, 56);
 
                 int id = s.id;
@@ -82,11 +82,13 @@ namespace Assets.Script.UI.Windows
                 }
                 if (cur > 0 && (s.type == (int)SkillType.Active || support)) // chiêu chủ động + chiêu hỗ trợ mới gán phím (bị động thì không)
                 {
-                    for (int k = 0; k < 5; k++)
+                    // 9 nút gán phím 1–9 ở góc dưới phải (nhỏ lại cho vừa — trước 5 nút 34 px)
+                    int n = SkillBarManager.SlotCount;
+                    for (int k = 0; k < n; k++)
                     {
                         int slot = k;
-                        var b = UIKit.Button("Key" + k, row.transform, (k + 1).ToString(), () => AssignShortcut(slot, id), 16);
-                        ((RectTransform)b.transform).Place(new Vector2(1, 0), new Vector2(1, 0), new Vector2(-8 - (4 - k) * 38, 6), new Vector2(34, 32), new Vector2(1, 0));
+                        var b = UIKit.Button("Key" + k, row.transform, (k + 1).ToString(), () => AssignShortcut(slot, id), 14);
+                        ((RectTransform)b.transform).Place(new Vector2(1, 0), new Vector2(1, 0), new Vector2(-8 - (n - 1 - k) * 26, 6), new Vector2(24, 30), new Vector2(1, 0));
                     }
                 }
             }

@@ -120,6 +120,8 @@ namespace Assets.Script.Core
             yield return null;
         }
 
+        private int _slot9Skill = -1;   // chiêu gán vào ô 9 (CheckHighSkill) — đăng nhập lại phải còn (server lưu 9 ô)
+
         /// <summary>
         /// GĐ24 — cấp tối đa 120 + chiêu cấp 100 có vật bay Spine riêng: /lv 125 → kẹt ở 120 → học chiêu có vật bay của hệ
         /// (Vĩ Thú Ngọc / Băng Tiêu / Mũi Tên Indra) → đánh quái gần → vật bay phát rồi nổ ở mục tiêu. Xong trả cấp cũ.
@@ -149,7 +151,30 @@ namespace Assets.Script.Core
                 GameActions.UpgradeSkill(tf);
                 yield return WaitUntil(() => GameData.MySkills.ContainsKey(tf), 4);
                 yield return WaitUntil(() => !vis.IsActionLocked, 3);
-                SkillCaster.TryCast(tf);
+                // Thanh chiêu 9 ô: gán chiêu biến thân vào ô 9 (server lưu) rồi BẤM ô 9 để dùng (= phím 9 / chạm trên điện thoại)
+                var bar = SkillBarManager.Instance;
+                var barRt = bar != null ? (RectTransform)bar.skillSlots[0].transform.parent : null;
+                float shown = barRt != null ? 120f * barRt.localScale.x : 0f;
+                // ô cuối không lấn sang nút Auto (Auto đã dời lên dưới bản đồ nhỏ) — so khung màn hình của ô 9 với nút Auto
+                var autoBtn = GameObject.Find("AutoBtn");
+                bool overlap = false;
+                if (bar != null && autoBtn != null)
+                {
+                    var a = new Vector3[4]; var b = new Vector3[4];
+                    ((RectTransform)bar.skillSlots[bar.skillSlots.Length - 1].transform).GetWorldCorners(a);
+                    ((RectTransform)autoBtn.transform).GetWorldCorners(b);
+                    overlap = a[0].x < b[2].x && a[2].x > b[0].x && a[0].y < b[2].y && a[2].y > b[0].y;
+                }
+                Check($"Thanh chiêu đủ 9 ô, ô nhỏ lại (~{shown:0} px, trước 120), không đè nút Auto",
+                    bar != null && bar.skillSlots.Length == 9 && shown < 100f && !overlap);
+                if (bar != null && bar.skillSlots.Length == 9)
+                {
+                    GameActions.SetShortcut(8, tf);
+                    bar.AssignSkillToSlot(8, tf);
+                    _slot9Skill = tf;
+                    bar.SelectSlotAndUse(8);
+                }
+                else SkillCaster.TryCast(tf);
                 yield return WaitUntil(() => vis.IsTransformed, 4);
                 tfOn = vis.IsTransformed;
                 Check($"Biến thân {GameData.Skills[tf].name} → skin Spine {vis.SkinName} (khác Normal)", tfOn && vis.SkinName != "Normal");
@@ -433,12 +458,14 @@ namespace Assets.Script.Core
             if (farMob != null)
             {
                 var ci = System.Globalization.CultureInfo.InvariantCulture;   // máy tiếng Việt viết "1,5" — server cần "1.5"
-                // Quái đi lang thang: chờ xong mà nó đã tới quá gần (Enter đánh luôn, không cần chạy) → dịch ra xa lại, tối đa 3 lần
+                // Đứng NGOÀI tầm chiêu đang chọn (Sakura đánh xa 5 ô — cách 5 ô là đánh luôn, không cần chạy) + 4 ô.
+                // Quái đi lang thang: chờ xong mà nó đã tới trong tầm → dịch ra xa lại, tối đa 3 lần
+                float enterRange = SkillCaster.SkillRange(SkillBarManager.Instance != null ? SkillBarManager.Instance.GetSelectedSkillId() : -1);
                 for (int tries = 0; tries < 3; tries++)
                 {
-                    ChatBox.Send(1, "", "/go " + (farMob.transform.position.x - 5f).ToString("0.0", ci) + " " + (farMob.transform.position.y + 0.5f).ToString("0.0", ci));
+                    ChatBox.Send(1, "", "/go " + (farMob.transform.position.x - enterRange - 4f).ToString("0.0", ci) + " " + (farMob.transform.position.y + 0.5f).ToString("0.0", ci));
                     yield return new WaitForSecondsRealtime(1.2f);
-                    if (farMob.DistanceFrom(meMove.transform.position) > 3.5f) break;
+                    if (farMob.DistanceFrom(meMove.transform.position) > enterRange + 1.5f) break;
                 }
                 FindAnyObjectByType<PlayerTargeting>()?.SelectTarget(farMob);
                 float d0 = farMob.DistanceFrom(meMove.transform.position);
@@ -582,11 +609,14 @@ namespace Assets.Script.Core
 
             // Cả 3 hệ: mọi chiêu (trừ bị động) đều tìm được anim có thật trong bộ Spine; chiêu lạ → anim dự phòng theo loại
             int myClass = vis.ClassType;
+            var spineScales = new List<string>();
             for (int cls = 1; cls <= 3; cls++)
             {
                 var load = PlayerSpawner.LoadSkeleton(cls);
                 yield return new WaitUntil(() => load.IsCompleted);
                 vis.SetupVisual(load.Result, null, cls);
+                vis.HideBody();   // chỉ kiểm dữ liệu — không để người xem thấy nhân vật mình lóe thành Sakura / Sasuke
+                if (load.Result != null) spineScales.Add(load.Result.scale.ToString("0.####"));
                 var missing = new List<string>();
                 foreach (var s in GameData.Skills.Values)
                 {
@@ -614,6 +644,9 @@ namespace Assets.Script.Core
                 }
                 else Debug.Log($"[AutoTest] INFO Hệ {cls}: chưa có bộ {vis.FxSet} (demo art) — bỏ qua kiểm vật bay");
             }
+            // 3 nhân vật cùng 1 khung xương → cùng tỉ lệ nhập (SkeletonDataAsset.scale). Trước 2026-10-29 Sakura để mặc định 0,01
+            // (2 bộ kia 0,004) → Sakura to gấp 2,5 lần
+            Check($"3 bộ Spine nhân vật cùng tỉ lệ ({string.Join(" / ", spineScales)})", spineScales.Count == 3 && spineScales.TrueForAll(x => x == spineScales[0]));
             {
                 var back = PlayerSpawner.LoadSkeleton(myClass);
                 yield return new WaitUntil(() => back.IsCompleted);
@@ -777,17 +810,32 @@ namespace Assets.Script.Core
                 GameActions.Chat(1, "/go 28.5 8");
                 yield return new WaitForSecondsRealtime(1.5f);
                 auHits = CombatNetwork.MyMobHits; auTele = AutoPlay.TeleRequests;
+                // Hệ đánh xa (Sakura 5 ô): quái gần nhất có thể đã TRONG TẦM từ chỗ đứng → đúng luật là đánh luôn, không xin dịch chuyển
+                float auRange = SkillCaster.SkillRange(SkillBarManager.Instance != null ? SkillBarManager.Instance.GetSelectedSkillId() : -1);
+                var auNear = NetworkMobManager.Instance?.FindNearestAlive(auMe.transform.position, 60f);
+                bool auInRange = auNear != null && auNear.DistanceFrom(auMe.transform.position) <= auRange - 0.15f;
+                bool auCame = false;
                 float auJump = 0f;
                 Vector3 auPrev = auMe.transform.position;
                 AutoPlay.Instance.SetOn(true, null);
                 for (float auT = 0; auT < 10f && (auJump < 2f || CombatNetwork.MyMobHits == auHits); auT += Time.unscaledDeltaTime)
                 {
                     auJump = Mathf.Max(auJump, Vector2.Distance(auPrev, auMe.transform.position));   // 1 khung nhảy xa = dịch chuyển
+                    // Quái lang thang / chủ động tự tới gần (≤ TeleMinDist) TRƯỚC khi kịp dịch chuyển → luật là đi bộ đánh, không dịch chuyển
+                    if (AutoPlay.TeleRequests == auTele)
+                    {
+                        var auClose = NetworkMobManager.Instance?.FindNearestAlive(auMe.transform.position, 60f);
+                        if (auClose != null && auClose.DistanceFrom(auMe.transform.position) <= AutoPlay.TeleMinDist) auCame = true;
+                    }
                     auPrev = auMe.transform.position;
                     yield return null;
                 }
-                Check($"Có Tự động luyện tập → dịch chuyển tới quái rồi đánh (xin {AutoPlay.TeleRequests - auTele} lần, nhảy {auJump:0.0} ô, {CombatNetwork.MyMobHits - auHits} đòn)",
-                    AutoPlay.TeleRequests > auTele && auJump >= 2f && CombatNetwork.MyMobHits > auHits);
+                if (auInRange || (auCame && AutoPlay.TeleRequests == auTele))
+                    Check($"Có Tự động luyện tập, quái {(auInRange ? $"đã trong tầm {auRange:0.#} ô" : $"tự tới gần ≤ {AutoPlay.TeleMinDist} ô")} → đánh luôn, không dịch chuyển ({CombatNetwork.MyMobHits - auHits} đòn)",
+                        AutoPlay.TeleRequests == auTele && CombatNetwork.MyMobHits > auHits);
+                else
+                    Check($"Có Tự động luyện tập → dịch chuyển tới quái rồi đánh (xin {AutoPlay.TeleRequests - auTele} lần, nhảy {auJump:0.0} ô, {CombatNetwork.MyMobHits - auHits} đòn)",
+                        AutoPlay.TeleRequests > auTele && auJump >= 2f && CombatNetwork.MyMobHits > auHits);
                 yield return Shot("AutoTele");
                 AutoPlay.Instance.SetOn(false, null);
 
@@ -1094,6 +1142,10 @@ namespace Assets.Script.Core
                 Check("Đăng nhập lại vào map", NetworkPlayerManager.Instance?.localPlayer != null);
                 yield return new WaitForSecondsRealtime(1.5f);
                 Check("Sau khi đăng nhập lại HUD hiện lại", hudCanvas != null && hudCanvas.activeSelf);
+                if (_slot9Skill > 0)
+                    Check($"Đăng nhập lại: ô 9 vẫn giữ chiêu {_slot9Skill} (server lưu đủ 9 ô phím tắt)",
+                        SkillBarManager.Instance != null && SkillBarManager.Instance.skillSlots.Length == 9
+                        && SkillBarManager.Instance.skillSlots[8].assignedSkillId == _slot9Skill);
                 yield return Shot("Relogin");
 
                 // 8. Đăng xuất (Cài đặt → Đăng xuất): server lưu + trả LOGOUT 0 → về màn đăng nhập → vào lại được

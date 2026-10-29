@@ -28,7 +28,7 @@ namespace Assets.Script.Combat
         public const float LocalRadius = 5f;      // tắt "tự tìm quái": chỉ đánh quái cách chỗ bật auto chừng này
         private const float PickSearch = 6f;      // đi nhặt đồ trong bán kính này
         private const float PickGiveUp = 4f;      // đi mãi không nhặt được (khác bục, túi đầy) → bỏ món đó 30 giây
-        private const float TeleMinDist = 2.5f;   // gần hơn thì đi bộ cho tự nhiên
+        public const float TeleMinDist = 2.5f;    // gần hơn thì đi bộ cho tự nhiên (AutoTestRunner dùng để kiểm)
         private const float TeleGap = 1.2f;       // server cho 1 lần / giây
         private const float GiveUp = 5f;          // chừng này giây không lại gần mục tiêu hơn → bỏ con đó 15 giây
         private const float ManualPause = 2f;

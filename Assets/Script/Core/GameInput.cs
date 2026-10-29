@@ -7,7 +7,7 @@ namespace Assets.Script.Core
     public enum GameKey
     {
         Attack, Action, Revive, PotionHp, PotionMp, TalkNpc, OpenChat, CloseWindow,
-        Skill1, Skill2, Skill3, Skill4, Skill5,
+        Skill1, Skill2, Skill3, Skill4, Skill5, Skill6, Skill7, Skill8, Skill9,   // liền nhau: SkillSlot(i) = Skill1 + i
         AutoToggle,
     }
 
@@ -34,6 +34,10 @@ namespace Assets.Script.Core
             { GameKey.Skill3, new[] { Key.Digit3 } },
             { GameKey.Skill4, new[] { Key.Digit4 } },
             { GameKey.Skill5, new[] { Key.Digit5 } },
+            { GameKey.Skill6, new[] { Key.Digit6 } },
+            { GameKey.Skill7, new[] { Key.Digit7 } },
+            { GameKey.Skill8, new[] { Key.Digit8 } },
+            { GameKey.Skill9, new[] { Key.Digit9 } },
         };
 
         private static int _lastTypingFrame = -10;
@@ -75,7 +79,7 @@ namespace Assets.Script.Core
             return false;
         }
 
-        /// <summary>Phím chiêu thứ i (0..4) vừa bấm?</summary>
+        /// <summary>Phím chiêu thứ i (0..8) vừa bấm?</summary>
         public static bool SkillSlot(int i) => Pressed(GameKey.Skill1 + i);
     }
 }

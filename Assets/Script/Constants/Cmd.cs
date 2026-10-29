@@ -45,7 +45,7 @@
         public const short CHARACTER_INFO = 206;    // S→C bảng chỉ số nhân vật (xem GameDataNetwork.OnCharacterInfo)
         public const short SKILL_UPGRADE = 207;     // C→S int skillTemplateId
         public const short SKILL_LIST = 208;        // S→C short count, [int templateId, short point]
-        public const short SET_SKILL_SHORTCUT = 209; // C→S byte slot 0..4, int skillTemplateId (-1 = xoá)
+        public const short SET_SKILL_SHORTCUT = 209; // C→S byte slot 0..8, int skillTemplateId (-1 = xoá)
         // ---- GĐ3: PvP ----
         public const short PK_MODE = 210;           // C→S byte mode (0 hoà bình / 1 đồ sát)
         public const short PLAYER_PVP_INFO = 211;   // S→C int playerId, byte pkMode, short pkPoint, UTF guildName

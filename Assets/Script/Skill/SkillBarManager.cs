@@ -8,9 +8,12 @@ namespace Assets.Script.Skill
     {
         public static SkillBarManager Instance;
 
+        /// <summary>Số ô chiêu (phím 1 → 9) — khớp server SkillService.SHORTCUT_SLOTS.</summary>
+        public const int SlotCount = 9;
+
         [Header("Danh sách các ô Skill (Kéo thả từ UI vào)")]
-        [Tooltip("[CẦN ĐIỀN] Kéo 5 ô SkillSlotUI trên HUD theo thứ tự phím 1→5")]
-        public SkillSlotUI[] skillSlots; // Mảng 5 ô skill
+        [Tooltip("Kéo các ô SkillSlotUI trên HUD theo thứ tự phím 1→5 — thiếu tới 9 ô thì lúc chạy tự nhân bản ô cuối (EnsureSlots)")]
+        public SkillSlotUI[] skillSlots;
 
         [Tooltip("[CẦN ĐIỀN] Kéo Assets/SO/SkillDatabase.asset. Thêm skill mới: mở asset đó, thêm dòng templateId (khớp skill_template.id bên server) + iconId + atlas icon")]
         public SkillDatabaseSO skillDatabase;
@@ -71,7 +74,53 @@ namespace Assets.Script.Skill
         private void Awake()
         {
             if (Instance == null) Instance = this;
-            else Destroy(gameObject);
+            else { Destroy(gameObject); return; }
+            EnsureSlots();
+        }
+
+        /// <summary>
+        /// 9 Ô CHIÊU (2026-10-29, mỗi hệ giờ có tới 9 chiêu chủ động): scene chỉ kéo sẵn 5 ô → nhân bản ô cuối cho đủ SlotCount,
+        /// rồi THU NHỎ CẢ THANH cho vừa bề rộng cũ (ô 120 → ~75 px trên màn hình). Không co cellSize của lưới: các lớp con trong ô (khung chọn,
+        /// icon) vẽ theo cỡ 120 → co lưới thì ô 1 (khung chọn) và icon phình ra đè ô bên cạnh / nút Auto. Mỗi ô bấm / chạm được (trước chỉ phím 1–5).
+        /// </summary>
+        private void EnsureSlots()
+        {
+            if (skillSlots == null || skillSlots.Length == 0) return;
+            var list = new List<SkillSlotUI>(skillSlots);
+            var last = list[list.Count - 1];
+            while (list.Count < SlotCount && last != null)
+            {
+                var copy = Instantiate(last, last.transform.parent);
+                copy.name = "Slot" + (list.Count + 1);
+                copy.assignedSkillId = -1;
+                list.Add(copy);
+            }
+            skillSlots = list.ToArray();
+            for (int i = 0; i < skillSlots.Length; i++)
+            {
+                var s = skillSlots[i];
+                if (s == null) continue;
+                s.slotIndex = i;
+                s.SetSelected(false);
+                if (!s.TryGetComponent(out UnityEngine.UI.Button btn)) btn = s.gameObject.AddComponent<UnityEngine.UI.Button>();
+                btn.transition = UnityEngine.UI.Selectable.Transition.None;
+                int index = i;
+                btn.onClick.RemoveAllListeners();
+                btn.onClick.AddListener(() => SelectSlotAndUse(index));
+            }
+            var parent = skillSlots[0].transform.parent;
+            if (parent != null && parent.TryGetComponent(out UnityEngine.UI.GridLayoutGroup grid))
+            {
+                var rt = (RectTransform)parent;
+                float width = rt.sizeDelta.x;                                           // bề rộng thanh cũ (700)
+                int n = skillSlots.Length;
+                float need = n * grid.cellSize.x + (n - 1) * grid.spacing.x;           // 9 ô 120 px + khe
+                if (need > width)
+                {
+                    rt.sizeDelta = new Vector2(need, rt.sizeDelta.y);
+                    rt.localScale = Vector3.one * (width / need);                       // pivot giữa → vẫn nằm đúng chỗ cũ
+                }
+            }
         }
 
         private void Start()
@@ -94,8 +143,8 @@ namespace Assets.Script.Skill
 
         private void Update()
         {
-            // Phím 1 → 5 (GameInput: đang gõ chữ thì bỏ qua)
-            for (int i = 0; i < 5; i++) if (Core.GameInput.SkillSlot(i)) SelectSlotAndUse(i);
+            // Phím 1 → 9 (GameInput: đang gõ chữ thì bỏ qua)
+            for (int i = 0; i < skillSlots.Length && i < SlotCount; i++) if (Core.GameInput.SkillSlot(i)) SelectSlotAndUse(i);
         }
 
         // Hàm đổi vùng chọn sang ô mới và dùng luôn

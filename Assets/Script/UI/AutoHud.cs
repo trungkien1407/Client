@@ -6,21 +6,21 @@ using UnityEngine.UI;
 namespace Assets.Script.UI
 {
     /// <summary>
-    /// NÚT "Auto" trên HUD (cạnh phải thanh kỹ năng): bấm = bật / tắt AutoPlay (như phím Z), đang bật thì nút vàng + chữ "Auto: Bật".
-    /// Tuỳ chọn tự động: cửa sổ AutoWindow (phím U / Cài đặt → Tự động). Dựng bằng code, GameHud gọi Create.
-    /// Muốn dời nút: sửa Pos (chuẩn 1280×720, neo giữa-đáy màn hình).
+    /// NÚT "Auto" trên HUD (góc phải trên, ngay dưới nút Khu — dưới bản đồ nhỏ): bấm = bật / tắt AutoPlay (như phím Z),
+    /// đang bật thì nút vàng + chữ "Auto: Bật". Tuỳ chọn tự động: cửa sổ AutoWindow (phím U / Cài đặt → Tự động). Dựng bằng code, GameHud gọi Create.
+    /// Trước 2026-10-29 nằm cạnh phải thanh kỹ năng — thanh lên 9 ô thì đè nhau. Muốn dời nút: sửa Pos (neo góc phải trên).
     /// </summary>
     public class AutoHud : MonoBehaviour
     {
-        public static readonly Vector2 Pos = new Vector2(300, 18), Size = new Vector2(92, 44);
+        public static readonly Vector2 Pos = new Vector2(-8, -MinimapHud.H - 14 - 30 - 20), Size = new Vector2(MinimapHud.W, 30);   // dưới nút Khu (GameHudView.zoneBtn), cách 20
         private Button _btn;
         private Color _normal;
         private bool _hasNormal;
 
         public static AutoHud Create(Transform parent)
         {
-            var btn = UIKit.Button("AutoBtn", parent, "Auto", AutoPlay.Toggle, 17);
-            ((RectTransform)btn.transform).Place(new Vector2(0.5f, 0), new Vector2(0.5f, 0), Pos, Size, new Vector2(0.5f, 0));
+            var btn = UIKit.Button("AutoBtn", parent, "Auto", AutoPlay.Toggle, 14);
+            ((RectTransform)btn.transform).Place(new Vector2(1, 1), new Vector2(1, 1), Pos, Size, new Vector2(1, 1));
             var hud = btn.gameObject.AddComponent<AutoHud>();
             hud._btn = btn;
             return hud;
