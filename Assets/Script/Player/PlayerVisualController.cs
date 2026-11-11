@@ -39,6 +39,39 @@ namespace Assets.Script.Player
         /// <summary>Hình đang hạ bao nhiêu (ô) — AutoTestRunner kiểm.</summary>
         public float WaterSink => _sink;
 
+        // ---- THÚ CƯỠI (GĐ28): Fx.PetMount gọi SetRide — nhân vật nâng lên lưng thú + anim di chuyển đổi thành "ride" ----
+        public const string RideAnim = "ride";
+        private bool _riding;
+        private float _lift;
+        /// <summary>Đang ngồi trên thú (đang vẽ thú dưới chân).</summary>
+        public bool IsRiding => _riding;
+        /// <summary>Nhân vật đang được nâng bao nhiêu (đơn vị thế giới).</summary>
+        public float RideLift => _lift;
+
+        /// <summary>Lên (on, nâng {lift}) / xuống thú. Đổi trạng thái thì đổi anim ngay (đang diễn đòn thì để đòn diễn nốt).</summary>
+        public void SetRide(bool on, float lift)
+        {
+            lift = on ? lift : 0f;
+            if (on == _riding && Mathf.Approximately(lift, _lift)) return;
+            bool changed = on != _riding;
+            _riding = on;
+            _lift = lift;
+            ApplyVisualY();
+            if (!changed || mainSkeleton == null || mainSkeleton.AnimationState == null || IsActionLocked) return;
+            string anim = on && HasAnim(RideAnim) ? RideAnim : idleAnimation;
+            var a = mainSkeleton.Skeleton?.Data?.FindAnimation(anim);
+            if (a != null) SetAnimWithSpeed(a, true);
+        }
+
+        private void ApplyVisualY()
+        {
+            if (mainVisualObj == null) return;
+            var lp = mainVisualObj.transform.localPosition;
+            // localPosition tính theo tỉ lệ của thân (thân có thể scale < 1) → đổi độ nâng (đơn vị thế giới) ra đơn vị cục bộ
+            float sy = Mathf.Abs(transform.lossyScale.y) > 1e-4f ? Mathf.Abs(transform.lossyScale.y) : 1f;
+            mainVisualObj.transform.localPosition = new Vector3(lp.x, _visualBaseY - _sink + _lift / sy, lp.z);
+        }
+
         private void Awake()
         {
             if (mainVisualObj != null) _visualBaseY = mainVisualObj.transform.localPosition.y;
@@ -70,11 +103,12 @@ namespace Assets.Script.Player
         {
             ClassType = classType;
             Fx.BodyAura.ResetOn(this, true);   // thân lấy lại từ pool: bỏ trạng thái + hào quang của người dùng trước
-            Fx.PetFollower.ResetOn(this);      // … và thú cưng của người đó (GĐ27)
+            Fx.PetMount.ResetOn(this);         // … và thú cưỡi của người đó (GĐ28)
             isdead = false;                     // cờ chết của người dùng trước (thanh máu đứng yên, ẩn hào quang)
             _ghostUntil = 0f;
             _transformUntil = 0f; _transformed = false;   // Initialize dưới đặt lại skin Normal
             _sink = _sinkTarget = 0f;                       // thân lấy từ pool có thể đang hạ (người trước đứng trên nước)
+            _riding = false; _lift = 0f;                    // … và đang ngồi trên thú (GĐ28)
             if (mainVisualObj != null) { var lp0 = mainVisualObj.transform.localPosition; mainVisualObj.transform.localPosition = new Vector3(lp0.x, _visualBaseY, lp0.z); }
             // 1. Reset trạng thái sống
             if (mainVisualObj != null) mainVisualObj.SetActive(true);
@@ -123,6 +157,8 @@ namespace Assets.Script.Player
         {
             if (mainSkeleton == null || mainVisualObj == null || !mainVisualObj.activeSelf) return;
             if (Time.time < _actionLockUntil) return;
+            // Đang cưỡi thú: mọi anim di chuyển (đứng / chạy / nhảy / rơi) → ngồi "ride"; thú bên dưới tự chạy / nhảy (Fx.PetMount)
+            if (_riding && IsMoveAnim(animName) && HasAnim(RideAnim)) animName = RideAnim;
             // Tránh chơi đè lại cùng 1 animation đang chạy
             if (mainSkeleton.AnimationName == animName) return;
             var anim = mainSkeleton.Skeleton?.Data?.FindAnimation(animName);
@@ -136,6 +172,9 @@ namespace Assets.Script.Player
         /// Diễn 1 động tác KHÔNG lặp (vd "Punch_Combo" khi đánh) rồi tự quay về Idle.
         /// Trong lúc diễn, các lệnh PlayAnimation của di chuyển bị bỏ qua. speed = 0 → tốc độ theo AnimSpeeds.
         /// </summary>
+        private static bool IsMoveAnim(string a) =>
+            a == AnimNames.Idle || a == AnimNames.Run || a == AnimNames.Jump || a == AnimNames.Fall || a == AnimNames.FallDown;
+
         public bool PlayActionOnce(string animName, float speed = 0f)
         {
             if (mainSkeleton == null || mainVisualObj == null || !mainVisualObj.activeSelf) return false;
@@ -361,8 +400,7 @@ namespace Assets.Script.Player
             if (!Mathf.Approximately(_sink, _sinkTarget) && mainVisualObj != null)
             {
                 _sink = Mathf.MoveTowards(_sink, _sinkTarget, Time.deltaTime * 2.5f);
-                var lp = mainVisualObj.transform.localPosition;
-                mainVisualObj.transform.localPosition = new Vector3(lp.x, _visualBaseY - _sink, lp.z);
+                ApplyVisualY();
             }
             if (_transformed && (isdead || Time.time >= _transformUntil)) SetTransformSkin(false);   // hết giờ / chết → dạng thường
             float a = Time.time < _ghostUntil && !isdead ? 0.45f + 0.15f * Mathf.Sin(Time.time * 12f) : 1f;

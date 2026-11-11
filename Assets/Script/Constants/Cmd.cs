@@ -48,7 +48,7 @@
         public const short SET_SKILL_SHORTCUT = 209; // C→S byte slot 0..8, int skillTemplateId (-1 = xoá)
         // ---- GĐ3: PvP ----
         public const short PK_MODE = 210;           // C→S byte mode (0 hoà bình / 1 đồ sát)
-        public const short PLAYER_PVP_INFO = 211;   // S→C int playerId, byte pkMode, short pkPoint, UTF guildName, byte glow, short petArt, byte petStage
+        public const short PLAYER_PVP_INFO = 211;   // S→C int playerId, byte pkMode, short pkPoint, UTF guildName, byte glow, short petArt, byte petStage, byte riding
         public const short DUEL_REQUEST = 212;      // C→S int targetPlayerId
         public const short DUEL_INVITE = 213;       // S→C int fromId, UTF fromName
         public const short DUEL_ACCEPT = 214;       // C→S int fromId
@@ -199,6 +199,7 @@
         public const short PET_EQUIP = 372;         // C→S int uid (0 = cất)
         public const short PET_FEED = 373;          // C→S int uid, int itemId thức ăn, short số miếng
         public const short PET_RELEASE = 374;       // C→S int uid (phóng sinh)
+        public const short MOUNT_RIDE = 375;        // C→S byte 1 lên / 0 xuống thú cưỡi (GĐ28) — server báo lại bằng PLAYER_PVP_INFO (byte riding)
         // GĐ9 — hoạt động hằng ngày, sổ tay nhiệm vụ, mẹo theo cấp
         public const short QUEST_GUIDE_REQ = 724;   // C→S rỗng
         public const short QUEST_GUIDE = 725;       // S→C short n, [int questId, byte status(0 đang làm/1 có thể nhận/2 chờ trả), byte daily, UTF nơi đến]

@@ -7,7 +7,7 @@ namespace Assets.Script.Data
 {
     /// <summary>
     /// GÓI THÚ CƯNG (GĐ27): PET_LIST → GameData.Pets + vẽ lại cửa sổ Thú cưng.
-    /// Hình thú đi theo (của mình lẫn người khác) KHÔNG đọc ở đây mà ở đuôi PLAYER_PVP_INFO (SocialNetwork → Fx.PetFollower).
+    /// Hình thú cưỡi (của mình lẫn người khác) KHÔNG đọc ở đây mà ở đuôi PLAYER_PVP_INFO (SocialNetwork → Fx.PetMount).
     /// Vừa nở được con đầu tiên → tự mở cửa sổ để người chơi thấy thú mới.
     /// </summary>
     public class PetNetwork : NetworkListener
@@ -35,6 +35,19 @@ namespace Assets.Script.Data
                 p.stage = r.ReadByte();
                 for (int k = 0; k < 4; k++) p.bonus[k] = r.ReadInt();
                 GameData.Pets.Add(p);
+            }
+            // GĐ28 đuôi: dòng tiềm năng từng con (cùng thứ tự) — byte số dòng, [byte loại, byte chất, int giá trị]
+            if (r.Available() > 0)
+                foreach (var p in GameData.Pets)
+                {
+                    int lines = r.ReadByte();
+                    for (int k = 0; k < lines; k++) p.pot.Add((r.ReadByte(), r.ReadByte(), r.ReadInt()));
+                }
+            // GĐ28 thể lực: short tối đa, [short thể lực] × n
+            if (r.Available() >= 2)
+            {
+                int max = r.ReadShort();
+                foreach (var p in GameData.Pets) { p.staminaMax = max; p.stamina = r.ReadShort(); }
             }
             r.Cleanup();
             GameData.PetListReceived = true;

@@ -9,6 +9,7 @@ namespace Assets.Script.Core
         Attack, Action, Revive, PotionHp, PotionMp, TalkNpc, OpenChat, CloseWindow,
         Skill1, Skill2, Skill3, Skill4, Skill5, Skill6, Skill7, Skill8, Skill9,   // liền nhau: SkillSlot(i) = Skill1 + i
         AutoToggle,
+        Mount,   // GĐ28 lên / xuống thú cưỡi (cùng phím R với Hồi sinh: chết thì R = hồi sinh, sống thì R = cưỡi)
     }
 
     /// <summary>
@@ -26,6 +27,7 @@ namespace Assets.Script.Core
             { GameKey.PotionHp, new[] { Key.Q } },
             { GameKey.PotionMp, new[] { Key.E } },
             { GameKey.AutoToggle, new[] { Key.Z } },                              // bật / tắt tự động (AutoPlay)
+            { GameKey.Mount, new[] { Key.R } },                                   // lên / xuống thú cưỡi (khi còn sống)
             { GameKey.TalkNpc, new[] { Key.F } },
             { GameKey.OpenChat, new[] { Key.T } },                                // Enter đã dành cho Action
             { GameKey.CloseWindow, new[] { Key.Escape } },

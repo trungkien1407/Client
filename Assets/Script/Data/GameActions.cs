@@ -49,6 +49,7 @@ namespace Assets.Script.Data
         public static void UseSkill(int skillId, AttackTarget target, int targetId)
         {
             UseSkillSent++;
+            Fx.PetMount.PredictDismount();   // GĐ28: ra đòn → xuống thú ngay (server cũng cho xuống)
             Send(Cmd.USE_SKILL, w => { w.WriteInt(skillId); w.WriteByte((byte)target); w.WriteInt(targetId); });
         }
         public static void Revive() => Send(Cmd.REVIVE, null);
@@ -153,6 +154,8 @@ namespace Assets.Script.Data
         public static void PetEquip(int uid) => Send(Cmd.PET_EQUIP, w => w.WriteInt(uid));
         public static void PetFeed(int uid, int foodId, int qty) => Send(Cmd.PET_FEED, w => { w.WriteInt(uid); w.WriteInt(foodId); w.WriteShort((short)qty); });
         public static void PetRelease(int uid) => Send(Cmd.PET_RELEASE, w => w.WriteInt(uid));
+        /// <summary>GĐ28: lên (true) / xuống thú cưỡi — phím R, nút "Cưỡi".</summary>
+        public static void MountRide(bool on) => Send(Cmd.MOUNT_RIDE, w => w.WriteByte((byte)(on ? 1 : 0)));
 
         // ---- GĐ9: chợ ----
         /// <param name="category">0 tất cả · 1 vũ khí · 2 trang phục · 3 bình · 4 nguyên liệu</param>

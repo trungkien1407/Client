@@ -56,7 +56,7 @@ namespace Assets.Script.UI
         {
             if (_owner == null || _owner.myData == null) return;
             // Đặt theo TOẠ ĐỘ THẾ GIỚI (nhân vật có thể scale < 1 hoặc lật trái/phải bằng scale.x âm)
-            transform.position = _owner.transform.position + new Vector3(0, HeightOffset, 0);
+            transform.position = _owner.transform.position + new Vector3(0, HeightOffset + Fx.PetMount.LiftOf(_owner), 0);   // đang cưỡi thú → nâng tên theo
             var ls = transform.parent.lossyScale;
             float sx = Mathf.Abs(ls.x) > 0.0001f ? 1f / ls.x : 1f, sy = Mathf.Abs(ls.y) > 0.0001f ? 1f / ls.y : 1f;
             transform.localScale = new Vector3(sx, sy, 1); // chữ luôn cùng cỡ, không bị ngược

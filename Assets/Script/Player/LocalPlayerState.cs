@@ -34,6 +34,9 @@ namespace Assets.Script.Player
         public static int SlowPercent;
         /// <summary>Hệ số tốc độ chạy (1 = bình thường) — khớp server StatusEffects.speedFactor.</summary>
         public static float SpeedFactor => UnityEngine.Time.time < SlowedUntil ? UnityEngine.Mathf.Max(0.2f, 1f - SlowPercent / 100f) : 1f;
+        /// <summary>GĐ28: server báo đang cưỡi thú (PLAYER_PVP_INFO) → chạy nhanh × Fx.PetMount.SpeedBonus (RideFactor).</summary>
+        public static bool Riding;
+        public static float RideFactor => Riding ? Fx.PetMount.SpeedBonus : 1f;
         public static float BuffedUntil;   // GĐ8: đang được tăng sức mạnh (Cổ Vũ / Thiết Thể / Ảnh Bộ)
         public static bool IsBuffed => UnityEngine.Time.time < BuffedUntil;
 

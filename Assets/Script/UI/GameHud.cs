@@ -75,6 +75,7 @@ namespace Assets.Script.UI
             HudPanel.Create<MinimapHud>(_v.transform);   // phím B = bản đồ lớn
             StatusIconsHud.Create(_v.transform, new Vector2(252, -86));
             AutoHud.Create(_v.transform);                // nút Auto (bật / tắt tự động, như phím Z)
+            MountHud.Create(_v.transform);               // nút Cưỡi (lên / xuống thú cưỡi, như phím R) — GĐ28
             // Nút "Rời" phó bản (góc phải khung sự kiện, chỉ hiện khi đang ở phó bản) — map phó bản không có cổng ra
             _leaveDungeon = UIKit.Button("LeaveDungeon", _v.eventPanel.transform, "Rời", () =>
                 ConfirmWindow.Ask("Rời phó bản về làng? Lượt hôm nay đã dùng, không được trả lại.", "Rời", GameActions.DungeonLeave), 14);

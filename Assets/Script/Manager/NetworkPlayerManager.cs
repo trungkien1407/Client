@@ -163,7 +163,7 @@ namespace Assets.Script.Manager
                 else remotePlayers.Add(p.id, PlayerSpawner.SetupRemote(obj, p, spine));
                 // Hào quang vũ khí (PLAYER_PVP_INFO có thể tới TRƯỚC khi nhân vật tải xong)
                 if (Data.GameData.Pvp.TryGetValue(p.id, out var pvp) && pvp.glow > 0) Fx.BodyAura.On(obj.transform).GlowTier = pvp.glow;
-                if (pvp != null && pvp.petArt > 0) Fx.PetFollower.Set(obj.transform, pvp.petArt, pvp.petStage);   // GĐ27 thú đi theo
+                if (pvp != null && pvp.petArt > 0) Fx.PetMount.Set(obj.transform, pvp.petArt, pvp.petStage, pvp.riding);   // GĐ28 thú cưỡi
                 // Đang biến thân (EFFECT 6 tới trước khi tải xong, hoặc vừa đổi map / khu)
                 if (Data.GameData.TransformUntil.TryGetValue(p.id, out float tfUntil) && tfUntil > Time.time && obj.TryGetComponent(out PlayerVisualController tfv))
                     tfv.Transform(tfUntil - Time.time);

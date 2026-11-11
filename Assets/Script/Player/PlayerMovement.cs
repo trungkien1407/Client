@@ -258,7 +258,7 @@ namespace Assets.Script.Player
             if (isOnWaterSurface)
             {
                 rb.gravityScale = 0f;
-                rb.velocity = new Vector2(moveInput.x * moveSpeed * LocalPlayerState.SpeedFactor, 0f);
+                rb.velocity = new Vector2(moveInput.x * moveSpeed * LocalPlayerState.SpeedFactor * LocalPlayerState.RideFactor, 0f);
 
                 float offsetToFeet = rb.position.y - col.bounds.min.y;
                 rb.position = new Vector2(rb.position.x, waterSurfaceY + offsetToFeet + 0.01f);   // chân ngang mặt nước — ra bờ không vướng góc
@@ -267,7 +267,7 @@ namespace Assets.Script.Player
             else
             {
                 rb.gravityScale = baseGravity;
-                rb.velocity = new Vector2(moveInput.x * moveSpeed * LocalPlayerState.SpeedFactor, rb.velocity.y);
+                rb.velocity = new Vector2(moveInput.x * moveSpeed * LocalPlayerState.SpeedFactor * LocalPlayerState.RideFactor, rb.velocity.y);
             }
         }
 

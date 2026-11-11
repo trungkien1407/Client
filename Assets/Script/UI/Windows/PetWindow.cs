@@ -10,9 +10,9 @@ using UnityEngine.UI;
 namespace Assets.Script.UI.Windows
 {
     /// <summary>
-    /// THÚ CƯNG (GĐ27, phím P · nút ở bảng Nhân vật) — server gửi PET_LIST (GameData.Pets).
-    ///   Trái : các con đang có (tối đa 6) — màu tên theo độ hiếm, [Mang] = con đang đi theo.
-    ///   Phải : hình động (Spine trong UI, dáng theo cấp) + chỉ số + [Mang theo / Cất] · [Phóng sinh] (hỏi lại) ·
+    /// THÚ CƯNG / THÚ CƯỠI (GĐ27 + GĐ28, phím P · nút ở bảng Nhân vật) — server gửi PET_LIST (GameData.Pets).
+    ///   Trái : các con đang có (tối đa 6) — màu tên theo độ hiếm, [Cưỡi] = con đang mang (ngồi trên lưng, phím R lên / xuống).
+    ///   Phải : hình động (Spine trong UI, dáng theo cấp) + chỉ số + DÒNG TIỀM NĂNG (GĐ28, tăng theo cấp) + [Cưỡi / Cất] · [Phóng sinh] (hỏi lại) ·
     ///          cho ăn bằng thức ăn đang có trong túi (Ăn 1 / Ăn 10 — server dừng sớm nếu chạm trần cấp chủ).
     /// Có trứng: bấm "Dùng" trong Hành trang → nở → cửa sổ này tự mở (PetNetwork).
     /// </summary>
@@ -20,6 +20,8 @@ namespace Assets.Script.UI.Windows
     {
         private static readonly int[] Foods = { 143, 144 };   // khớp server PetRules.FOOD_EXP
         private static readonly int[] FoodExp = { 300, 2000 };
+        private static readonly int[] Herbs = { 145, 146 };   // GĐ28 hồi thể lực — khớp server PetRules.STAMINA_ITEMS
+        private static readonly int[] HerbSta = { 200, 500 };
 
         [SerializeField] private RectTransform _list, _preview, _foods;
         [SerializeField] private TextMeshProUGUI _head, _detail, _note;
@@ -45,13 +47,13 @@ namespace Assets.Script.UI.Windows
             ((RectTransform)_list.parent).Place(new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, -26), new Vector2(270, 380), new Vector2(0, 1));
 
             var box = UIKit.Panel("PreviewBox", body, new Color(0, 0, 0, 0.35f)).rectTransform;
-            box.Place(new Vector2(1, 1), new Vector2(1, 1), Vector2.zero, new Vector2(400, 190), new Vector2(1, 1));
+            box.Place(new Vector2(1, 1), new Vector2(1, 1), Vector2.zero, new Vector2(400, 150), new Vector2(1, 1));
             _preview = UIKit.Rect("Preview", box).Fill(6, 6, 6, 6);
             box.gameObject.AddComponent<RectMask2D>();
 
-            _detail = UIKit.Text("Detail", body, "", 15, TextAlignmentOptions.TopLeft);
-            _detail.rectTransform.Place(new Vector2(1, 1), new Vector2(1, 1), new Vector2(0, -196), new Vector2(400, 120), new Vector2(1, 1));
-            _equip = UIKit.Button("Equip", body, "Mang theo", null, 15);
+            _detail = UIKit.Text("Detail", body, "", 14, TextAlignmentOptions.TopLeft);
+            _detail.rectTransform.Place(new Vector2(1, 1), new Vector2(1, 1), new Vector2(0, -154), new Vector2(400, 162), new Vector2(1, 1));
+            _equip = UIKit.Button("Equip", body, "Cưỡi con này", null, 15);
             ((RectTransform)_equip.transform).Place(new Vector2(1, 1), new Vector2(1, 1), new Vector2(-206, -320), new Vector2(190, 36), new Vector2(1, 1));
             _release = UIKit.Button("Release", body, "Phóng sinh", null, 15);
             ((RectTransform)_release.transform).Place(new Vector2(1, 1), new Vector2(1, 1), new Vector2(0, -320), new Vector2(190, 36), new Vector2(1, 1));
@@ -114,7 +116,7 @@ namespace Assets.Script.UI.Windows
             {
                 var pp = p;
                 bool hot = sel != null && p.uid == sel.uid;   // ô đang chọn nền cam → chữ tối cho dễ đọc
-                string tag = p.on ? (hot ? " <color=#0a5a0a>[Mang]</color>" : " <color=#7f7>[Mang]</color>") : "";
+                string tag = p.on ? (hot ? " <color=#0a5a0a>[Cưỡi]</color>" : " <color=#7f7>[Cưỡi]</color>") : "";
                 string name = hot ? $"<b><color=#2a1400>{p.name}</color></b>" : p.ColoredName;
                 string sub = hot ? "#4a3010" : "#9aa";
                 var b = UIKit.Button("P", _list, $"{name}{tag}\n<size=12><color={sub}>Cấp {p.level} · {PetInfo.RarityNames[Mathf.Clamp(p.rarity, 0, 3)]} · {PetInfo.KindNames[Mathf.Clamp(p.kind, 0, 3)]}</color></size>",
@@ -134,23 +136,54 @@ namespace Assets.Script.UI.Windows
                 UIKit.Clear(_foods);
                 return;
             }
-            _equip.SetLabel(sel.on ? "Cất (thôi mang)" : "Mang theo");
+            _equip.SetLabel(sel.on ? "Cất (thôi cưỡi)" : "Cưỡi con này");
             string exp = sel.expNext > 0 ? $"EXP {sel.exp:N0} / {sel.expNext:N0} ({100f * sel.exp / sel.expNext:F0}%)" : "Cấp tối đa";
             bool capped = sel.expNext > 0 && sel.level >= GameData.Me.level && sel.exp >= sel.expNext - 1;
             var sb = new System.Text.StringBuilder();
             sb.Append($"<b>{sel.ColoredName}</b>  <color=#9aa>{PetInfo.RarityNames[Mathf.Clamp(sel.rarity, 0, 3)]} · loại {PetInfo.KindNames[Mathf.Clamp(sel.kind, 0, 3)]} · dáng {sel.stage}/4</color>\n");
             sb.Append($"Cấp {sel.level}   {exp}{(capped ? "  <color=#f77>(chờ bạn lên cấp)</color>" : "")}\n");
-            sb.Append(sel.on ? "<color=#7f7>Đang mang theo — cộng cho bạn:</color>\n" : "<color=#9aa>Khi mang theo cộng cho bạn:</color>\n");
+            if (sel.stamina >= 0)   // GĐ28 thể lực: hết = không cưỡi được
+            {
+                string sc = sel.stamina <= 0 ? "#ff6b6b" : sel.stamina < 200 ? "#ffb35a" : "#9fe39f";
+                sb.Append($"Thể lực <color={sc}>{sel.stamina} / {sel.staminaMax}</color> <size=12><color=#888>(−50 mỗi ngày{(sel.stamina <= 0 ? " · HẾT: không cưỡi được" : "")})</color></size>\n");
+            }
+            sb.Append(sel.on ? "<color=#7f7>Đang cưỡi (chạy nhanh hơn 30%, phím R lên / xuống) — cộng cho bạn:</color>\n" : "<color=#9aa>Khi cưỡi cộng cho bạn:</color>\n");
             if (sel.bonus[2] > 0) sb.Append($"+{sel.bonus[2]} sát thương  ");
             if (sel.bonus[0] > 0) sb.Append($"+{sel.bonus[0]} HP tối đa  ");
             if (sel.bonus[1] > 0) sb.Append($"+{sel.bonus[1]} MP tối đa  ");
             if (sel.bonus[3] > 0) sb.Append($"+{sel.bonus[3]} phòng thủ");
+            // GĐ28 dòng tiềm năng: tung lúc nở, mạnh dần theo cấp thú; chất cao (≥ 70%) tô vàng
+            if (sel.pot.Count > 0)
+            {
+                sb.Append("\n<color=#fd5>Tiềm năng</color> <size=12><color=#9aa>(tăng theo cấp thú)</color></size>");
+                for (int i = 0; i < sel.pot.Count; i++)
+                {
+                    var l = sel.pot[i];
+                    string c = l.quality >= 70 ? "#ffd75a" : l.quality >= 40 ? "#9fe39f" : "#dddddd";
+                    sb.Append(i % 2 == 0 ? "\n" : "    ");
+                    sb.Append($"<color={c}>{PetInfo.PotText(l)}</color> <size=11><color=#888>chất {l.quality}%</color></size>");
+                }
+            }
             _detail.text = sb.ToString();
             SetPreview(sel.art, sel.stage);
 
             // ---- thức ăn trong túi ----
             UIKit.Clear(_foods);
             int shown = 0;
+            // GĐ28 hồi thể lực (chỉ con đang cưỡi — server hồi cho con đang mang)
+            for (int i = 0; i < Herbs.Length && sel.on; i++)
+            {
+                int herb = Herbs[i], have = GameData.CountItem(herb);
+                if (have <= 0) continue;
+                var row = UIKit.Panel("H", _foods, UIKit.SlotColor).Height(38);
+                UIKit.Text("T", row.transform, $"{GameData.ColoredName(herb, 0)} <color=#fd5>x{have}</color> <size=12><color=#9aa>+{HerbSta[i]} thể lực</color></size>", 14)
+                    .rectTransform.Fill(44, 80, 2, 2);
+                ItemIcon.ForItem(row, herb, ItemIcon.Place.Left, 30);
+                var use = UIKit.Button("U", row.transform, "Dùng", () => GameActions.UseItem(herb), 13);
+                ((RectTransform)use.transform).Place(new Vector2(1, 0.5f), new Vector2(1, 0.5f), new Vector2(-4, 0), new Vector2(70, 30), new Vector2(1, 0.5f));
+                use.interactable = sel.stamina < sel.staminaMax;
+                shown++;
+            }
             for (int i = 0; i < Foods.Length; i++)
             {
                 int food = Foods[i], have = GameData.CountItem(food);
@@ -167,7 +200,7 @@ namespace Assets.Script.UI.Windows
                 e1.interactable = e10.interactable = !capped && sel.expNext > 0;
                 shown++;
             }
-            if (shown == 0) UIKit.Text("NoFood", _foods, "<color=#888>Chưa có thức ăn (Thịt Tươi bán ở Thợ Rèn, Đùi Thịt Hun Khói ở Hokage / rơi từ boss).</color>", 13).Height(40);
+            if (shown == 0) UIKit.Text("NoFood", _foods, "<color=#888>Chưa có thức ăn (Thịt Tươi bán ở Thợ Rèn, Đùi Thịt Hun Khói ở Hokage / rơi từ boss). Hồi thể lực: Linh Thảo (rơi ở phó bản), Cỏ Hồi Sức (Hokage).</color>", 13).Height(40);
         }
 
         // ==========================================

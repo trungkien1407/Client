@@ -100,7 +100,7 @@ namespace Assets.Script.UI.Windows
                 if (w27.sizeDelta.y < 476f) w27.sizeDelta = new Vector2(w27.sizeDelta.x, 476f);
                 PlaceAutoButton();
             }
-            _pets.onClick.AddListener(() => { Fx.PetFollower.ShowOthers = !Fx.PetFollower.ShowOthers; Refresh(); });
+            _pets.onClick.AddListener(() => { Fx.PetMount.ShowOthers = !Fx.PetMount.ShowOthers; Refresh(); });
             _auto.onClick.AddListener(() => { Hide(); Open<AutoWindow>(); });
             _password.onClick.AddListener(() => { Hide(); Get<ChangePasswordWindow>().Open(); });
             _logout.onClick.AddListener(() =>
@@ -154,7 +154,7 @@ namespace Assets.Script.UI.Windows
             _fps.text = $"{PlayerPrefs.GetInt(PrefFps, 60)}";
             var names = QualitySettings.names;
             _quality.text = names.Length > 0 ? names[QualitySettings.GetQualityLevel()] : "-";
-            if (_pets != null) _pets.SetLabel(Fx.PetFollower.ShowOthers ? $"Thú người khác: HIỆN (tối đa {Fx.PetFollower.MaxOthers} con gần nhất)" : "Thú người khác: ẨN (nhẹ máy)");
+            if (_pets != null) _pets.SetLabel(Fx.PetMount.ShowOthers ? $"Thú người khác: HIỆN (tối đa {Fx.PetMount.MaxOthers} con gần nhất)" : "Thú người khác: ẨN (nhẹ máy)");
         }
     }
 }

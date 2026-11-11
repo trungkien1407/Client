@@ -19,6 +19,7 @@ namespace Assets.Script.Player
 
         private Vector2 targetPos;
         private float moveSpeed;
+        private Fx.PetMount _mount;   // GĐ28 thú cưỡi (gắn sau khi tạo — tìm lại khi cần)
         private MoveState currentState = MoveState.Idle;
 
         private const float TELEPORT_SQR_THRESHOLD = 25.0f;
@@ -86,7 +87,8 @@ namespace Assets.Script.Player
             // 1. Nếu khoảng cách đủ xa thì di chuyển mượt mà tới đó
             if (sqrDistance > 0.001f)
             {
-                float currentSpeed = moveSpeed * 1.2f;
+                float currentSpeed = moveSpeed * 1.2f * (_mount != null && _mount.Riding ? Fx.PetMount.SpeedBonus : 1f);   // đang cưỡi thú chạy nhanh hơn (GĐ28)
+                if (_mount == null) TryGetComponent(out _mount);
                 if (sqrDistance > 1.0f) currentSpeed *= 1.5f;
 
                 transform.position = Vector2.MoveTowards(transform.position, targetPos, currentSpeed * Time.deltaTime);

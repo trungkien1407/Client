@@ -6,7 +6,7 @@ using Assets.Script.Skill;
 namespace Assets.Script.Combat
 {
     /// <summary>
-    /// PHÍM CHIẾN ĐẤU: J = đánh bằng chiêu đang chọn, R = hồi sinh khi chết, nút "AttackBtn" + icon bình "HP" / "MP" trên HUD (QuickPotion).
+    /// PHÍM CHIẾN ĐẤU: J = đánh bằng chiêu đang chọn, R = hồi sinh khi chết / lên – xuống thú cưỡi khi còn sống, nút "AttackBtn" + icon bình "HP" / "MP" trên HUD (QuickPotion).
     /// Chỉ chuyển ý định sang SkillCaster — không chứa luật chiến đấu.
     /// </summary>
     public class CombatInput : MonoBehaviour
@@ -23,6 +23,7 @@ namespace Assets.Script.Combat
             if (GameInput.Pressed(GameKey.Attack)) CastSelected();
             SkillCaster.Tick();   // lệnh đánh bấm lúc đòn trước sắp xong
             if (GameInput.Pressed(GameKey.Revive) && LocalPlayerState.IsDead) SkillCaster.Revive();
+            else if (GameInput.Pressed(GameKey.Mount) && !LocalPlayerState.IsDead) Fx.PetMount.ToggleLocal();   // GĐ28 thú cưỡi
         }
 
         /// <summary>Đánh bằng chiêu đang chọn trên thanh phím tắt.</summary>

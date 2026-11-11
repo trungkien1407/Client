@@ -18,9 +18,10 @@ namespace Assets.Script.Data
         public int Sockets => levelRequire >= 15 ? 2 : 1;
         /// <summary>Cấp ngọc 1..3 (khớp GemRules: id = 90 + loại·3 + cấp − 1).</summary>
         public int GemTier => IsGem ? (id - 90) % 3 + 1 : 0;
-        public bool IsUsable => (type >= 0 && type <= 3) || IsPetEgg || IsPetFood;
+        public bool IsUsable => (type >= 0 && type <= 3) || IsPetEgg || IsPetFood || IsPetStamina;
         public bool IsPetEgg => type == 8;    // GĐ27 trứng thú: Dùng → nở
         public bool IsPetFood => type == 9;   // GĐ27 thức ăn thú: Dùng → con đang mang ăn 1 miếng
+        public bool IsPetStamina => type == 10;   // GĐ28 hồi thể lực thú cưỡi: Dùng → con đang mang hồi
         public bool IsAutoTrain => type == 7;                             // GĐ22 Tự động luyện tập (có hạn)
     }
 
@@ -173,15 +174,23 @@ namespace Assets.Script.Data
     public class QuestGuideRow { public int questId, status; public bool daily; public string where; }
 
     /// <summary>Thông tin PvP của 1 người (PLAYER_PVP_INFO): chế độ, điểm PK, gia tộc → màu tên.</summary>
-    public class PvpInfo { public int pkMode, pkPoint, glow, petArt, petStage; public string guild = ""; }   // glow = hào quang 0..3 theo cấp vũ khí · petArt/petStage = thú đang mang (GĐ27)
+    public class PvpInfo { public int pkMode, pkPoint, glow, petArt, petStage; public bool riding; public string guild = ""; }   // glow = hào quang 0..3 theo cấp vũ khí · petArt/petStage = thú đang mang (GĐ27)
 
     /// <summary>GĐ27 — 1 thú cưng của mình (PET_LIST). bonus = {hp, mp, sát thương, phòng thủ} cộng cho chủ khi mang.</summary>
     public class PetInfo
     {
         public int uid, tpl, art, rarity, kind, level, exp, expNext, stage;
+        /// <summary>GĐ28 thể lực (0 = không cưỡi được) / tối đa — mất 50 mỗi ngày.</summary>
+        public int stamina = -1, staminaMax = 1000;
         public bool on;
         public string name;
         public readonly int[] bonus = new int[4];
+        /// <summary>GĐ28 dòng tiềm năng: mỗi dòng (loại 1..6, chất 1..100, giá trị ở cấp hiện tại — chí mạng / né tính phần nghìn).</summary>
+        public readonly System.Collections.Generic.List<(int kind, int quality, int value)> pot = new System.Collections.Generic.List<(int, int, int)>();
+        public static readonly string[] PotNames = { "", "HP", "MP", "Sát thương", "Phòng thủ", "Chí mạng", "Né" };
+        /// <summary>"Chí mạng +1,2%" / "HP +240".</summary>
+        public static string PotText((int kind, int quality, int value) l) =>
+            l.kind >= 5 ? $"{PotNames[l.kind]} +{l.value / 10f:0.#}%" : $"{PotNames[UnityEngine.Mathf.Clamp(l.kind, 0, 4)]} +{l.value}";
         public static readonly string[] RarityNames = { "", "Thường", "Quý", "Hiếm" };
         public static readonly string[] RarityColors = { "#ffffff", "#e0e0e0", "#5fb8ff", "#ff9c2a" };
         public static readonly string[] KindNames = { "", "Công", "Thủ", "Linh" };

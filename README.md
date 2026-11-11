@@ -40,7 +40,7 @@ Unit test (hàm thuần, đọc / ghi gói tin — không cần server): `bash c
 | `Data/` | `GameData` (kho dữ liệu server gửi), `GameActions` (nơi duy nhất gửi gói), các `*Network` nhận gói, `GameDataCache` |
 | `Database/` | ScriptableObject cấu hình hình ảnh quái / NPC / kỹ năng |
 | `Entities/` | `MobController` (quái), `NpcEntity` |
-| `Fx/` | `PartRenderer` (vẽ khung nhiều mảnh), `EffectPlayer` (hiệu ứng theo dữ liệu server), `CharFx` (Spine FX chiêu), `BodyAura`, `FootDust`, `PetFollower` (thú cưng đi theo — GĐ27) |
+| `Fx/` | `PartRenderer` (vẽ khung nhiều mảnh), `EffectPlayer` (hiệu ứng theo dữ liệu server), `CharFx` (Spine FX chiêu), `BodyAura`, `FootDust`, `PetMount` (thú cưỡi — GĐ28: thú dưới chân, người ngồi trên lưng; cỡ / chỗ ngồi theo bảng đo ảnh `Tools/do_thu_cuoi.py`) |
 | `Interfaces/` | `ITargetable`, `IHasHealth` |
 | `Manager/` | luồng app (`AppFlowManager`, `GameAuthManager`, `EnterWorld`), sổ người chơi / quái / NPC trong map, pool, popup |
 | `Map/` | `MapManager` (tải prefab map), đổi map/khu, `MapInfo` + các điểm `Map*Spot`, minimap |
