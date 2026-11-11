@@ -43,7 +43,9 @@ public static class DemoArtTool
         string dir = SourceDir(true);
         if (dir == null) return;
         var (icons, mobs, ui, npcs) = ImportAll(dir);
-        EditorUtility.DisplayDialog("Demo art", $"Kho ảnh: {icons} ảnh\nHình quái: {mobs} bộ\nHình NPC: {npcs} bộ\nSkin UI: {ui} hình\n→ {Root} (không commit)", "OK");
+        string warn = icons == 0 || mobs == 0 ? "\n\n⚠ Có phần nhập được 0 — xem cửa sổ Console (dòng [DemoArt] thiếu …)." : "";
+        EditorUtility.DisplayDialog("Demo art", $"Nguồn: {dir}\n\nKho ảnh: {icons} ảnh\nHình quái: {mobs} bộ\nHình NPC: {npcs} bộ\nSkin UI: {ui} hình\n"
+            + $"(kèm FX nhân vật, âm thanh, bụi chân, thú cưng)\n→ {Root} (không commit){warn}{ServerHint}", "OK");
     }
 
     [MenuItem("Tools/Naruto/Demo art/2. Đổi thư mục TaiNguyen", priority = 41)]
@@ -509,21 +511,71 @@ public static class DemoArtTool
     {
         var args = Environment.GetCommandLineArgs();
         int i = Array.IndexOf(args, "-demoArt");
-        if (i >= 0 && i + 1 < args.Length) return args[i + 1];
-        string dir = EditorPrefs.GetString(DirKey, "");
-        if (Directory.Exists(dir)) return dir;
-        const string guess = "D:/Download/AssetRipper_win_x64/TaiNguyen";
-        if (Directory.Exists(guess)) { EditorPrefs.SetString(DirKey, guess); return guess; }
+        if (i >= 0 && i + 1 < args.Length)
+            return Resolve(args[i + 1]) ?? throw new DirectoryNotFoundException(NotFoundText(args[i + 1]));
+        string dir = Resolve(EditorPrefs.GetString(DirKey, ""));   // máy khác / thư mục đã dời → lựa chọn cũ hết đúng
+        if (dir != null) return dir;
+        dir = Resolve("D:/Download/AssetRipper_win_x64/TaiNguyen");
+        if (dir != null) { EditorPrefs.SetString(DirKey, dir); return dir; }
         return interactive ? PickDir() : throw new DirectoryNotFoundException("Không thấy TaiNguyen — dùng -demoArt <thư mục>");
     }
 
     private static string PickDir()
     {
-        string dir = EditorUtility.OpenFolderPanel("Chọn thư mục TaiNguyen (tài nguyên đã giải mã)", EditorPrefs.GetString(DirKey, ""), "");
-        if (string.IsNullOrEmpty(dir)) return null;
-        EditorPrefs.SetString(DirKey, dir);
-        return dir;
+        while (true)
+        {
+            string picked = EditorUtility.OpenFolderPanel("Chọn thư mục TaiNguyen (có 07_VatPham_IconNho, 02_Quai…)", EditorPrefs.GetString(DirKey, ""), "");
+            if (string.IsNullOrEmpty(picked)) return null;
+            string dir = Resolve(picked);
+            if (dir != null)
+            {
+                EditorPrefs.SetString(DirKey, dir);
+                return dir;
+            }
+            if (!EditorUtility.DisplayDialog("Demo art", NotFoundText(picked), "Chọn lại", "Huỷ")) return null;
+        }
     }
+
+    // Thư mục con có thì chắc chắn là TaiNguyen (bản đã giải mã + phân loại bằng classify.py)
+    private const string Marker = "07_VatPham_IconNho";
+
+    /// <summary>
+    /// Thư mục TaiNguyen thật từ thư mục người dùng chọn: chính nó, hoặc thư mục con sâu ≤ 3 cấp có {Marker}
+    /// (hay gặp: chọn thư mục CHA, hoặc giải nén ra "TaiNguyen/TaiNguyen"). Nằm TRONG Assets → không nhận
+    /// (Unity sẽ tự nhập 460 MB ảnh + Spine lỗi): phải để TaiNguyen ngoài dự án. Không thấy → null.
+    /// </summary>
+    private static string Resolve(string start)
+    {
+        if (string.IsNullOrEmpty(start) || !Directory.Exists(start)) return null;
+        string full = Path.GetFullPath(start).Replace('\\', '/').TrimEnd('/');
+        if (full.StartsWith(Path.GetFullPath(Application.dataPath).Replace('\\', '/'), StringComparison.OrdinalIgnoreCase)) return null;
+        var queue = new Queue<(string dir, int depth)>();
+        queue.Enqueue((full, 0));
+        while (queue.Count > 0)
+        {
+            var (d, depth) = queue.Dequeue();
+            if (Directory.Exists(Path.Combine(d, Marker))) return d;
+            if (depth >= 3) continue;
+            string[] subs;
+            try { subs = Directory.GetDirectories(d); } catch (Exception) { continue; }   // thư mục không có quyền đọc
+            foreach (var s in subs) queue.Enqueue((s.Replace('\\', '/'), depth + 1));
+        }
+        return null;
+    }
+
+    private static string NotFoundText(string picked)
+    {
+        string inAssets = Path.GetFullPath(picked).Replace('\\', '/').StartsWith(Path.GetFullPath(Application.dataPath).Replace('\\', '/'), StringComparison.OrdinalIgnoreCase)
+            ? "\n\nThư mục này nằm TRONG Assets của dự án — hãy chuyển TaiNguyen ra ngoài (VD D:/TaiNguyen), xoá bản trong Assets, rồi chọn lại."
+            : "";
+        return $"Không thấy tài nguyên trong:\n{picked}\n\nCần thư mục TaiNguyen (bản đã giải mã + phân loại) có các thư mục con "
+             + $"{Marker}, 02_Quai, 03_NPC, 04_ThuCung_Spine, 08_UI, 09_AmThanh… (chọn thư mục cha cũng được, tool tự tìm bên trong).{inAssets}";
+    }
+
+    /// <summary>Lời nhắc nửa server (in cuối hộp thoại kết quả): thiếu thì quái / NPC / hiệu ứng chiêu vẫn hình mặc định.</summary>
+    private const string ServerHint = "\n\nNỬA SERVER (bắt buộc để quái / NPC / hiệu ứng chiêu / icon trang bị dùng hình này):\n"
+        + "  python tools/make_demo_data.py \"<thư mục TaiNguyen>\"   (trong repo server)\n"
+        + "  mysql -uroot -p game_mmo_db < db/demo_art.sql   → khởi động lại server";
 }
 
 /// <summary>
