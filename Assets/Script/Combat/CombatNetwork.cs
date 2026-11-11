@@ -89,6 +89,7 @@ namespace Assets.Script.Combat
             {
                 if (to != null && to.gameObject.activeInHierarchy) lastPos = to.position;   // quái chết / bị thu hồi → số hiện ở chỗ cuối
                 if (to != null || lastPos != Vector3.zero) DamagePopup.Show(lastPos, DamageText(damage), color);
+                if (mine && firstOfCast && damage > 0) Core.GameAudio.Play(Core.GameAudio.Hit);   // chiêu diện rộng: kêu 1 lần
                 // Vụ nổ Spine của chiêu (bộ <Tên>FX) thay hiệu ứng trúng theo dữ liệu; chiêu diện rộng nổ lớn chỉ 1 lần
                 bool spine = motion.impact != null && to != null && to.gameObject.activeInHierarchy && (firstOfCast || !motion.impactOnce)
                              && Fx.CharFx.Play(pvc.FxSet, motion.impact, motion.ground ? to.position : BodyCenter(to), pvc.FxScale,
@@ -167,6 +168,7 @@ namespace Assets.Script.Combat
                 LocalPlayerState.SetHp(hpRemain);
                 var t = GetPlayerTransform(playerId);
                 if (t != null) DamagePopup.Show(t.position, DamageText(damage), HurtColor);
+                if (damage > 0) Core.GameAudio.Play(Core.GameAudio.Hurt);
                 return;
             }
             var rp = NetworkPlayerManager.Instance?.GetRemotePlayer(playerId);
@@ -234,6 +236,7 @@ namespace Assets.Script.Combat
 
             if (levelUp)
             {
+                Core.GameAudio.Play(Core.GameAudio.LevelUp);
                 var t = GetPlayerTransform(LocalPlayerState.Id);
                 if (t != null) DamagePopup.Show(t.position + Vector3.up * 0.6f, "LÊN CẤP " + level + "!", new Color(1f, 0.75f, 0f), 6f);
             }
@@ -268,6 +271,7 @@ namespace Assets.Script.Combat
             if (id == LocalPlayerState.Id)
             {
                 LocalPlayerState.IsDead = true;
+                Core.GameAudio.Play(Core.GameAudio.Die);
                 LocalPlayerState.ClearEffects();   // chết = mất mọi hiệu ứng (server cũng xoá) → tắt icon trên HUD
                 LocalPlayerState.SetHp(0);
                 var local = NetworkPlayerManager.Instance?.localPlayer;

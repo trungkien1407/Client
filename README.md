@@ -36,7 +36,7 @@ Unit test (hàm thuần, đọc / ghi gói tin — không cần server): `bash c
 |---|---|
 | `Combat/` | ra chiêu (`SkillCaster`, `CombatInput`), nhận kết quả chiến đấu, đồ rơi, chat, `GameplayBootstrap` (tạo các hệ thống lúc chạy) |
 | `Constants/` | `Cmd.cs` (opcode — phải khớp server), `GameConfig.cs` (địa chỉ server), `GameEnums.cs` |
-| `Core/` | nền dùng chung: `AssetSource` + `ImageBank` (tải hình theo số), `GameInput` (bảng phím), `AddressKeys`, `AudioManager`, `SavedLogin`, `ErrorReporter`, `AutoTestRunner` |
+| `Core/` | nền dùng chung: `AssetSource` + `ImageBank` (tải hình theo số), `GameInput` (bảng phím), `AddressKeys`, `AudioManager` + `GameAudio` (âm thanh theo sự kiện, nhạc theo map), `SavedLogin`, `ErrorReporter`, `AutoTestRunner` |
 | `Data/` | `GameData` (kho dữ liệu server gửi), `GameActions` (nơi duy nhất gửi gói), các `*Network` nhận gói, `GameDataCache` |
 | `Database/` | ScriptableObject cấu hình hình ảnh quái / NPC / kỹ năng |
 | `Entities/` | `MobController` (quái), `NpcEntity` |
@@ -66,7 +66,7 @@ Thư mục khác trong `Assets/`: `Editor/` (tool Editor), `Prefabs/` (`basePlay
 | 5. Cấu hình hình ảnh quái & NPC | điền `MobDatabase` |
 | Map → 1 / 2 / 3 | nhập điểm vào prefab (1 lần) · **xuất map cho server** (`data/maps/map_N.json`) · đổi thư mục |
 | UI → 1 / 2 / 3 | tạo bộ prefab mẫu · xuất cửa sổ/HUD còn thiếu ra prefab · xuất lại cửa sổ đang chọn |
-| Demo art → 1 / 2 | nhập hình demo nội bộ vào `Assets/_Demo` · đổi thư mục nguồn |
+| Demo art → 1 / 2 / 3 | nhập hình demo nội bộ vào `Assets/_Demo` · đổi thư mục nguồn · âm thanh + bụi chân |
 | Build → PC / Android | build Addressables + game ra `Builds/` |
 
 Code các tool: `Assets/Editor/` (`NarutoProjectTools`, `MapDataTool`, `UIPrefabTool`, `ContentSetupTool`, `DemoArtTool`, `BuildTool`).

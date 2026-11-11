@@ -27,6 +27,7 @@ namespace Assets.Script.Manager
 
         void Start()
         {
+            Core.GameAudio.LoginScreen();   // màn đăng nhập (lần đầu hoặc quay lại sau khi thoát / mất kết nối) → nhạc đăng nhập
             // [MỚI] Nếu game đã chạy qua luồng kiểm tra tài nguyên lần đầu rồi
             if (_hasAppBooted)
             {

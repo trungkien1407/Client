@@ -533,6 +533,20 @@ namespace Assets.Script.Core
             GameActions.Chat(1, "/tele 2");
             yield return WaitUntil(() => GameData.MapName == "Đồi Hoa Cúc", 8);
             yield return new WaitForSecondsRealtime(1.5f);
+            // Âm thanh (có file demo / chính thức mới kiểm): map có quái → nhạc bãi luyện
+            int audioFiles = 0;
+            foreach (var k in GameAudio.AllKeys) if (AudioManager.Has(k)) audioFiles++;
+            if (audioFiles == 0) Debug.Log("[AutoTest] INFO chưa có file âm thanh (Resources/Audio) — bỏ qua ca âm thanh");
+            else
+            {
+                Check($"Âm thanh: có {audioFiles}/{GameAudio.AllKeys.Length} file theo tên GameAudio", audioFiles == GameAudio.AllKeys.Length);
+                // Cóc Chúa (boss) đứng ở Đồi Hoa Cúc → gần nó là nhạc boss, xa là nhạc bãi luyện
+                yield return new WaitForSecondsRealtime(1.2f);   // GameAudio xét boss mỗi giây
+                var meA = NetworkPlayerManager.Instance?.localPlayer;
+                bool nearBoss = meA != null && NetworkMobManager.Instance.AnyBossNear(meA.transform.position, GameAudio.BossRange);
+                string wantMusic = nearBoss ? GameAudio.BgmBoss : GameAudio.BgmField;
+                Check($"Vào Đồi Hoa Cúc (map quái{(nearBoss ? ", đứng gần boss" : "")}) → {wantMusic} (đang phát: {AudioManager.CurrentMusic})", AudioManager.CurrentMusic == wantMusic);
+            }
             var tg = FindAnyObjectByType<PlayerTargeting>();
             meMove = NetworkPlayerManager.Instance?.localPlayer;
             Entities.MobController tgA = null, tgB = null;
@@ -698,9 +712,13 @@ namespace Assets.Script.Core
             yield return new WaitForSecondsRealtime(1f);
             Check($"Đang chìm nhảy lên không nhảy đôi được (đỉnh 1 lần {peak1 - wy0:0.00} ô, bấm 2 lần {peak2 - wy0:0.00} ô)", peak1 > wy0 + 0.5f && peak2 <= peak1 + 0.2f);
             me.AutoMoveX = 1f;
+            int dust0 = Fx.FootDust.Spawned;
             me.Jump();
             yield return WaitUntil(() => me.transform.position.x > 47f && me.IsGrounded, 5);
             me.AutoMoveX = 0f;
+            yield return null;
+            if (AssetSource.Cached<Sprite>("dust_0") == null) Debug.Log("[AutoTest] INFO chưa có hình bụi chân (FootDust/dust_0) — bỏ qua ca bụi chân");
+            else Check($"Nhảy rồi tiếp đất → tung bụi chân ({Fx.FootDust.Spawned - dust0} đám)", Fx.FootDust.Spawned > dust0);
             Check($"Nhảy + chạy → lên bờ bên kia (x = {me.transform.position.x:0.0}, y = {me.transform.position.y:0.00})", me.transform.position.x > 47f && Mathf.Abs(me.transform.position.y - 4f) < 0.3f);
 
             // Ra chiêu (anim Spine có vẽ sẵn hiệu ứng) rồi đổi map ngay → sang map mới KHÔNG diễn tiếp chiêu cũ
@@ -710,6 +728,8 @@ namespace Assets.Script.Core
             GameActions.Chat(1, "/tele 1");
             yield return WaitUntil(() => GameData.MapName == "Làng Lá", 8);
             yield return new WaitForSecondsRealtime(0.3f);
+            if (AudioManager.Has(GameAudio.BgmVillage))
+                Check($"Về Làng Lá (không có quái) → nhạc làng (đang phát: {AudioManager.CurrentMusic})", AudioManager.CurrentMusic == GameAudio.BgmVillage);
             var track5 = pvc5 != null ? pvc5.mainSkeleton.AnimationState.GetCurrent(0) : null;
             Check($"Ra chiêu rồi đổi map → map mới không diễn tiếp chiêu cũ (anim: {track5?.Animation?.Name})",
                 castAnim && track5 != null && track5.Animation.Name != "Skill10");

@@ -246,8 +246,10 @@ namespace Assets.Script.Data
         private void OnMoney(byte[] data)
         {
             var r = new MessageReader(data);
+            long oldYen = GameData.Me.yen;
             GameData.Me.yen = r.ReadLong(); GameData.Me.xu = r.ReadLong(); GameData.Me.luong = r.ReadLong();
             r.Cleanup();
+            if (oldYen > 0 && GameData.Me.yen > oldYen) Core.GameAudio.Play(Core.GameAudio.Coin);   // lần đầu (vào game) không kêu
             GameData.Notify(DataKind.Money);
             GameData.Notify(DataKind.Character);
         }
@@ -269,8 +271,9 @@ namespace Assets.Script.Data
             int progress = r.ReadInt();
             int done = r.ReadByte();
             r.Cleanup();
-            bool isNew = !GameData.MyQuests.ContainsKey(id);
+            bool isNew = !GameData.MyQuests.TryGetValue(id, out var old);
             GameData.MyQuests[id] = new[] { progress, done };
+            if (done == 1 && (isNew || old[1] != 1)) Core.GameAudio.Play(Core.GameAudio.QuestDone);
             GameData.Notify(DataKind.Quests);
 
             if (GameData.Quests.TryGetValue(id, out var q))

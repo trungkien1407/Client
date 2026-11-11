@@ -313,6 +313,15 @@ namespace Assets.Script.Manager
             return mob;
         }
 
+        /// <summary>Có boss (mẫu hạng ≥ 2) còn sống cách {pos} không quá {range} ô không — GameAudio đổi nhạc boss.</summary>
+        public bool AnyBossNear(Vector3 pos, float range)
+        {
+            foreach (var m in activeMobs.Values)
+                if (m != null && !m.IsDead && Vector2.Distance(m.transform.position, pos) <= range
+                    && Data.GameData.Mobs.TryGetValue(m.templateId, out var t) && t.rank >= 2) return true;
+            return false;
+        }
+
         /// <summary>Mẫu quái (GAME_DATA_MOBS) thường về SAU khi quái đầu tiên đã hiện → quái nào có bộ hình mới thì đổi hình.</summary>
         private void OnDataChanged(Assets.Script.Data.DataKind kind)
         {

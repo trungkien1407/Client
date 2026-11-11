@@ -15,6 +15,8 @@ using UnityEngine;
 ///   2. Hình quái 02_Quai/data_N/img_K.png + anim.json → _Demo/Resources/MobArt/N/ + MobAnim/MobAnim_N.asset
 ///   3. Skin UI   08_UI/... (khung cửa sổ, nút, ô...) → _Demo/Resources/UISkin/&lt;tên&gt;.png + viền 9-slice (UISkin dùng lúc chạy)
 ///   4. FX nhân vật 01_NhanVat/Spine_NhanVat/export/&lt;Tên&gt;FX.json/.atlas/.png → _Demo/Resources/CharFX/&lt;Tên&gt;FX/ (vật bay, vụ nổ — Fx.CharFx)
+///   5. Âm thanh  09_AmThanh/HieuUng|NhacNen/*.ogg → _Demo/Resources/Audio/&lt;tên GameAudio&gt;.ogg (bảng AudioFiles — chọn tay)
+///   6. Bụi chân  06_HieuUng/BuiChan_DuongDi/0..4.png → _Demo/Resources/FootDust/dust_0..4.png (Fx.FootDust)
 /// Code tải theo tên qua AssetSource: Addressables trước (hình chính thức), không có mới lấy _Demo → thay hình thật
 /// = đưa ảnh cùng tên vào Addressables (address "imgN", "MobAnim_N"), không sửa code.
 /// Không mở Editor: -executeMethod DemoArtTool.BatchImport -demoArt &lt;thư mục TaiNguyen&gt;
@@ -28,6 +30,8 @@ public static class DemoArtTool
     public const string SkinDir = Root + "/UISkin";
     public const string NpcArtDir = Root + "/NpcArt";
     public const string CharFxDir = Root + "/CharFX";
+    public const string AudioDir = Root + "/Audio";
+    public const string DustDir = Root + "/FootDust";
     private static readonly string[] CharFxSets = { "NarutoFX", "SakuraFX", "SasukeFX" };
     private const string DirKey = "Naruto.DemoArtDir";
 
@@ -43,6 +47,26 @@ public static class DemoArtTool
     [MenuItem("Tools/Naruto/Demo art/2. Đổi thư mục TaiNguyen", priority = 41)]
     public static void MenuPick() => PickDir();
 
+    [MenuItem("Tools/Naruto/Demo art/3. Nhập âm thanh + bụi chân", priority = 42)]
+    public static void MenuAudio()
+    {
+        string dir = SourceDir(true);
+        if (dir == null) return;
+        int n = CopyAudio(Path.Combine(dir, "09_AmThanh"));
+        int dust = CopyDust(Path.Combine(dir, "06_HieuUng", "BuiChan_DuongDi"));
+        AssetDatabase.Refresh();
+        EditorUtility.DisplayDialog("Demo art", $"Âm thanh: {n} / {AudioFiles.Length} file\nBụi chân: {dust} khung\n→ {Root} (không commit)", "OK");
+    }
+
+    /// <summary>Không mở Editor: -executeMethod DemoArtTool.BatchAudio — chỉ chép âm thanh (bước 5).</summary>
+    public static void BatchAudio()
+    {
+        int n = CopyAudio(Path.Combine(SourceDir(false), "09_AmThanh"));
+        int dust = CopyDust(Path.Combine(SourceDir(false), "06_HieuUng", "BuiChan_DuongDi"));
+        AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+        Debug.Log($"[DemoArt] âm thanh {n} / {AudioFiles.Length}, bụi chân {dust} khung");
+    }
+
     public static void BatchImport()
     {
         var (icons, mobs, ui, npcs) = ImportAll(SourceDir(false));
@@ -57,6 +81,9 @@ public static class DemoArtTool
         var skins = CopyUiSkin(Path.Combine(src, "08_UI"));
         int fx = CopyCharFx(Path.Combine(src, "01_NhanVat", "Spine_NhanVat", "export"));
         if (fx > 0) Debug.Log($"[DemoArt] FX nhân vật: {fx} bộ");
+        int audio = CopyAudio(Path.Combine(src, "09_AmThanh"));
+        int dust = CopyDust(Path.Combine(src, "06_HieuUng", "BuiChan_DuongDi"));
+        if (audio > 0 || dust > 0) Debug.Log($"[DemoArt] âm thanh: {audio} file, bụi chân: {dust} khung");
         AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);   // spine-unity tự tạo _SkeletonData / _Atlas / vật liệu
         int mobs = 0, npcs = 0;
         foreach (var (art, anim) in mobDirs) if (BuildMobAnim(art, anim)) mobs++;
@@ -64,6 +91,61 @@ public static class DemoArtTool
         foreach (var (path, border) in skins) SetupSkinSprite(path, border);
         AssetDatabase.SaveAssets();
         return (icons, mobs, skins.Count, npcs);
+    }
+
+    // ==================== ÂM THANH ====================
+
+    // Tên GameAudio → file trong 09_AmThanh. Chọn theo độ dài (game gốc không ghi tên tiếng nào dùng ở đâu): tiếng bấm / xu
+    // < 0,2 s, đánh trúng ~0,4 s, nhạc nền là các bản lặp 60–90 s. Nghe thử thấy không hợp → đổi tên file ở đây rồi chạy lại menu 3.
+    private static readonly (string key, string file)[] AudioFiles =
+    {
+        (Assets.Script.Core.GameAudio.Click, "HieuUng/sound0.ogg"),        // 0,19 s
+        (Assets.Script.Core.GameAudio.Coin, "HieuUng/34.ogg"),             // 0,18 s
+        (Assets.Script.Core.GameAudio.Hit, "HieuUng/23.ogg"),              // 0,42 s
+        (Assets.Script.Core.GameAudio.Hurt, "HieuUng/28.ogg"),             // 0,33 s
+        (Assets.Script.Core.GameAudio.UpgradeOk, "HieuUng/sound12.ogg"),   // 0,84 s
+        (Assets.Script.Core.GameAudio.UpgradeFail, "HieuUng/sound2.ogg"),  // 0,74 s
+        (Assets.Script.Core.GameAudio.Die, "HieuUng/sound26.ogg"),         // 2,26 s
+        (Assets.Script.Core.GameAudio.BossAppear, "HieuUng/Tiger-Roar.ogg"),
+        (Assets.Script.Core.GameAudio.LevelUp, "NhacNen/music14.ogg"),     // đoạn nhạc ngắn 1,9 s
+        (Assets.Script.Core.GameAudio.QuestDone, "NhacNen/music17.ogg"),   // 2,9 s
+        (Assets.Script.Core.GameAudio.BgmLogin, "NhacNen/music11.ogg"),    // 90 s
+        (Assets.Script.Core.GameAudio.BgmVillage, "NhacNen/music2.ogg"),   // 60 s
+        (Assets.Script.Core.GameAudio.BgmField, "NhacNen/music4.ogg"),
+        (Assets.Script.Core.GameAudio.BgmDungeon, "NhacNen/music6.ogg"),
+        (Assets.Script.Core.GameAudio.BgmBoss, "NhacNen/music8.ogg"),
+    };
+
+    private static int CopyAudio(string audioDir)
+    {
+        if (!Directory.Exists(audioDir)) { Debug.LogWarning("[DemoArt] thiếu " + audioDir); return 0; }
+        Directory.CreateDirectory(AudioDir);
+        int n = 0;
+        foreach (var (key, file) in AudioFiles)
+        {
+            string from = Path.Combine(audioDir, file);
+            if (!File.Exists(from)) { Debug.LogWarning("[DemoArt] thiếu âm thanh " + from); continue; }
+            string to = $"{AudioDir}/{key}{Path.GetExtension(from)}";
+            if (!File.Exists(to) || new FileInfo(to).Length != new FileInfo(from).Length) File.Copy(from, to, true);
+            n++;
+        }
+        return n;
+    }
+
+    /// <summary>5 khung bụi chân 0..4.png → FootDust/dust_N.png (Fx.FootDust.Frames).</summary>
+    private static int CopyDust(string dir)
+    {
+        if (!Directory.Exists(dir)) { Debug.LogWarning("[DemoArt] thiếu " + dir); return 0; }
+        Directory.CreateDirectory(DustDir);
+        int n = 0;
+        for (int i = 0; i < Assets.Script.Fx.FootDust.Frames; i++)
+        {
+            string from = Path.Combine(dir, i + ".png"), to = $"{DustDir}/dust_{i}.png";
+            if (!File.Exists(from)) continue;
+            if (!File.Exists(to) || new FileInfo(to).Length != new FileInfo(from).Length) File.Copy(from, to, true);
+            n++;
+        }
+        return n;
     }
 
     // ==================== SKIN UI ====================
@@ -387,11 +469,25 @@ public static class DemoArtTool
 /// </summary>
 public class DemoArtPostprocessor : AssetPostprocessor
 {
+    /// <summary>Âm thanh trong .../Resources/Audio/: nhạc nền (bgm_*) đọc dần từ đĩa (Streaming) cho đỡ RAM, tiếng ngắn giải nén sẵn.</summary>
+    private void OnPreprocessAudio()
+    {
+        string p = assetPath.Replace('\\', '/');
+        if (!p.Contains("/Resources/Audio/")) return;
+        var ai = (AudioImporter)assetImporter;
+        var s = ai.defaultSampleSettings;
+        bool bgm = Path.GetFileName(p).StartsWith("bgm_");
+        s.loadType = bgm ? AudioClipLoadType.Streaming : AudioClipLoadType.DecompressOnLoad;
+        s.compressionFormat = AudioCompressionFormat.Vorbis;
+        ai.defaultSampleSettings = s;
+        ai.forceToMono = !bgm;
+    }
+
     private void OnPreprocessTexture()
     {
         string p = assetPath.Replace('\\', '/');
-        bool bank = p.Contains("/ImageBank/"), mob = p.Contains("/MobArt/"), npc = p.Contains("/NpcArt/");
-        if (!bank && !mob && !npc) return;
+        bool bank = p.Contains("/ImageBank/"), mob = p.Contains("/MobArt/"), npc = p.Contains("/NpcArt/"), dust = p.Contains("/FootDust/");
+        if (!bank && !mob && !npc && !dust) return;
         var ti = (TextureImporter)assetImporter;
         ti.textureType = TextureImporterType.Sprite;
         ti.spriteImportMode = SpriteImportMode.Single;
@@ -401,7 +497,7 @@ public class DemoArtPostprocessor : AssetPostprocessor
         ti.filterMode = FilterMode.Bilinear;
         var s = new TextureImporterSettings();
         ti.ReadTextureSettings(s);
-        s.spriteAlignment = (int)(mob ? SpriteAlignment.TopLeft : npc ? SpriteAlignment.BottomCenter : SpriteAlignment.Center);   // NPC: chân đứng ở gốc
+        s.spriteAlignment = (int)(mob ? SpriteAlignment.TopLeft : npc || dust ? SpriteAlignment.BottomCenter : SpriteAlignment.Center);   // NPC / bụi: chân ở gốc
         s.spriteMeshType = SpriteMeshType.FullRect;
         ti.SetTextureSettings(s);
     }

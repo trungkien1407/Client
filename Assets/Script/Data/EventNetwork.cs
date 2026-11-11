@@ -91,6 +91,7 @@ namespace Assets.Script.Data
             r.Cleanup();
             GameData.DungeonEndTime = Time.time + secs;
             GameData.Notify(DataKind.Event);
+            Core.GameAudio.SetDungeon(GameData.DungeonState == 2);
             if (GameData.DungeonState == 3) UI.GameHud.Banner($"CHINH PHỤC {GameData.DungeonName.ToUpper()}!", 4f);
             if (GameData.DungeonState == 4) UI.GameHud.Banner("Phó bản thất bại — hết giờ", 4f);
         }
@@ -184,9 +185,11 @@ namespace Assets.Script.Data
                 int side = r.Available() > 0 ? r.ReadByte() : 2;
                 portals.Add(new Map.PortalMarkers.Info { pos = new Vector2(x, y), target = target, side = side });
             }
+            int safe = r.Available() > 0 ? r.ReadByte() : -1;   // 1 làng / trường; -1 = server cũ chưa gửi
             r.Cleanup();
             bool newMap = GameData.MapName != name;
             GameData.MapName = name; GameData.MapLevelMin = lo; GameData.MapLevelMax = hi;
+            if (newMap) Core.GameAudio.EnterMap(safe >= 0 ? safe == 1 : lo == 0);
             if (newMap && !string.IsNullOrEmpty(name))
                 UI.GameHud.Banner(lo > 0 ? name + "\n<size=18><color=#ddd>Quái cấp " + lo + "–" + hi + "</color></size>" : name, 2.5f);
             Map.PortalMarkers.Show(portals);

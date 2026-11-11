@@ -126,7 +126,9 @@ namespace Assets.Script.Player
             if (mainSkeleton.AnimationName == animName) return;
             var anim = mainSkeleton.Skeleton?.Data?.FindAnimation(animName);
             if (anim == null) return;
+            string from = mainSkeleton.AnimationName;
             SetAnimWithSpeed(anim, loop);
+            Fx.FootDust.OnAnim(transform, from, animName, mainSkeleton.skeleton != null && mainSkeleton.skeleton.ScaleX > 0, MainRenderer);   // bụi chân
         }
 
         /// <summary>

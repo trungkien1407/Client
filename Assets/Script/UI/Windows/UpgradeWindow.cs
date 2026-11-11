@@ -138,8 +138,7 @@ namespace Assets.Script.UI.Windows
             LastResult = result;
             string color = result == 0 ? "#6f6" : result == 3 ? "#f77" : "#fd5";
             _result.text = $"<color={color}>{msg}</color>";
-            // [CẦN ĐIỀN khi có âm thanh] phát tiếng "keng" khi thành công / tiếng vỡ khi trượt: AudioManager.Play("upgrade_ok"/"upgrade_fail")
-            Assets.Script.Core.AudioManager.Play(result == 0 ? "upgrade_ok" : "upgrade_fail");
+            Assets.Script.Core.GameAudio.Play(result == 0 ? Assets.Script.Core.GameAudio.UpgradeOk : Assets.Script.Core.GameAudio.UpgradeFail);
             RefreshIfOpen();
         }
     }
