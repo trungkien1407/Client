@@ -147,6 +147,13 @@ namespace Assets.Script.Data
         public static void GemRemove(int equipBagIndex, int pos) => Send(Cmd.GEM_REMOVE, w => { w.WriteInt(equipBagIndex); w.WriteByte((byte)pos); });
         public static void GemCombine(int gemTemplateId) => Send(Cmd.GEM_COMBINE, w => w.WriteInt(gemTemplateId));
 
+        // ---- GĐ27: thú cưng ----
+        public static void PetListRequest() => Send(Cmd.PET_LIST_REQ, null);
+        /// <param name="uid">0 = cất con đang mang</param>
+        public static void PetEquip(int uid) => Send(Cmd.PET_EQUIP, w => w.WriteInt(uid));
+        public static void PetFeed(int uid, int foodId, int qty) => Send(Cmd.PET_FEED, w => { w.WriteInt(uid); w.WriteInt(foodId); w.WriteShort((short)qty); });
+        public static void PetRelease(int uid) => Send(Cmd.PET_RELEASE, w => w.WriteInt(uid));
+
         // ---- GĐ9: chợ ----
         /// <param name="category">0 tất cả · 1 vũ khí · 2 trang phục · 3 bình · 4 nguyên liệu</param>
         /// <param name="sort">0 mới nhất · 1 rẻ nhất (theo giá 1 cái)</param>

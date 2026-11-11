@@ -48,7 +48,7 @@
         public const short SET_SKILL_SHORTCUT = 209; // C→S byte slot 0..8, int skillTemplateId (-1 = xoá)
         // ---- GĐ3: PvP ----
         public const short PK_MODE = 210;           // C→S byte mode (0 hoà bình / 1 đồ sát)
-        public const short PLAYER_PVP_INFO = 211;   // S→C int playerId, byte pkMode, short pkPoint, UTF guildName
+        public const short PLAYER_PVP_INFO = 211;   // S→C int playerId, byte pkMode, short pkPoint, UTF guildName, byte glow, short petArt, byte petStage
         public const short DUEL_REQUEST = 212;      // C→S int targetPlayerId
         public const short DUEL_INVITE = 213;       // S→C int fromId, UTF fromName
         public const short DUEL_ACCEPT = 214;       // C→S int fromId
@@ -193,6 +193,12 @@
         public const short GEM_REMOVE = 352;        // C→S int bagIndex trang bị, byte vị trí lỗ
         public const short GEM_COMBINE = 353;       // C→S int templateId ngọc (3 → 1 cấp kế)
         public const short GEM_RESULT = 354;        // S→C byte ok, UTF lời báo
+        // GĐ27 — thú cưng (PetNetwork, PetWindow). Nở trứng / cho ăn 1 miếng = USE_ITEM (item type 8 / 9)
+        public const short PET_LIST = 370;          // S→C byte tối đa, byte n, [int uid, short tpl, short art, UTF tên, byte độ hiếm, byte loại, short cấp, int exp, int exp cần (0 = tối đa), byte mang, byte dáng, int hp, int mp, int sát thương, int phòng thủ] × n
+        public const short PET_LIST_REQ = 371;      // C→S rỗng
+        public const short PET_EQUIP = 372;         // C→S int uid (0 = cất)
+        public const short PET_FEED = 373;          // C→S int uid, int itemId thức ăn, short số miếng
+        public const short PET_RELEASE = 374;       // C→S int uid (phóng sinh)
         // GĐ9 — hoạt động hằng ngày, sổ tay nhiệm vụ, mẹo theo cấp
         public const short QUEST_GUIDE_REQ = 724;   // C→S rỗng
         public const short QUEST_GUIDE = 725;       // S→C short n, [int questId, byte status(0 đang làm/1 có thể nhận/2 chờ trả), byte daily, UTF nơi đến]

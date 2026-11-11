@@ -70,6 +70,7 @@ namespace Assets.Script.Player
         {
             ClassType = classType;
             Fx.BodyAura.ResetOn(this, true);   // thân lấy lại từ pool: bỏ trạng thái + hào quang của người dùng trước
+            Fx.PetFollower.ResetOn(this);      // … và thú cưng của người đó (GĐ27)
             isdead = false;                     // cờ chết của người dùng trước (thanh máu đứng yên, ẩn hào quang)
             _ghostUntil = 0f;
             _transformUntil = 0f; _transformed = false;   // Initialize dưới đặt lại skin Normal

@@ -40,7 +40,7 @@ Unit test (hàm thuần, đọc / ghi gói tin — không cần server): `bash c
 | `Data/` | `GameData` (kho dữ liệu server gửi), `GameActions` (nơi duy nhất gửi gói), các `*Network` nhận gói, `GameDataCache` |
 | `Database/` | ScriptableObject cấu hình hình ảnh quái / NPC / kỹ năng |
 | `Entities/` | `MobController` (quái), `NpcEntity` |
-| `Fx/` | `PartRenderer` (vẽ khung nhiều mảnh), `EffectPlayer` (hiệu ứng theo dữ liệu server) |
+| `Fx/` | `PartRenderer` (vẽ khung nhiều mảnh), `EffectPlayer` (hiệu ứng theo dữ liệu server), `CharFx` (Spine FX chiêu), `BodyAura`, `FootDust`, `PetFollower` (thú cưng đi theo — GĐ27) |
 | `Interfaces/` | `ITargetable`, `IHasHealth` |
 | `Manager/` | luồng app (`AppFlowManager`, `GameAuthManager`, `EnterWorld`), sổ người chơi / quái / NPC trong map, pool, popup |
 | `Map/` | `MapManager` (tải prefab map), đổi map/khu, `MapInfo` + các điểm `Map*Spot`, minimap |
@@ -66,7 +66,7 @@ Thư mục khác trong `Assets/`: `Editor/` (tool Editor), `Prefabs/` (`basePlay
 | 5. Cấu hình hình ảnh quái & NPC | điền `MobDatabase` |
 | Map → 1 / 2 / 3 | nhập điểm vào prefab (1 lần) · **xuất map cho server** (`data/maps/map_N.json`) · đổi thư mục |
 | UI → 1 / 2 / 3 | tạo bộ prefab mẫu · xuất cửa sổ/HUD còn thiếu ra prefab · xuất lại cửa sổ đang chọn |
-| Demo art → 1 / 2 / 3 | nhập hình demo nội bộ vào `Assets/_Demo` · đổi thư mục nguồn · âm thanh + bụi chân |
+| Demo art → 1 / 2 / 3 / 4 | nhập hình demo nội bộ vào `Assets/_Demo` · đổi thư mục nguồn · âm thanh + bụi chân · thú cưng (24 bộ Spine) |
 | Build → PC / Android | build Addressables + game ra `Builds/` |
 
 Code các tool: `Assets/Editor/` (`NarutoProjectTools`, `MapDataTool`, `UIPrefabTool`, `ContentSetupTool`, `DemoArtTool`, `BuildTool`).

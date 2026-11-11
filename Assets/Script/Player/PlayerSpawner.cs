@@ -63,6 +63,7 @@ namespace Assets.Script.Player
             if (spine != null && obj.TryGetComponent(out PlayerVisualController vc))
             {
                 vc.SetupVisual(spine, null, p.class_type);
+                if (vc.mainSkeleton != null) vc.mainSkeleton.updateWhenInvisible = UpdateMode.FullUpdate;   // mình: camera luôn theo
                 obj.GetComponentInChildren<MeshRenderer>().sortingOrder = 2;   // mình vẽ đè lên người khác
             }
             else if (obj.TryGetComponent(out PlayerVisualController hidden)) hidden.ShowBody();   // tải xương lỗi: vẫn hiện hình mẫu
@@ -82,6 +83,9 @@ namespace Assets.Script.Player
             rp.Initialize(p);
             if (spine != null && obj.TryGetComponent(out PlayerVisualController vc)) vc.SetupVisual(spine, null, p.class_type);
             else if (obj.TryGetComponent(out PlayerVisualController hidden)) hidden.ShowBody();   // tải xương lỗi: vẫn hiện hình mẫu
+            // TỐI ƯU: người khác đứng ngoài màn hình → Spine chỉ chạy đồng hồ anim, không dựng lưới mỗi khung hình
+            if (obj.TryGetComponent(out PlayerVisualController rvc) && rvc.mainSkeleton != null)
+                rvc.mainSkeleton.updateWhenInvisible = UpdateMode.OnlyAnimationStatus;
 
             // Người khác chỉ đi theo vị trí server gửi (RemotePlayer nội suy) → không chịu vật lý:
             // body Kinematic (không rơi), collider Trigger (không đẩy nhân vật mình, vẫn bấm chọn được)

@@ -17,6 +17,7 @@ using UnityEngine;
 ///   4. FX nhân vật 01_NhanVat/Spine_NhanVat/export/&lt;Tên&gt;FX.json/.atlas/.png → _Demo/Resources/CharFX/&lt;Tên&gt;FX/ (vật bay, vụ nổ — Fx.CharFx)
 ///   5. Âm thanh  09_AmThanh/HieuUng|NhacNen/*.ogg → _Demo/Resources/Audio/&lt;tên GameAudio&gt;.ogg (bảng AudioFiles — chọn tay)
 ///   6. Bụi chân  06_HieuUng/BuiChan_DuongDi/0..4.png → _Demo/Resources/FootDust/dust_0..4.png (Fx.FootDust)
+///   7. Thú cưng  04_ThuCung_Spine/petN/[export/]&lt;Tên&gt;.json/.atlas/.png → _Demo/Resources/Pets/petN/petN.json … (Fx.PetFollower, GĐ27)
 /// Code tải theo tên qua AssetSource: Addressables trước (hình chính thức), không có mới lấy _Demo → thay hình thật
 /// = đưa ảnh cùng tên vào Addressables (address "imgN", "MobAnim_N"), không sửa code.
 /// Không mở Editor: -executeMethod DemoArtTool.BatchImport -demoArt &lt;thư mục TaiNguyen&gt;
@@ -32,6 +33,7 @@ public static class DemoArtTool
     public const string CharFxDir = Root + "/CharFX";
     public const string AudioDir = Root + "/Audio";
     public const string DustDir = Root + "/FootDust";
+    public const string PetDir = Root + "/Pets";
     private static readonly string[] CharFxSets = { "NarutoFX", "SakuraFX", "SasukeFX" };
     private const string DirKey = "Naruto.DemoArtDir";
 
@@ -56,6 +58,24 @@ public static class DemoArtTool
         int dust = CopyDust(Path.Combine(dir, "06_HieuUng", "BuiChan_DuongDi"));
         AssetDatabase.Refresh();
         EditorUtility.DisplayDialog("Demo art", $"Âm thanh: {n} / {AudioFiles.Length} file\nBụi chân: {dust} khung\n→ {Root} (không commit)", "OK");
+    }
+
+    [MenuItem("Tools/Naruto/Demo art/4. Nhập thú cưng (Spine)", priority = 43)]
+    public static void MenuPets()
+    {
+        string dir = SourceDir(true);
+        if (dir == null) return;
+        int n = CopyPets(Path.Combine(dir, "04_ThuCung_Spine"));
+        AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+        EditorUtility.DisplayDialog("Demo art", $"Thú cưng: {n} bộ Spine\n→ {PetDir} (không commit)", "OK");
+    }
+
+    /// <summary>Không mở Editor: -executeMethod DemoArtTool.BatchPets — chỉ chép thú cưng (bước 7).</summary>
+    public static void BatchPets()
+    {
+        int n = CopyPets(Path.Combine(SourceDir(false), "04_ThuCung_Spine"));
+        AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+        Debug.Log($"[DemoArt] thú cưng {n} bộ");
     }
 
     /// <summary>Không mở Editor: -executeMethod DemoArtTool.BatchAudio — chỉ chép âm thanh (bước 5).</summary>
@@ -84,6 +104,8 @@ public static class DemoArtTool
         int audio = CopyAudio(Path.Combine(src, "09_AmThanh"));
         int dust = CopyDust(Path.Combine(src, "06_HieuUng", "BuiChan_DuongDi"));
         if (audio > 0 || dust > 0) Debug.Log($"[DemoArt] âm thanh: {audio} file, bụi chân: {dust} khung");
+        int pets = CopyPets(Path.Combine(src, "04_ThuCung_Spine"));
+        if (pets > 0) Debug.Log($"[DemoArt] thú cưng: {pets} bộ");
         AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);   // spine-unity tự tạo _SkeletonData / _Atlas / vật liệu
         int mobs = 0, npcs = 0;
         foreach (var (art, anim) in mobDirs) if (BuildMobAnim(art, anim)) mobs++;
@@ -266,6 +288,47 @@ public static class DemoArtTool
             n++;
         }
         return n;
+    }
+
+    // ==================== THÚ CƯNG (Spine, GĐ27) ====================
+
+    /// <summary>
+    /// Mỗi thư mục petN (có khi bộ nằm trong petN/export/): &lt;Tên&gt;.json + .atlas + trang ảnh (cạnh atlas hoặc trong _atlas/).
+    /// Đổi tên json / atlas thành petN (spine-unity sinh petN_SkeletonData — Fx.PetFollower tải theo số), trang ảnh GIỮ tên
+    /// (atlas ghi tên trang). Trả số bộ chép được.
+    /// </summary>
+    private static int CopyPets(string dir)
+    {
+        if (!Directory.Exists(dir)) { Debug.LogWarning("[DemoArt] thiếu " + dir); return 0; }
+        int n = 0;
+        foreach (var petDir in Directory.GetDirectories(dir, "pet*"))
+        {
+            string name = Path.GetFileName(petDir);
+            if (!Regex.IsMatch(name, @"^pet\d+$")) continue;
+            string src = Directory.GetFiles(petDir, "*.atlas").Length > 0 ? petDir : Path.Combine(petDir, "export");
+            var atlas = Directory.Exists(src) ? Directory.GetFiles(src, "*.atlas").FirstOrDefault() : null;
+            if (atlas == null) continue;
+            string json = Path.ChangeExtension(atlas, ".json");
+            if (!File.Exists(json)) continue;
+            string dst = Path.Combine(PetDir, name);
+            Directory.CreateDirectory(dst);
+            CopyIfChanged(json, Path.Combine(dst, name + ".json"));
+            CopyIfChanged(atlas, Path.Combine(dst, name + ".atlas.txt"));
+            foreach (var line in File.ReadAllLines(atlas))
+            {
+                string page = line.Trim();
+                if (!page.EndsWith(".png", StringComparison.OrdinalIgnoreCase)) continue;
+                string from = File.Exists(Path.Combine(src, page)) ? Path.Combine(src, page) : Path.Combine(src, "_atlas", page);
+                if (File.Exists(from)) CopyIfChanged(from, Path.Combine(dst, page));
+            }
+            n++;
+        }
+        return n;
+    }
+
+    private static void CopyIfChanged(string from, string to)
+    {
+        if (!File.Exists(to) || new FileInfo(to).Length != new FileInfo(from).Length) File.Copy(from, to, true);
     }
 
     // ==================== HÌNH QUÁI ====================

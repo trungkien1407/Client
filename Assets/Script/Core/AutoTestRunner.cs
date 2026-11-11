@@ -214,6 +214,92 @@ namespace Assets.Script.Core
             yield return new WaitForSecondsRealtime(0.5f);
         }
 
+        /// <summary>
+        /// GĐ27 thú cưng: /pet 11 12 (Sói Băng cấp 12 → dáng 2) → PET_LIST + đuôi PLAYER_PVP_INFO → PetFollower vẽ thú sau lưng,
+        /// skin "lv2", chạy theo khi chủ di chuyển. Cửa sổ Thú cưng có danh sách + hình xem trước. Cho ăn → EXP tăng.
+        /// Cất → hết hình. Phóng sinh hết (chạy lại autotest không bị đầy túi thú). Không có hình demo → bỏ qua phần hình.
+        /// </summary>
+        private IEnumerator CheckPets()
+        {
+            var me = NetworkPlayerManager.Instance.localPlayer;
+            GameActions.PetListRequest();
+            yield return WaitUntil(() => GameData.PetListReceived, 5);
+            foreach (var old in GameData.Pets.ToArray()) GameActions.PetRelease(old.uid);   // lần chạy trước còn sót
+            yield return WaitUntil(() => GameData.Pets.Count == 0, 5);
+            GameActions.Chat(1, "/pet 11 12");
+            yield return WaitUntil(() => GameData.MyPet != null, 5);
+            var pet = GameData.MyPet;
+            yield return new WaitForSecondsRealtime(0.3f);
+            var autoOpened = GameWindow.Get<PetWindow>();
+            Check("Có thú mới → cửa sổ Thú cưng tự mở", autoOpened.IsOpen);
+            autoOpened.Hide();   // cửa sổ mở chặn di chuyển — đóng để thử thú chạy theo
+            Check("GM /pet 11 12 → PET_LIST có Sói Băng cấp 12 đang mang", pet != null && pet.tpl == 11 && pet.level == 12 && pet.on);
+            Check("Thú cấp 12 → dáng 2, có chỉ số cộng", pet != null && pet.stage == 2 && pet.bonus[2] > 0);
+            yield return WaitUntil(() => GameData.Pvp.TryGetValue(LocalPlayerState.Id, out var pv) && pv.petArt == 1024, 5);
+            Check("Đuôi PLAYER_PVP_INFO báo thú của mình (art 1024, dáng 2)",
+                GameData.Pvp.TryGetValue(LocalPlayerState.Id, out var pvi) && pvi.petArt == 1024 && pvi.petStage == 2);
+
+            PetFollower.Preload(1024);
+            yield return new WaitForSecondsRealtime(1.5f);
+            bool art = Core.AssetSource.Cached<Spine.Unity.SkeletonDataAsset>("Pet_1024") != null;
+            if (!art) Debug.Log("[AutoTest] INFO chưa có hình thú demo (Resources/Pets) — bỏ qua phần hình thú");
+            else
+            {
+                me.TryGetComponent(out PetFollower pf);
+                yield return WaitUntil(() => pf != null && pf.Showing, 5);
+                Check("Thú hiện sau lưng nhân vật (PetFollower, Spine)", pf != null && pf.Showing);
+                Check("Thú dùng skin dáng 2 (lv2)", pf != null && pf.Showing && pf.Skeleton.Skeleton.Skin != null && pf.Skeleton.Skeleton.Skin.Name == "lv2");
+                Check("Thú ngoài màn hình không dựng lưới (updateWhenInvisible = OnlyAnimationStatus)",
+                    pf != null && pf.Showing && pf.Skeleton.updateWhenInvisible == Spine.Unity.UpdateMode.OnlyAnimationStatus);
+                float d0 = pf != null && pf.Showing ? Mathf.Abs(pf.Skeleton.transform.position.x - me.transform.position.x) : 99f;
+                Check($"Thú đứng gần chủ (cách {d0:F2})", d0 < 2f);
+                yield return Shot("Pet");
+                // Chủ chạy sang phải 3 ô → thú chạy theo (anim run trong lúc đuổi), rồi đứng lại gần chủ
+                float startX = me.transform.position.x, petX0 = pf.Skeleton.transform.position.x;
+                me.AutoMoveX = 1f;
+                string runAnim = null;
+                float until = Time.realtimeSinceStartup + 4f;
+                while (Time.realtimeSinceStartup < until && me.transform.position.x < startX + 3f)
+                {
+                    if (pf != null && pf.Showing && pf.Skeleton.AnimationState.GetCurrent(0)?.Animation?.Name == "run") runAnim = "run";
+                    yield return null;
+                }
+                me.AutoMoveX = 0f;
+                yield return new WaitForSecondsRealtime(1.2f);
+                float d1 = pf != null && pf.Showing ? Mathf.Abs(pf.Skeleton.transform.position.x - me.transform.position.x) : 99f;
+                Check($"Chủ chạy {me.transform.position.x - startX:F1} ô → thú đuổi theo {pf.Skeleton.transform.position.x - petX0:F1} ô (anim run: {runAnim ?? "không"}, cách chủ sau khi dừng {d1:F2})",
+                    runAnim == "run" && d1 < 2f);
+            }
+
+            var pw = GameWindow.Open<PetWindow>();
+            yield return new WaitForSecondsRealtime(0.8f);
+            Check("Cửa sổ Thú cưng (P) liệt kê thú", pw.IsOpen && pw.GetComponentsInChildren<UnityEngine.UI.Button>(true).Length > 2);
+            if (art)
+            {
+                yield return WaitUntil(() => pw.GetComponentInChildren<Spine.Unity.SkeletonGraphic>() != null, 3);
+                Check("Cửa sổ Thú cưng có hình động xem trước (SkeletonGraphic)", pw.GetComponentInChildren<Spine.Unity.SkeletonGraphic>() != null);
+            }
+            GameActions.Chat(1, "/item 143 3");
+            yield return WaitUntil(() => GameData.CountItem(143) >= 3, 5);
+            yield return Shot("PetWindow");
+            int exp0 = pet != null ? pet.exp : 0, lv0 = pet != null ? pet.level : 0, meat0 = GameData.CountItem(143);
+            GameActions.PetFeed(pet != null ? pet.uid : 0, 143, 2);
+            yield return WaitUntil(() => GameData.CountItem(143) == meat0 - 2, 5);
+            var fed = GameData.MyPet;
+            Check("Cho ăn 2 Thịt Tươi → thú +600 EXP, túi −2",
+                fed != null && GameData.CountItem(143) == meat0 - 2 && (fed.level > lv0 || fed.exp == exp0 + 600));
+            pw.Hide();
+
+            GameActions.PetEquip(0);
+            yield return WaitUntil(() => GameData.MyPet == null, 5);
+            yield return new WaitForSecondsRealtime(0.5f);
+            me.TryGetComponent(out PetFollower pf2);
+            Check("Cất thú → không còn mang, hình thú biến mất", GameData.MyPet == null && (pf2 == null || !pf2.Showing));
+            foreach (var p in GameData.Pets.ToArray()) GameActions.PetRelease(p.uid);
+            yield return WaitUntil(() => GameData.Pets.Count == 0, 5);
+            Check("Phóng sinh → túi thú trống", GameData.Pets.Count == 0);
+        }
+
         private static IEnumerator WaitUntil(Func<bool> cond, float timeout)
         {
             float end = Time.realtimeSinceStartup + timeout;
@@ -788,6 +874,9 @@ namespace Assets.Script.Core
             invHat.Hide();
             GameActions.Unequip(10);
             yield return WaitUntil(() => !GameData.Equipment.ContainsKey(10), 5);
+
+            // 5i3. GĐ27 — thú cưng: GM /pet → đi theo nhân vật (Spine, dáng theo cấp), cửa sổ P, cho ăn, cất / phóng sinh
+            yield return CheckPets();
 
             // 5j. Bình thuốc (GĐ18): Đan Hồi Chakra (type 3) + Đan Hồi Phục (type 2) có hồi chiêu RIÊNG → dùng liền nhau đều ăn;
             //     phím Q / icon "HP" tự chọn bình (trước đây chỉ Bình Nhỏ id 1); icon HP / MP trên HUD là nút thật.

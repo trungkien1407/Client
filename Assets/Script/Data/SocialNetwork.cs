@@ -34,18 +34,20 @@ namespace Assets.Script.Data
             Listen(Cmd.TOP_LIST, OnTopList);
         }
 
-        /// <summary>PLAYER_PVP_INFO: int playerId, byte pkMode, short pkPoint, UTF guildName, byte glow (hào quang 0..3, server cũ không gửi)</summary>
+        /// <summary>PLAYER_PVP_INFO: int playerId, byte pkMode, short pkPoint, UTF guildName, byte glow (hào quang 0..3), short petArt, byte petStage (server cũ không gửi đuôi)</summary>
         private void OnPvpInfo(byte[] data)
         {
             var r = new MessageReader(data);
             int id = r.ReadInt();
             var info = new PvpInfo { pkMode = r.ReadByte(), pkPoint = r.ReadShort(), guild = r.ReadUTF() };
             info.glow = r.Available() > 0 ? r.ReadByte() : 0;
+            if (r.Available() >= 3) { info.petArt = r.ReadShort(); info.petStage = r.ReadByte(); }   // GĐ27 thú đang mang
             r.Cleanup();
             GameData.Pvp[id] = info;
             // Hào quang vũ khí: nhân vật đã có trong map thì gắn ngay; chưa tải xong thì NetworkPlayerManager gắn lúc tạo
             var body = NetworkPlayerManager.Instance != null ? NetworkPlayerManager.Instance.GetPlayerTransform(id) : null;
             if (body != null) Fx.BodyAura.On(body).GlowTier = info.glow;
+            if (body != null) Fx.PetFollower.Set(body, info.petArt, info.petStage);   // chưa tải xong → NetworkPlayerManager gắn lúc tạo
             if (id == LocalPlayerState.Id)
             {
                 GameData.MyPkMode = info.pkMode;

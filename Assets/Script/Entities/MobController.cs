@@ -364,7 +364,8 @@ namespace Assets.Script.Entities
             {
                 _frameTimer = 0f;
                 _currentFrameIndex++;
-                UpdateSpriteFrame();
+                // TỐI ƯU (GĐ27): ngoài màn hình chỉ đếm khung, không ghép lại hình / bật hiệu ứng khung — vào màn hình là vẽ tiếp đúng khung
+                if (Core.CameraView.Visible(transform.position, 3f)) UpdateSpriteFrame();
             }
 
             // 2. Di chuyển mượt (Lerp/MoveTowards) theo Server

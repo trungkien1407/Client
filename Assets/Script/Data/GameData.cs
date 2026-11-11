@@ -18,7 +18,9 @@ namespace Assets.Script.Data
         public int Sockets => levelRequire >= 15 ? 2 : 1;
         /// <summary>Cấp ngọc 1..3 (khớp GemRules: id = 90 + loại·3 + cấp − 1).</summary>
         public int GemTier => IsGem ? (id - 90) % 3 + 1 : 0;
-        public bool IsUsable => type >= 0 && type <= 3;
+        public bool IsUsable => (type >= 0 && type <= 3) || IsPetEgg || IsPetFood;
+        public bool IsPetEgg => type == 8;    // GĐ27 trứng thú: Dùng → nở
+        public bool IsPetFood => type == 9;   // GĐ27 thức ăn thú: Dùng → con đang mang ăn 1 miếng
         public bool IsAutoTrain => type == 7;                             // GĐ22 Tự động luyện tập (có hạn)
     }
 
@@ -171,7 +173,20 @@ namespace Assets.Script.Data
     public class QuestGuideRow { public int questId, status; public bool daily; public string where; }
 
     /// <summary>Thông tin PvP của 1 người (PLAYER_PVP_INFO): chế độ, điểm PK, gia tộc → màu tên.</summary>
-    public class PvpInfo { public int pkMode, pkPoint, glow; public string guild = ""; }   // glow = hào quang 0..3 theo cấp vũ khí
+    public class PvpInfo { public int pkMode, pkPoint, glow, petArt, petStage; public string guild = ""; }   // glow = hào quang 0..3 theo cấp vũ khí · petArt/petStage = thú đang mang (GĐ27)
+
+    /// <summary>GĐ27 — 1 thú cưng của mình (PET_LIST). bonus = {hp, mp, sát thương, phòng thủ} cộng cho chủ khi mang.</summary>
+    public class PetInfo
+    {
+        public int uid, tpl, art, rarity, kind, level, exp, expNext, stage;
+        public bool on;
+        public string name;
+        public readonly int[] bonus = new int[4];
+        public static readonly string[] RarityNames = { "", "Thường", "Quý", "Hiếm" };
+        public static readonly string[] RarityColors = { "#ffffff", "#e0e0e0", "#5fb8ff", "#ff9c2a" };
+        public static readonly string[] KindNames = { "", "Công", "Thủ", "Linh" };
+        public string ColoredName => $"<color={RarityColors[UnityEngine.Mathf.Clamp(rarity, 0, 3)]}>{name}</color>";
+    }
 
     /// <summary>
     /// KHO DỮ LIỆU CLIENT — 1 chỗ duy nhất giữ những gì server gửi về; UI chỉ đọc ở đây
@@ -226,6 +241,11 @@ namespace Assets.Script.Data
 
         // ---- GĐ2 ----
         public static readonly List<BagSlot> Storage = new List<BagSlot>();
+        // ---- GĐ27 thú cưng ----
+        public static readonly List<PetInfo> Pets = new List<PetInfo>();
+        public static int PetMax = 6;
+        public static bool PetListReceived;   // đã nhận PET_LIST lần đầu của phiên (lần sau có thêm con = vừa nở)
+        public static PetInfo MyPet { get { foreach (var p in Pets) if (p.on) return p; return null; } }
         public static int StorageCapacity = 30, StorageNpc = -1;
         public static UpgradeTable Upgrade;
         public static int TradeWith; public static string TradeWithName = "";
@@ -339,7 +359,7 @@ namespace Assets.Script.Data
         {
             Me.Reset();
             Inventory.Clear(); Equipment.Clear(); EquipLevel.Clear(); EquipSlots.Clear(); GemNpc = -1; MySkills.Clear(); MyQuests.Clear();
-            Storage.Clear(); StorageNpc = -1; Upgrade = null; TradeWith = 0;
+            Storage.Clear(); StorageNpc = -1; Upgrade = null; TradeWith = 0; Pets.Clear(); PetListReceived = false;
             MapName = ""; GemMessage = ""; BagCapacity = 40;
             foreach (var side in new[] { TradeMine, TradeTheirs }) { side.locked = side.confirmed = false; side.yen = 0; side.items.Clear(); }
             MyPkMode = 0; Pvp.Clear(); TransformUntil.Clear(); Party.Clear(); PartyLeader = 0; Friends.Clear(); Mails.Clear(); OpenMail = null; MailUnread = 0;
@@ -356,7 +376,7 @@ namespace Assets.Script.Data
     {
         Templates, Character, Inventory, Equipment, Skills, Quests,
         Money, Storage, Upgrade, Trade, Party, Friends, Mails, Guild, Top, Pvp, Event,
-        Activity, QuestGuide, Market, Gem,
+        Activity, QuestGuide, Market, Gem, Pets,
         PartyHp   // chỉ máu / chakra / cấp đồng đội đổi (PARTY_HP, tới 5 lần/giây) — Party = danh sách nhóm đổi
     }
 }

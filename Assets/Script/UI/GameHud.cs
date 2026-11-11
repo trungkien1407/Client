@@ -118,6 +118,7 @@ namespace Assets.Script.UI
             GameWindow.Preload<GuideWindow>();      // phím G
             GameWindow.Preload<WorldMapWindow>();   // phím B
             GameWindow.Preload<AutoWindow>();       // phím U (tự động)
+            GameWindow.Preload<PetWindow>();        // phím P (thú cưng, GĐ27)
             SettingsWindow.ApplySaved();
 
             GameData.OnChanged += k =>

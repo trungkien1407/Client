@@ -8,7 +8,8 @@ using UnityEngine.UI;
 namespace Assets.Script.UI.Windows
 {
     /// <summary>
-    /// CÀI ĐẶT (lưu PlayerPrefs trên máy): âm lượng nhạc/hiệu ứng, chất lượng hình, giới hạn FPS (pin điện thoại).
+    /// CÀI ĐẶT (lưu PlayerPrefs trên máy): âm lượng nhạc/hiệu ứng, chất lượng hình, giới hạn FPS (pin điện thoại),
+    /// thú cưng người khác Hiện / Ẩn (GĐ27 — khu đông người: ẩn để nhẹ máy; thú của mình luôn hiện).
     /// Áp dụng lúc mở game qua SettingsWindow.ApplySaved() (GameHud gọi khi dựng HUD).
     /// </summary>
     public class SettingsWindow : GameWindow
@@ -21,11 +22,12 @@ namespace Assets.Script.UI.Windows
         [SerializeField, Optional] private Button _logout;   // prefab cũ chưa có → Bind() tự tạo
         [SerializeField, Optional] private Button _password; // Đổi mật khẩu — như trên
         [SerializeField, Optional] private Button _auto;     // GĐ22 mở cửa sổ Tự động — như trên
+        [SerializeField, Optional] private Button _pets;     // GĐ27 thú người khác Hiện / Ẩn — như trên
 
         protected override void Configure()
         {
             Title = "Cài đặt";
-            Size = new Vector2(460, 430);   // GĐ22 thêm dòng nút Tự động
+            Size = new Vector2(460, 476);   // GĐ22 thêm dòng nút Tự động · GĐ27 dòng thú người khác
         }
 
         protected override void Build()
@@ -41,6 +43,7 @@ namespace Assets.Script.UI.Windows
             _logout = UIKit.Button("Logout", body, "Đăng xuất", null, 15);
             _password = UIKit.Button("Password", body, "Đổi mật khẩu", null, 15);
             _auto = UIKit.Button("Auto", body, "Tự động (U)", null, 16);
+            _pets = UIKit.Button("Pets", body, "", null, 15);
             PlaceAutoButton();
             PlaceBottomButtons();
         }
@@ -57,6 +60,7 @@ namespace Assets.Script.UI.Windows
         private void PlaceAutoButton()
         {
             if (_auto != null) ((RectTransform)_auto.transform).Place(new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -228), new Vector2(240, 40), new Vector2(0.5f, 1));
+            if (_pets != null) ((RectTransform)_pets.transform).Place(new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -274), new Vector2(300, 38), new Vector2(0.5f, 1));
         }
 
         private static void Bottom(Button b, float x)
@@ -89,6 +93,14 @@ namespace Assets.Script.UI.Windows
                 if (win.sizeDelta.y < 430f) win.sizeDelta = new Vector2(win.sizeDelta.x, 430f);
                 PlaceAutoButton();
             }
+            if (_pets == null)   // prefab xuất trước GĐ27: thêm dòng + nới cửa sổ
+            {
+                _pets = UIKit.Button("Pets", Body, "", null, 15);
+                var w27 = (RectTransform)transform;
+                if (w27.sizeDelta.y < 476f) w27.sizeDelta = new Vector2(w27.sizeDelta.x, 476f);
+                PlaceAutoButton();
+            }
+            _pets.onClick.AddListener(() => { Fx.PetFollower.ShowOthers = !Fx.PetFollower.ShowOthers; Refresh(); });
             _auto.onClick.AddListener(() => { Hide(); Open<AutoWindow>(); });
             _password.onClick.AddListener(() => { Hide(); Get<ChangePasswordWindow>().Open(); });
             _logout.onClick.AddListener(() =>
@@ -142,6 +154,7 @@ namespace Assets.Script.UI.Windows
             _fps.text = $"{PlayerPrefs.GetInt(PrefFps, 60)}";
             var names = QualitySettings.names;
             _quality.text = names.Length > 0 ? names[QualitySettings.GetQualityLevel()] : "-";
+            if (_pets != null) _pets.SetLabel(Fx.PetFollower.ShowOthers ? $"Thú người khác: HIỆN (tối đa {Fx.PetFollower.MaxOthers} con gần nhất)" : "Thú người khác: ẨN (nhẹ máy)");
         }
     }
 }
