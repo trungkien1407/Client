@@ -575,7 +575,7 @@ public static class DemoArtTool
     /// <summary>Lời nhắc nửa server (in cuối hộp thoại kết quả): thiếu thì quái / NPC / hiệu ứng chiêu vẫn hình mặc định.</summary>
     private const string ServerHint = "\n\nNỬA SERVER (bắt buộc để quái / NPC / hiệu ứng chiêu / icon trang bị dùng hình này):\n"
         + "  python tools/make_demo_data.py \"<thư mục TaiNguyen>\"   (trong repo server)\n"
-        + "  mysql -uroot -p game_mmo_db < db/demo_art.sql   → khởi động lại server";
+        + "  → khởi động lại server (server tự đọc data/art_demo.json, không cần MySQL)";
 }
 
 /// <summary>

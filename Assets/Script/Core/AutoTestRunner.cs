@@ -64,7 +64,7 @@ namespace Assets.Script.Core
         /// </summary>
         /// <summary>
         /// GĐ12 — hình theo dữ liệu server: quái có monster_template.art dùng bộ hình MobAnim, hiệu ứng chiêu (GAME_DATA_EFFECTS + kho ảnh)
-        /// diễn được. Chỉ kiểm khi server có cấu hình hình (db/demo_art.sql hoặc hình riêng) — repo sạch thì bỏ qua.
+        /// diễn được. Chỉ kiểm khi server có cấu hình hình (data/art_demo.json hoặc hình riêng) — repo sạch thì bỏ qua.
         /// </summary>
         private IEnumerator CheckArtPipeline()
         {
@@ -413,7 +413,7 @@ namespace Assets.Script.Core
                 Check("Cặp cửa sổ (… | Hành trang): đóng 1 cái → đóng cả 2", !set.IsOpen && !bag.IsOpen && !UIRoot.GameplayBlocked);
             }
 
-            // 3d. Hình NPC theo server (npc_template.art — demo: db/demo_art.sql) + mốc cổng có mũi tên
+            // 3d. Hình NPC theo server (npc_template.art — demo: data/art_demo.json) + mốc cổng có mũi tên
             {
                 bool anyArt = false;
                 foreach (var a in GameData.NpcArt.Values) if (a >= 0) { anyArt = true; break; }
@@ -422,7 +422,7 @@ namespace Assets.Script.Core
                     int withArt = 0, total = 0;
                     foreach (var npc in NetworkNpcManager.Instance.All) { total++; if (npc != null && npc.AppliedArt >= 0) withArt++; }
                     Check($"NPC dùng hình riêng theo server: {withArt}/{total}", total > 0 && withArt == total);
-                    // GĐ26: cỡ vẽ theo npc_template.scale (demo_art.sql đặt cho cao ~150 px như người chơi)
+                    // GĐ26: cỡ vẽ theo npc_template.scale (art_demo.json đặt cho cao ~150 px như người chơi)
                     int scaled = 0, wrong = 0;
                     foreach (var npc in NetworkNpcManager.Instance.All)
                     {
