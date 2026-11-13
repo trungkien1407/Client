@@ -157,6 +157,9 @@ namespace Assets.Script.Combat
             _jumps = 0;
         }
 
+        /// <summary>Thôi tự chạy tới mục tiêu (AutoPath gọi khi bắt đầu "Tự đi" — tránh 2 bên cùng lái nhân vật).</summary>
+        public static void Cancel() { if (_instance != null && _instance._runTarget != null) _instance.StopRun(); }
+
         private void StopRun()
         {
             _runTarget = null;

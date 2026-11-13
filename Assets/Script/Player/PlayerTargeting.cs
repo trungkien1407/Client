@@ -164,7 +164,7 @@ namespace Assets.Script.Player
                 if (col.gameObject == playerTransform.gameObject) continue;
 
                 ITargetable targetable = col.GetComponent<ITargetable>();
-                if (targetable != null)
+                if (targetable != null && !IsCorpse(targetable))
                 {
                     validTargets.Add(targetable);
                 }
@@ -223,7 +223,7 @@ namespace Assets.Script.Player
                     if (hit.collider.gameObject == playerTransform.gameObject) continue;
 
                     ITargetable targetable = hit.collider.GetComponent<ITargetable>();
-                    if (targetable != null)
+                    if (targetable != null && !IsCorpse(targetable))
                     {
                         SetTarget(targetable);
                         foundTarget = true;
@@ -238,8 +238,12 @@ namespace Assets.Script.Player
         // ==========================================
         // XỬ LÝ CHỌN MỤC TIÊU (HỖ TRỢ ĐA HÌNH)
         // ==========================================
+        /// <summary>Quái đã chết (đang bay / rơi / mờ dần trước khi biến mất) — không chọn làm mục tiêu được.</summary>
+        private static bool IsCorpse(ITargetable t) => t is MobController m && m.IsDead;
+
         private void SetTarget(ITargetable newTarget)
         {
+            if (newTarget == null || IsCorpse(newTarget)) return;
             if (currentTarget == newTarget) { _autoPicked = false; return; }   // bấm lại đúng con máy chọn = người chọn
             ClearTarget();
             _autoPicked = false;   // AutoTargetTick đặt lại true sau khi gọi

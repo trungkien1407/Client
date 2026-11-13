@@ -239,5 +239,32 @@ namespace Assets.Script.Core
             GameActions.Chat(1, "/hp");
             yield return new WaitForSecondsRealtime(0.5f);
         }
+
+        /// <summary>
+        /// Quái chết (MobController.PlayDeath): hất nhẹ ra xa người chơi → rơi xuyên nền → mờ dần rồi mới biến mất;
+        /// trong lúc đó không chọn làm mục tiêu được (Tab / bấm chuột / SelectTarget đều bỏ qua xác).
+        /// </summary>
+        private IEnumerator CheckMobDeathFx()
+        {
+            GameActions.Chat(1, "/tele 2");   // Đồi Hoa Cúc: nhiều quái
+            yield return WaitUntil(() => GameData.MapName == "Đồi Hoa Cúc", 8);
+            yield return new WaitForSecondsRealtime(1.5f);
+            var me = NetworkPlayerManager.Instance.localPlayer;
+            var mob = NetworkMobManager.Instance != null ? NetworkMobManager.Instance.FindNearestAlive(me.transform.position, 60f) : null;
+            Check("Có quái để thử hiệu ứng chết", mob != null);
+            if (mob == null) yield break;
+            Vector3 p0 = mob.transform.position;
+            GameActions.Chat(1, "/killall");
+            yield return WaitUntil(() => mob.IsDead, 3);
+            yield return new WaitForSecondsRealtime(0.7f);   // nảy lên ~0,35 ô rồi rơi: tới 0,7 giây đã xuống dưới chỗ cũ
+            Vector3 p1 = mob.transform.position;
+            var targeting = FindAnyObjectByType<PlayerTargeting>();
+            if (targeting != null) targeting.SelectTarget(mob);
+            Check($"Quái chết: bị hất ngang ({p1.x - p0.x:0.00}) rồi rơi xuyên nền ({p1.y - p0.y:0.00})",
+                mob.IsDead && Mathf.Abs(p1.x - p0.x) > 0.5f && p1.y < p0.y - 0.3f);
+            Check("Xác quái đang rơi không chọn làm mục tiêu được", targeting == null || !ReferenceEquals(targeting.currentTarget, mob));
+            yield return new WaitForSecondsRealtime(0.6f);
+            Check("Rơi xong thì xác biến mất", !mob.gameObject.activeInHierarchy || NetworkMobManager.Instance.GetMob(mob.GetId()) != mob);
+        }
     }
 }

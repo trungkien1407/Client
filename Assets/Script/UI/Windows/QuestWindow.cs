@@ -13,6 +13,7 @@ namespace Assets.Script.UI.Windows
     ///   Đang làm:     tên, mô tả, tiến độ, NƠI CẦN TỚI (map có quái / NPC), phần thưởng, NPC trả.
     ///   Có thể nhận:  nhiệm vụ đã mở khoá + NPC giao ở làng nào (GĐ9 — người mới luôn biết việc kế tiếp).
     /// "Nơi cần tới" do server dựng (QUEST_GUIDE) vì chỉ server biết quái/NPC nằm ở map nào và nhiệm vụ nào đã mở khoá.
+    /// Mỗi dòng có nút "Tự đi": đóng sổ tay rồi nhân vật tự chạy tới nơi (qua nhiều map) — Combat.AutoPath.
     /// </summary>
     public class QuestWindow : GameWindow
     {
@@ -44,6 +45,28 @@ namespace Assets.Script.UI.Windows
         }
 
         private void OnDisable() => _requested = false;
+
+        private const float GoWidth = 84;
+
+        /// <summary>Nút "Tự đi" góc phải trên của 1 dòng: đóng sổ tay rồi tự chạy tới nơi làm / nhận / trả nhiệm vụ.</summary>
+        private void GoButton(Transform row, int questId)
+        {
+            var btn = UIKit.Button("Go", row, "Tự đi", () => { Hide(); Combat.AutoPath.Begin(questId); }, 15);
+            ((RectTransform)btn.transform).Place(new Vector2(1, 1), new Vector2(1, 1), new Vector2(-6, -6), new Vector2(GoWidth, 30), new Vector2(1, 1));
+        }
+
+        /// <summary>Bấm "Tự đi" của nhiệm vụ questId (AutoTestRunner dùng — giống người chơi bấm).</summary>
+        public bool ClickGo(int questId)
+        {
+            if (_list == null) return false;
+            var row = _list.Find("Q" + questId);
+            if (row == null) row = _list.Find("A" + questId);
+            var go = row != null ? row.Find("Go") : null;
+            var btn = go != null ? go.GetComponent<UnityEngine.UI.Button>() : null;
+            if (btn == null) return false;
+            btn.onClick.Invoke();
+            return true;
+        }
 
         private string WhereOf(int questId)
         {
@@ -83,7 +106,8 @@ namespace Assets.Script.UI.Windows
                 if (done) sb.Append($"\n<color=#7cf>→ Về gặp {(string.IsNullOrEmpty(where) ? GameData.NpcName(q.npcId) : where)} để trả</color>");
 
                 var row = UIKit.Panel("Q" + q.id, _list, UIKit.SlotColor).Height(150);
-                UIKit.Text("Text", row.transform, sb.ToString(), 16, TextAlignmentOptions.TopLeft).rectTransform.Fill(8, 8, 6, 6);
+                UIKit.Text("Text", row.transform, sb.ToString(), 16, TextAlignmentOptions.TopLeft).rectTransform.Fill(8, GoWidth + 12, 6, 6);
+                GoButton(row.transform, q.id);
             }
 
             UIKit.Text("H2", _list, "\n<b><color=#fd5>Có thể nhận</color></b>  <size=13><color=#9aa>(đến gặp NPC để nhận)</color></size>", 17).Height(44);
@@ -95,7 +119,8 @@ namespace Assets.Script.UI.Windows
                 string lv = q.levelRequire > 0 ? $"  <color=#999>cấp {q.levelRequire}</color>" : "";
                 var row = UIKit.Panel("A" + q.id, _list, new Color(0.12f, 0.15f, 0.2f)).Height(52);
                 UIKit.Text("Text", row.transform, $"{tag} <b>{q.name}</b>{lv}\n<size=14><color=#7cf>Nhận ở: {g.where}</color></size>", 15,
-                    TextAlignmentOptions.MidlineLeft).rectTransform.Fill(8, 8, 2, 2);
+                    TextAlignmentOptions.MidlineLeft).rectTransform.Fill(8, GoWidth + 12, 2, 2);
+                GoButton(row.transform, q.id);
                 n++;
             }
             if (n == 0) UIKit.Text("None", _list, GameData.QuestGuide.Count == 0 && _requested

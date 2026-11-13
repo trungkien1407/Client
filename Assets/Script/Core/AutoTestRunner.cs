@@ -149,6 +149,8 @@ namespace Assets.Script.Core
             yield return TestWorld();
             yield return TestAutoAndDungeon();
             yield return TestEconomy();
+            yield return CheckMobDeathFx();
+            yield return TestAutoPath();
             yield return TestSession();
 
             // Skin bằng hình kho (chỉ khi máy có Resources/UISkin — demo nội bộ): khung cửa sổ, nút menu HUD thành icon

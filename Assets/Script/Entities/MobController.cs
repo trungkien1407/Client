@@ -69,6 +69,8 @@ namespace Assets.Script.Entities
             _currentFrameIndex = 0;
             _attackAnimUntil = 0f;
             _hurtUntil = 0f;
+            _deathStart = -1f;   // bỏ đà rơi của lần chết trước
+            if (_nameLabel != null) _nameLabel.gameObject.SetActive(true);
             _loadToken++;   // hình đang tải dở của lần dùng trước (pool) bỏ đi
             AppliedArt = -1;
             UseAnim(null);
@@ -110,7 +112,15 @@ namespace Assets.Script.Entities
             _hurtUntil = Time.time + 0.25f;
         }
 
-        /// <summary>Server báo quái chết (MOB_DIE): hiện frame bị đánh, mờ dần. Manager sẽ thu hồi về Pool sau.</summary>
+        // ---- CHẾT: hất nhẹ → rơi xuyên nền → mờ dần (chỉ là hình; server đã coi quái chết, không chọn / đánh được nữa) ----
+        public const float DeathSeconds = 1.0f;     // NetworkMobManager thu xác sau đúng chừng này
+        private const float DeathPushX = 2.2f;      // hất ngang (ô / giây), hướng ra xa người chơi
+        private const float DeathPushUp = 3.2f;     // nảy lên trước khi rơi
+        private const float DeathGravity = 14f;     // rơi nhanh dần; không va chạm nên rơi xuyên các lớp nền
+        private Vector2 _deathVel;
+        private float _deathStart = -1f;
+
+        /// <summary>Server báo quái chết (MOB_DIE): hiện frame bị đánh, hất nhẹ rồi rơi xuyên nền, mờ dần. Manager thu về Pool sau DeathSeconds.</summary>
         public void PlayDeath()
         {
             Fx.BodyAura.ResetOn(this);
@@ -118,7 +128,25 @@ namespace Assets.Script.Entities
             UpdateUI();
             OnHpChanged?.Invoke(currentHp, maxHp);
             ChangeState(MobState.Dead);
-            var c = BaseColor; c.a = 0.6f; ApplyColor(c);
+            if (hpBarContainer != null) hpBarContainer.SetActive(false);
+            if (_nameLabel != null) _nameLabel.gameObject.SetActive(false);
+            // Hướng hất: ra xa nhân vật mình (gói MOB_DIE không có người hạ — người chơi thường đứng gần quái mình đánh)
+            var me = Manager.NetworkPlayerManager.Instance != null ? Manager.NetworkPlayerManager.Instance.localPlayer : null;
+            float side = me != null && me.transform.position.x > transform.position.x ? -1f : 1f;
+            _deathVel = new Vector2(side * DeathPushX, DeathPushUp);
+            _deathStart = Time.time;
+            var c = BaseColor; c.a = 0.85f; ApplyColor(c);
+        }
+
+        /// <summary>Mỗi khung khi đã chết: bay theo vận tốc (trọng lực kéo xuống), mờ dần về 0.</summary>
+        private void UpdateDeath()
+        {
+            if (_deathStart < 0f) return;
+            float dt = Time.deltaTime;
+            _deathVel.y -= DeathGravity * dt;
+            transform.position += new Vector3(_deathVel.x * dt, _deathVel.y * dt, 0f);
+            float t = Mathf.Clamp01((Time.time - _deathStart) / DeathSeconds);
+            var c = BaseColor; c.a = 0.85f * (1f - t * t); ApplyColor(c);   // mờ chậm lúc đầu, nhanh lúc cuối
         }
 
         // ---- HIỆU ỨNG TRÊN THÂN (Fx.BodyAura) ----
@@ -355,7 +383,8 @@ namespace Assets.Script.Entities
         }
         private void Update()
         {
-            if (!_isReady || _currentState == MobState.Dead) return;
+            if (_currentState == MobState.Dead) { UpdateDeath(); return; }
+            if (!_isReady) return;
 
             // 1. Animation logic
             _frameTimer += Time.deltaTime;

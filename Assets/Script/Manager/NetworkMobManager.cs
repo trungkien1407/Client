@@ -155,7 +155,7 @@ namespace Assets.Script.Manager
             mob.PlayDeath();
             if (_targeting == null) _targeting = FindAnyObjectByType<Assets.Script.Player.PlayerTargeting>();   // nhớ lại: chiêu diện rộng hạ 10 quái = 10 lần quét cả scene
             if (_targeting != null) _targeting.ClearIfTarget(mob);
-            StartCoroutine(RemoveCorpseLater(mobId, mob, 1.0f, _clearGen));
+            StartCoroutine(RemoveCorpseLater(mobId, mob, MobController.DeathSeconds, _clearGen));
         }
 
         private Assets.Script.Player.PlayerTargeting _targeting;
@@ -293,14 +293,15 @@ namespace Assets.Script.Manager
             finally { reader.Cleanup(); }
         }
 
-        /// <summary>Tìm quái CÒN SỐNG gần vị trí nhất trong bán kính (dùng để tự chọn mục tiêu khi bấm đánh).</summary>
-        public MobController FindNearestAlive(Vector3 pos, float radius)
+        /// <summary>Tìm quái CÒN SỐNG gần vị trí nhất trong bán kính (tự chọn mục tiêu khi bấm đánh). templateId ≥ 0 → chỉ quái mẫu đó (Tự đi).</summary>
+        public MobController FindNearestAlive(Vector3 pos, float radius, int templateId = -1)
         {
             MobController best = null;
             float bestSqr = radius * radius;
             foreach (var mob in activeMobs.Values)
             {
                 if (mob == null || mob.IsDead) continue;
+                if (templateId >= 0 && mob.templateId != templateId) continue;
                 float sqr = ((Vector2)(mob.transform.position - pos)).sqrMagnitude;
                 if (sqr <= bestSqr) { bestSqr = sqr; best = mob; }
             }

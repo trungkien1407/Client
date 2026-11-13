@@ -193,6 +193,7 @@ namespace Assets.Script.Data
             if (newMap && !string.IsNullOrEmpty(name))
                 UI.GameHud.Banner(lo > 0 ? name + "\n<size=18><color=#ddd>Quái cấp " + lo + "–" + hi + "</color></size>" : name, 2.5f);
             Map.PortalMarkers.Show(portals);
+            Combat.AutoPath.OnEnteredMap();   // đang "Tự đi" → hỏi server bước tiếp ở map mới
         }
 
         private void OnActivityInfo(byte[] data)
