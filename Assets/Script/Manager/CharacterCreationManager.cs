@@ -12,6 +12,11 @@ using Assets.Script.Manager;
 
 namespace Assets.Script.Manager
 {
+    /// <summary>
+    /// MÀN TẠO NHÂN VẬT: tải danh sách hệ phái (NinjaClassData, qua Addressables), sinh 1 nút cho mỗi hệ kèm hình Spine xem trước,
+    /// bấm nút → hiện mô tả + hình của hệ đó; bấm [Tạo] → kiểm tên rồi gửi CREATE_CHARACTER(tên, hệ).
+    /// Kết quả server trả do GameAuthManager.OnCreateCharResponse xử lý (vào game hoặc báo lỗi).
+    /// </summary>
     public class CharacterCreationManager : MonoBehaviour
     {
         [Header("UI Tên & Mô tả")]
@@ -36,18 +41,25 @@ namespace Assets.Script.Manager
         private int currentClassId = -1;
         private int loadedSpineCount = 0;
 
+        /// <summary>Gắn nút Tạo + phím Enter trong ô tên, rồi bắt đầu tải dữ liệu hệ phái.</summary>
         void Start()
         {
             if (btnCreate != null) btnCreate.onClick.AddListener(OnCreateButtonClicked);
             if (inputName != null)
             {
                 inputName.characterLimit = 15;   // khớp server: tên 3–15 ký tự
+                // Enter trong ô tên = bấm Tạo (trừ khi đang có hộp thông báo che màn hình)
                 inputName.onSubmit.AddListener(_ => { if (PopupAndLoad.Instance == null || !PopupAndLoad.Instance.IsShowing) OnCreateButtonClicked(); });
             }
             // Bắt đầu quy trình khởi tạo và tải dữ liệu
             StartCoroutine(InitialSetupRoutine());
         }
 
+        /// <summary>
+        /// Coroutine (chạy qua nhiều khung hình, "yield return" = đợi việc đó xong rồi chạy tiếp):
+        /// khởi tạo Addressables → nếu dữ liệu hệ phái chưa có trên máy thì tải về → nạp danh sách hệ.
+        /// Mỗi "handle" của Addressables phải Release sau khi dùng để không rò bộ nhớ.
+        /// </summary>
         private IEnumerator InitialSetupRoutine()
         {
             // BƯỚC 0: Khởi tạo hệ thống
@@ -96,10 +108,12 @@ namespace Assets.Script.Manager
             LoadAllNinjaClasses();
         }
 
+        /// <summary>Nạp mọi NinjaClassData có nhãn ClassDataLabel; nạp xong thì xếp theo classId rồi dựng nút (GenerateUI).</summary>
         private void LoadAllNinjaClasses()
         {
             Addressables.LoadAssetsAsync<NinjaClassData>(Assets.Script.Core.AddressKeys.ClassDataLabel, (data) =>
             {
+                // Hàm này chạy cho TỪNG asset vừa nạp; .Completed chạy 1 lần khi nạp xong tất cả
                 if (data != null) availableClasses.Add(data);
             }).Completed += handle => {
                 if (handle.Status == AsyncOperationStatus.Succeeded)
@@ -114,6 +128,10 @@ namespace Assets.Script.Manager
             };
         }
 
+        /// <summary>
+        /// Dọn nút / hình cũ rồi sinh mỗi hệ 1 nút + 1 hình Spine (tạo bất đồng bộ, ẩn sẵn).
+        /// Đếm loadedSpineCount: khi hình cuối cùng tạo xong (kể cả hệ không có hình) thì tự chọn hệ đầu tiên.
+        /// </summary>
         private void GenerateUI()
         {
             // Dọn dẹp nếu có dữ liệu cũ
@@ -125,11 +143,13 @@ namespace Assets.Script.Manager
 
             loadedSpineCount = 0;
             generatedButtonImages.Clear();
+            // Tạo sẵn danh sách đủ chỗ (toàn null): hình tạo xong không theo thứ tự nên phải gán đúng vị trí currentIndex
             generatedSpineObjects = new List<GameObject>(new GameObject[availableClasses.Count]);
 
             for (int i = 0; i < availableClasses.Count; i++)
             {
                 NinjaClassData data = availableClasses[i];
+                // [C#] Chép i ra biến riêng: lambda bên dưới chạy SAU vòng lặp, dùng thẳng i sẽ luôn ra giá trị cuối
                 int currentIndex = i;
 
                 // 1. Tạo Nút bấm UI
@@ -166,6 +186,7 @@ namespace Assets.Script.Manager
             }
         }
 
+        /// <summary>Chọn hệ thứ index: nhớ classId để gửi lúc tạo, đổi ảnh / chữ của nút, hiện mô tả và chỉ bật hình Spine của hệ đó.</summary>
         public void OnClassButtonClicked(int index)
         {
             if (index < 0 || index >= availableClasses.Count) return;
@@ -198,6 +219,7 @@ namespace Assets.Script.Manager
             }
         }
 
+        /// <summary>Bấm [Tạo]: kiểm tên 3–15 ký tự và đã chọn hệ, hiện "Đang tạo..." rồi gửi CREATE_CHARACTER. Kiểm kỹ (trùng tên, từ cấm) ở server.</summary>
         public void OnCreateButtonClicked()
         {
             string charName = inputName.text.Trim();
@@ -219,6 +241,7 @@ namespace Assets.Script.Manager
             Assets.Script.Data.GameActions.CreateCharacter(charName, currentClassId);
         }
 
+        /// <summary>Rời màn: trả các hình Spine đã tạo qua Addressables (ReleaseInstance) để giải phóng bộ nhớ.</summary>
         void OnDestroy()
         {
             if (generatedSpineObjects != null)

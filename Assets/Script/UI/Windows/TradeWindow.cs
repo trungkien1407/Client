@@ -26,12 +26,17 @@ namespace Assets.Script.UI.Windows
             Size = new Vector2(470, 480);
         }
 
+        /// <summary>
+        /// Dựng giao diện (1 lần): nửa trái "Bạn đưa", nửa phải "Người kia đưa"; dưới cùng ô nhập yên + [Đặt yên],
+        /// dòng trạng thái và 3 nút Khoá / Xác nhận / Huỷ. Hai khung đồ chừa 150px phía dưới cho phần nút.
+        /// </summary>
         protected override void Build()
         {
             var body = CreateBody();
 
             var left = UIKit.Panel("Mine", body, new Color(0, 0, 0, 0.3f)).rectTransform;
             left.Place(new Vector2(0, 0), new Vector2(0.5f, 1), new Vector2(0, 0), Vector2.zero, new Vector2(0, 0));
+            // offsetMin / offsetMax: lề trái-dưới / phải-trên so với khung neo (chừa 150px đáy, 5px khe giữa 2 nửa)
             left.offsetMin = new Vector2(0, 150); left.offsetMax = new Vector2(-5, 0);
             _mine = UIKit.Text("Text", left, "", 15, TextAlignmentOptions.TopLeft);
             _mine.rectTransform.Fill(8, 8, 6, 6);
@@ -47,6 +52,7 @@ namespace Assets.Script.UI.Windows
             _setYen = UIKit.Button("SetYen", body, "Đặt yên", null, 15);
             ((RectTransform)_setYen.transform).Place(new Vector2(0, 0), new Vector2(0, 0), new Vector2(156, 100), new Vector2(100, 38), Vector2.zero);
 
+            // Dòng nhắc bước tiếp theo (Refresh() điền theo trạng thái khoá / xác nhận)
             _status = UIKit.Text("Status", body, "", 14, TextAlignmentOptions.MidlineLeft, UIKit.DimText);
             _status.rectTransform.Place(new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 58), new Vector2(0, 36), new Vector2(0, 0));
 

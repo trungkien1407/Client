@@ -310,6 +310,23 @@ namespace Assets.Script.Core
             Check("Xác quái đang rơi không chọn làm mục tiêu được", targeting == null || !ReferenceEquals(targeting.currentTarget, mob));
             yield return new WaitForSecondsRealtime(0.6f);
             Check("Rơi xong thì xác biến mất", !mob.gameObject.activeInHierarchy || NetworkMobManager.Instance.GetMob(mob.GetId()) != mob);
+            // Đồ rơi (nếu lần này có): icon thật của vật phẩm, không còn ô vuông màu
+            yield return new WaitForSecondsRealtime(0.8f);
+            int drops = 0, withIcon = 0;
+            foreach (var t in FindObjectsByType<Transform>(FindObjectsSortMode.None))
+            {
+                if (!t.name.StartsWith("GroundItem_")) continue;
+                drops++;
+                var ic = t.Find("Icon");
+                var isr = ic != null ? ic.GetComponent<SpriteRenderer>() : null;
+                if (isr != null && isr.sprite != null && isr.sprite.texture.width > 8) withIcon++;
+            }
+            if (drops > 0)
+            {
+                Check($"Đồ rơi hiện icon thật của vật phẩm ({withIcon}/{drops})", withIcon > 0);
+                yield return Shot("GroundItems");
+            }
+            else Debug.Log("[AutoTest] lần này không có đồ rơi — bỏ qua kiểm icon đồ rơi");
         }
     }
 }

@@ -191,6 +191,12 @@ namespace Assets.Script.UI.Windows
         private void SelectBag(int index) { SelectedIndex = index; _selectedEquipSlot = -1; Refresh(); }
         private void SelectEquip(int slot) { _selectedEquipSlot = slot; SelectedIndex = -1; Refresh(); }
 
+        /// <summary>
+        /// Khung chi tiết + nút theo ngữ cảnh: ẩn hết nút trước, rồi tuỳ ô đang chọn mà bật lại.
+        ///  - Chọn ô trang bị: mô tả món đang mặc + nút "Tháo".
+        ///  - Chọn ô túi: mô tả + Dùng (đồ dùng được) / Mặc (trang bị) / Bán (đang mở shop) / Cất (đang mở rương)
+        ///    / Đưa vào GD (đang giao dịch) / Treo bán (đang mở chợ) — 2 nút cuối không hiện với đồ khoá / không giao dịch được.
+        /// </summary>
         private void UpdateDetail()
         {
             _btnUse.gameObject.SetActive(false);
@@ -200,13 +206,16 @@ namespace Assets.Script.UI.Windows
             _btnTrade.gameObject.SetActive(false);
             _btnMarket.gameObject.SetActive(false);
 
+            // Đang chọn ô trang bị (số ô bắt đầu từ 1)
             if (_selectedEquipSlot > 0)
             {
                 if (!GameData.Equipment.TryGetValue(_selectedEquipSlot, out int eq)) { _detail.text = "Ô trống"; return; }
                 GameData.EquipLevel.TryGetValue(_selectedEquipSlot, out int lv);
                 GameData.EquipSlots.TryGetValue(_selectedEquipSlot, out var es);
+                // Có đủ dữ liệu ô (phẩm chất, ngọc) thì mô tả đầy đủ, không thì chỉ theo mẫu + cấp
                 _detail.text = es != null ? Describe(es) : Describe(eq, lv);
                 _btnEquip.gameObject.SetActive(true);
+                // Dùng chung nút Mặc, chỉ đổi chữ — OnEquip() tự biết đang tháo hay mặc
                 _btnEquip.SetLabel("Tháo");
                 return;
             }
@@ -214,6 +223,7 @@ namespace Assets.Script.UI.Windows
             if (s == null) { _detail.text = "Chọn 1 vật phẩm"; return; }
 
             _detail.text = Describe(s) + (s.qty > 1 ? $"\nSố lượng: {s.qty}" : "");
+            // Cần mẫu vật phẩm (t) để biết món dùng được / mặc được / bán được không
             if (GameData.Items.TryGetValue(s.tpl, out var t))
             {
                 _btnUse.gameObject.SetActive(t.IsUsable);

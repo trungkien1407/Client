@@ -160,6 +160,7 @@ namespace Assets.Script.Core
             yield return CheckBackdrop();
             yield return CheckHudPad();
             yield return CheckMobDeathFx();
+            yield return CheckVillageDoor();
             yield return TestAutoPath();
             yield return TestSession();
 

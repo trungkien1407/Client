@@ -94,6 +94,10 @@ namespace Assets.Script.Player
             if (!initialized) Initialize(new PlayerData(), 1);
         }
 
+        /// <summary>
+        /// Khởi tạo nhân vật của MÌNH bằng dữ liệu server: tốc chạy, lực nhảy, trọng lực (server gửi 0 thì dùng mặc định),
+        /// lấy các component cần dùng, đặt hướng quay mặt (dir 1 = trái). Gọi 1 lần ngay sau khi tạo nhân vật.
+        /// </summary>
         public void Initialize(PlayerData dataFromServer, int dir)
         {
             initialized = true;
@@ -103,6 +107,7 @@ namespace Assets.Script.Player
             this.jumpForce = myData.jumpForce > 0 ? myData.jumpForce : 15f;
             this.baseGravity = myData.gravity > 0 ? myData.gravity : 3f; // khớp GamePlayConfig.DEFAULT_GRAVITY bên server
 
+            // moveSpeed = tốc độ đang dùng (xuống nước thì bị giảm); baseMoveSpeed giữ số gốc để trả lại khi lên bờ
             this.moveSpeed = baseMoveSpeed;
 
             rb = GetComponent<Rigidbody2D>();
@@ -111,6 +116,7 @@ namespace Assets.Script.Player
 
             if (rb != null)
             {
+                // Continuous: rơi nhanh không bị "xuyên" qua nền mỏng (kiểm va chạm liên tục giữa 2 khung hình)
                 rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
                 rb.gravityScale = baseGravity;
             }
@@ -118,6 +124,7 @@ namespace Assets.Script.Player
             isFacingLeft = (dir == 1);
             visualCtrl.SetFlip(isFacingLeft);
 
+            // Mốc để HandleNetworkSync biết đã đi bao xa từ lần gửi vị trí gần nhất
             lastSentPos = transform.position;
             lastVelocityY = 0f;
         }

@@ -14,6 +14,21 @@ namespace Assets.Script.Core
     public partial class AutoTestRunner
     {
         /// <summary>
+        /// Cửa trường giữa Làng Lá: hố đậy bục 1 chiều → đi ngang qua KHÔNG lọt xuống; đứng trên nắp bấm ↓ (rơi xuyên bục) → vào trường.
+        /// </summary>
+        private IEnumerator CheckVillageDoor()
+        {
+            GameActions.Chat(1, "/tele 1 19 4.1");   // đứng ngay trên nắp hố cửa Y Thuật Đường
+            yield return WaitUntil(() => GameData.MapName == "Làng Lá", 8);
+            yield return new WaitForSecondsRealtime(2f);
+            var me = NetworkPlayerManager.Instance.localPlayer;
+            Check($"Đứng / nhảy qua cửa trường giữa làng → nắp bục đỡ, không lọt xuống (y {me.transform.position.y:0.0})", GameData.MapName == "Làng Lá" && me.transform.position.y > 3.5f);
+            bool dropped = me.TryDropThrough();
+            yield return WaitUntil(() => GameData.MapName == "Y Thuật Đường", 4);
+            Check($"Đứng trên nắp cửa bấm ↓ → rơi xuống, vào Y Thuật Đường (rơi {dropped})", GameData.MapName == "Y Thuật Đường");
+        }
+
+        /// <summary>
         /// Mục 5m: đứng trong trường của hệ mình (map 12 / 13 / 14, chỉ có 1 cổng về Làng Lá) → mở sổ tay → bấm "Tự đi"
         /// một nhiệm vụ ở Làng Lá → nhân vật phải tự chạy vào cổng, sang Làng Lá, rồi tới nơi (NPC / quái).
         /// </summary>

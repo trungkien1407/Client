@@ -84,14 +84,20 @@ namespace Assets.Script.UI.Windows
             _list = UIKit.ScrollList("List", body, 4);
         }
 
+        /// <summary>
+        /// Gắn sự kiện cho nút (chỉ chạy 1 lần): đổi thẻ, rời nhóm, kết bạn, lập / góp quỹ / thông báo / rời gia tộc.
+        /// Nút chỉ GỬI yêu cầu; server trả gói mới → GameData.OnChanged → vẽ lại cửa sổ.
+        /// </summary>
         protected override void Bind()
         {
             for (int i = 0; i < 3; i++)
             {
+                // [C#] Chép i ra biến riêng trong vòng lặp: lambda bên dưới giữ đúng thẻ của nút này (dùng thẳng i thì lúc bấm i đã = 3)
                 var t = (Tab)i;
                 _tabs[i].onClick.AddListener(() => SwitchTab(t));
             }
             _btnLeave.onClick.AddListener(GameActions.PartyLeave);
+            // Ô trống thì bỏ qua; gửi xong xoá chữ trong ô
             _btnAdd.onClick.AddListener(() =>
             {
                 if (!string.IsNullOrWhiteSpace(_friendName.text)) { GameActions.FriendRequest(_friendName.text.Trim()); _friendName.text = ""; }
@@ -101,6 +107,7 @@ namespace Assets.Script.UI.Windows
             {
                 if (!string.IsNullOrWhiteSpace(_guildName.text)) GameActions.GuildCreate(_guildName.text.Trim());
             });
+            // Chỉ gửi khi nhập đúng số nguyên dương
             _btnDonate.onClick.AddListener(() =>
             {
                 if (int.TryParse(_donate.text, out int v) && v > 0) { GameActions.GuildDonate(v); _donate.text = ""; }
@@ -112,6 +119,7 @@ namespace Assets.Script.UI.Windows
             _btnGLeave.onClick.AddListener(() =>
                 ConfirmWindow.Ask("Rời gia tộc? (Tộc trưởng rời khi còn 1 người = giải tán)", "Rời", GameActions.GuildLeave, "Ở lại"));
 
+            // Dữ liệu nhóm / bạn / gia tộc / nhân vật đổi → vẽ lại nếu cửa sổ đang mở
             GameData.OnChanged += k =>
             {
                 if (k == DataKind.Party || k == DataKind.Friends || k == DataKind.Guild || k == DataKind.Character) RefreshIfOpen();
@@ -203,6 +211,10 @@ namespace Assets.Script.UI.Windows
             }
         }
 
+        /// <summary>
+        /// Thẻ Gia tộc: chưa có tộc → dòng gợi ý; có → thông tin tộc + từng thành viên kèm nút theo chức.
+        /// Chức (rank): 0 Thành viên · 1 Trưởng lão · 2 Tộc trưởng. Nút chỉ để dễ nhìn — server kiểm quyền lại.
+        /// </summary>
         private void DrawGuild()
         {
             var g = GameData.Guild;
@@ -210,6 +222,7 @@ namespace Assets.Script.UI.Windows
             _guildInfo.text = $"<size=20><b>{g.name}</b></size>  <color=#9aa>Cấp {g.level} · {g.members.Count}/{g.capacity} người</color>\n" +
                               $"Quỹ tộc: <color=#fd5>{g.fund:N0} yên</color>   Chức của bạn: <color=#7cf>{GuildInfo.RankName(g.myRank)}</color>\n" +
                               $"<color=#ddd>Thông báo: {(string.IsNullOrEmpty(g.notice) ? "(chưa có)" : g.notice)}</color>\n<color=#888>Chat gia tộc: gõ \"/g nội dung\"</color>";
+            // Chỉ Trưởng lão trở lên mới thấy ô sửa thông báo
             _notice.gameObject.SetActive(g.myRank >= 1);
             _btnNotice.gameObject.SetActive(g.myRank >= 1);
 
@@ -218,9 +231,13 @@ namespace Assets.Script.UI.Windows
                 int id = m.id; string name = m.name;
                 var row = Row($"<b>{m.name}</b>  <color=#7cf>{GuildInfo.RankName(m.rank)}</color>  <color=#9aa>Lv {m.level}</color>  " +
                               (m.online ? "<color=#6f6>online</color>" : "<color=#888>offline</color>"));
+                // Dòng của chính mình: không có nút
                 if (id == LocalPlayerState.Id) continue;
+                // slot = vị trí nút tính từ mép phải; mỗi nút thêm vào thì dịch sang trái 1 chỗ
                 int slot = 0;
+                // Chỉ đá được người chức thấp hơn mình
                 if (g.myRank > m.rank) RowBtn(row, "Đá", () => ConfirmWindow.Ask($"Đá {name} khỏi gia tộc?", "Đá", () => GameActions.GuildKick(id)), slot++);
+                // Tộc trưởng: phong / hạ Trưởng lão và nhường chức (GuildPromote(id, chức mới))
                 if (g.myRank == 2)
                 {
                     if (m.rank == 0) RowBtn(row, "Trưởng lão", () => GameActions.GuildPromote(id, 1), slot++);

@@ -48,7 +48,8 @@ namespace Assets.Script.Map
                 // Cổng mép trái / phải nằm sát mép map: dời mốc vào trong 0,9 ô để mũi tên + chữ không bị cắt ở mép màn hình
                 float inward = p.side == 0 ? 0.9f : p.side == 1 ? -0.9f : 0f;
                 var go = new GameObject("PortalMarker");
-                go.transform.position = new Vector3(p.pos.x + inward, p.pos.y + 2.2f, 0f);
+                // cửa giữa map nằm dưới đáy hố đậy bục 1 chiều (Làng Lá) → mốc đặt cao hơn để nổi trên mặt đất
+                go.transform.position = new Vector3(p.pos.x + inward, p.pos.y + (p.side == 2 ? 3.8f : 2.2f), 0f);
 
                 // Mũi tên chỉ hướng cổng: trái / phải; cổng giữa map → chỉ xuống chỗ đứng
                 float angle = p.side == 0 ? 180f : p.side == 1 ? 0f : -90f;
@@ -59,7 +60,7 @@ namespace Assets.Script.Map
                 var label = new GameObject("Name");
                 label.transform.SetParent(go.transform, false);
                 var t = label.AddComponent<TextMeshPro>();
-                t.text = p.side == 2 ? $"{p.target}\n<size=2.2>đứng vào để đi</size>" : p.target;
+                t.text = p.side == 2 ? $"{p.target}\n<size=2.2>bấm ↓ để vào</size>" : p.target;
                 t.fontSize = 2.8f;
                 t.color = Color.white;
                 t.outlineWidth = 0.25f;

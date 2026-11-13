@@ -74,23 +74,31 @@ namespace Assets.Script.UI.Windows
             return g != null ? g.where : null;
         }
 
+        /// <summary>
+        /// Vẽ lại sổ tay: mục "Đang làm" (từ GameData.MyQuests) rồi mục "Có thể nhận" (từ QUEST_GUIDE server gửi).
+        /// Lần đầu mở thì xin QUEST_GUIDE; dữ liệu về → GameData.OnChanged gọi lại hàm này.
+        /// </summary>
         protected override void Refresh()
         {
+            // Chỉ xin sổ tay 1 lần mỗi lần mở (Bind() đặt lại cờ khi số nhiệm vụ đổi)
             if (!_requested) { _requested = true; _knownQuestCount = GameData.MyQuests.Count; GameActions.QuestGuide(); }
             UIKit.Clear(_list);
 
             UIKit.Text("H1", _list, "<b><color=#fd5>Đang làm</color></b>", 17).Height(26);
             if (GameData.MyQuests.Count == 0)
                 UIKit.Text("Empty", _list, "<color=#bbb>Chưa nhận nhiệm vụ nào — xem mục \"Có thể nhận\" bên dưới.</color>", 15).Height(30);
+            // kv.Key = id nhiệm vụ; kv.Value = [tiến độ, 1 nếu server báo đã xong]
             foreach (var kv in GameData.MyQuests)
             {
                 if (!GameData.Quests.TryGetValue(kv.Key, out var q)) continue;
+                // Nhiệm vụ thu thập: tiến độ = số món đang có trong túi (vứt / bán bớt thì tụt); loại khác: số server gửi
                 int progress = q.type == (int)Constants.QuestType.Collect ? Mathf.Min(q.targetCount, GameData.CountItem(q.targetId)) : kv.Value[0];
                 bool done = kv.Value[1] == 1 || (q.type == (int)Constants.QuestType.Collect && progress >= q.targetCount);
 
                 var sb = new StringBuilder();
                 sb.Append($"<b>{q.name}</b>  {(done ? "<color=#7f7>[Hoàn thành]</color>" : "")}\n");
                 sb.Append($"<size=14><color=#bbb>{q.description}</color></size>\n");
+                // [C#] biểu thức switch: chọn chuỗi theo loại nhiệm vụ (_ = mọi trường hợp còn lại)
                 sb.Append((Constants.QuestType)q.type switch
                 {
                     Constants.QuestType.Kill => $"Hạ {GameData.MobName(q.targetId)}: {progress}/{q.targetCount}",
@@ -99,12 +107,14 @@ namespace Assets.Script.UI.Windows
                     _ => ""
                 });
                 string where = WhereOf(q.id);
+                // Chưa xong: chỉ nơi làm; xong rồi: chỉ chỗ về trả (dòng "→ Về gặp ..." bên dưới)
                 if (!done && !string.IsNullOrEmpty(where)) sb.Append($"\n<color=#7cf>Nơi: {where}</color>");
                 sb.Append($"\n<size=14><color=#fd5>Thưởng: {(q.rewardExp > 0 ? q.rewardExp + " EXP, " : "")}{q.rewardYen} yên");
                 if (q.rewardItemId > 0) sb.Append($", {GameData.ItemName(q.rewardItemId)} x{q.rewardItemQty}");
                 sb.Append("</color></size>");
                 if (done) sb.Append($"\n<color=#7cf>→ Về gặp {(string.IsNullOrEmpty(where) ? GameData.NpcName(q.npcId) : where)} để trả</color>");
 
+                // Tên "Q<id>" để ClickGo() tìm lại đúng dòng
                 var row = UIKit.Panel("Q" + q.id, _list, UIKit.SlotColor).Height(150);
                 UIKit.Text("Text", row.transform, sb.ToString(), 16, TextAlignmentOptions.TopLeft).rectTransform.Fill(8, GoWidth + 12, 6, 6);
                 GoButton(row.transform, q.id);
@@ -112,6 +122,7 @@ namespace Assets.Script.UI.Windows
 
             UIKit.Text("H2", _list, "\n<b><color=#fd5>Có thể nhận</color></b>  <size=13><color=#9aa>(đến gặp NPC để nhận)</color></size>", 17).Height(44);
             int n = 0;
+            // status 1 = có thể nhận (đã mở khoá, chưa nhận)
             foreach (var g in GameData.QuestGuide)
             {
                 if (g.status != 1 || !GameData.Quests.TryGetValue(g.questId, out var q)) continue;
@@ -123,6 +134,7 @@ namespace Assets.Script.UI.Windows
                 GoButton(row.transform, q.id);
                 n++;
             }
+            // Chưa có dữ liệu sổ tay = đang chờ server; có rồi mà vẫn trống = hết nhiệm vụ ở cấp này
             if (n == 0) UIKit.Text("None", _list, GameData.QuestGuide.Count == 0 && _requested
                 ? "<color=#888>(đang tải...)</color>" : "<color=#888>Không có nhiệm vụ mới — lên cấp để mở thêm.</color>", 15).Height(28);
         }

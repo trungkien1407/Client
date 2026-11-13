@@ -16,6 +16,7 @@ namespace Assets.Script.Data
     /// </summary>
     public class EconomyNetwork : NetworkListener
     {
+        /// <summary>Đăng ký hàm xử lý cho từng mã gói kinh tế (NetworkListener gọi đúng hàm khi gói tới).</summary>
         protected override void RegisterHandlers()
         {
             Listen(Cmd.UPGRADE_OPEN, OnUpgradeOpen);
@@ -33,6 +34,7 @@ namespace Assets.Script.Data
             Listen(Cmd.GIFTCODE_RESULT, OnGiftcodeResult);
         }
 
+        /// <summary>Đọc phần của 1 bên trong TRADE_UPDATE: byte đã khoá, byte đã xác nhận, int yên, danh sách ô đồ đặt lên bàn.</summary>
         private static void ReadSide(MessageReader r, TradeSide s)
         {
             s.locked = r.ReadByte() != 0; s.confirmed = r.ReadByte() != 0; s.yen = r.ReadInt();
@@ -47,6 +49,7 @@ namespace Assets.Script.Data
         {
             var r = new MessageReader(data);
             var t = new UpgradeTable { npcId = r.ReadInt(), maxLv = r.ReadByte() };
+            // Mảng dài maxLv + 1 để dùng thẳng cấp đích làm chỉ số (bỏ trống ô [0])
             t.rate = new int[t.maxLv + 1]; t.stoneId = new int[t.maxLv + 1]; t.stoneQty = new int[t.maxLv + 1]; t.yen = new int[t.maxLv + 1];
             for (int lv = 1; lv <= t.maxLv; lv++)
             {
@@ -59,6 +62,7 @@ namespace Assets.Script.Data
             r.Cleanup();
             GameData.Upgrade = t;
             GameData.Notify(DataKind.Upgrade);
+            // Server gửi bảng này khi nói chuyện Thợ Rèn → mở luôn cửa sổ nâng cấp
             GameWindow.Get<UpgradeWindow>().ShowFor(t.npcId);
         }
 
@@ -84,9 +88,11 @@ namespace Assets.Script.Data
             GameData.Storage.AddRange(list);
             GameData.Notify(DataKind.Storage);
             var w = GameWindow.Get<StorageWindow>();
+            // Chưa mở thì mở rương cạnh Hành trang (để chọn đồ cất vào)
             if (!w.IsOpen) w.OpenWithBag();
         }
 
+        /// <summary>TRADE_INVITE: int id người mời, UTF tên — hỏi người chơi Đồng ý / Từ chối (không tự đồng ý).</summary>
         private void OnTradeInvite(byte[] data)
         {
             var inv = Packets.ReadInvite(data);
@@ -113,6 +119,7 @@ namespace Assets.Script.Data
             var r = new MessageReader(data);
             int result = r.ReadByte(); string reason = r.ReadUTF();
             r.Cleanup();
+            // TradeWith = 0: không còn giao dịch (TradeWindow.OnDisable sẽ không gửi huỷ lần nữa)
             GameData.TradeWith = 0;
             GameData.Notify(DataKind.Trade);
             GameWindow.Get<TradeWindow>().Hide();
@@ -120,6 +127,7 @@ namespace Assets.Script.Data
         }
 
         // ---- CHỢ ----
+        /// <summary>MARKET_OPEN: int npcId, byte số tin tối đa, short phí đăng (phần nghìn), byte thuế %, short số giờ treo — mở cửa sổ Chợ.</summary>
         private void OnMarketOpen(byte[] data)
         {
             var r = new MessageReader(data);
@@ -133,6 +141,7 @@ namespace Assets.Script.Data
             GameWindow.Get<MarketWindow>().OpenWithBag();
         }
 
+        /// <summary>MARKET_LIST: short tổng số tin, short trang, short n, [long id, ô đồ, int giá, UTF người bán, int giây còn lại] × n.</summary>
         private void OnMarketList(byte[] data)
         {
             var r = new MessageReader(data);
@@ -146,6 +155,7 @@ namespace Assets.Script.Data
             GameData.Notify(DataKind.Market);
         }
 
+        /// <summary>MARKET_MINE: short n, [long id, ô đồ, int giá, int giây còn lại, byte trạng thái (0 đang treo / khác = đã bán)] × n.</summary>
         private void OnMarketMine(byte[] data)
         {
             var r = new MessageReader(data);
@@ -157,6 +167,7 @@ namespace Assets.Script.Data
             GameData.Notify(DataKind.Market);
         }
 
+        /// <summary>MARKET_RESULT: byte ok, UTF lời báo — hiện trên cửa sổ Chợ (xanh = được, đỏ = lỗi).</summary>
         private void OnMarketResult(byte[] data)
         {
             GameData.MarketMessage = Packets.ReadResult(data).Colored;
@@ -164,6 +175,7 @@ namespace Assets.Script.Data
         }
 
         // ---- KHẢM NGỌC ----
+        /// <summary>GEM_OPEN: int npcId, short phí khảm, short phí tháo, short phí ghép — mở cửa sổ Khảm ngọc.</summary>
         private void OnGemOpen(byte[] data)
         {
             var r = new MessageReader(data);
@@ -176,12 +188,14 @@ namespace Assets.Script.Data
             GameWindow.Open<GemWindow>();
         }
 
+        /// <summary>GEM_RESULT: byte ok, UTF lời báo — hiện trên cửa sổ Khảm ngọc.</summary>
         private void OnGemResult(byte[] data)
         {
             GameData.GemMessage = Packets.ReadResult(data).Colored;
             GameData.Notify(DataKind.Gem);
         }
 
+        /// <summary>GIFTCODE_RESULT: byte ok, UTF lời báo — được thì hiện thêm băng chữ giữa màn hình 3 giây.</summary>
         private void OnGiftcodeResult(byte[] data)
         {
             var res = Packets.ReadResult(data);

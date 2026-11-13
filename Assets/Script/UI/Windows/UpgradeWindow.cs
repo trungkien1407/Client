@@ -93,11 +93,16 @@ namespace Assets.Script.UI.Windows
             UpdateDetail();
         }
 
+        /// <summary>
+        /// Khung chi tiết cho món đang chọn: tỉ lệ thành công, chỉ số trước → sau, đá + yên cần (đỏ nếu thiếu),
+        /// hậu quả khi trượt. Số liệu theo bảng UPGRADE_OPEN server gửi (GameData.Upgrade), chỉ để hiển thị — server tính lại.
+        /// </summary>
         private void UpdateDetail()
         {
             var t = GameData.Upgrade;
             var s = GameData.BagAt(_sel);
             bool isEquip = s != null && GameData.Items.TryGetValue(s.tpl, out var tpl) && tpl.IsEquip;
+            // Nút Bùa bảo hộ: hết bùa thì không bấm được và tự bỏ chọn
             int protectHave = t != null ? GameData.CountItem(t.protectItemId) : 0;
             _btnProtect.SetLabel($"{(_useProtect ? "[x]" : "[  ]")} Dùng {GameData.ItemName(t?.protectItemId ?? 0)} (có {protectHave}) — giữ cấp khi trượt");
             _btnProtect.interactable = protectHave > 0;
@@ -105,13 +110,16 @@ namespace Assets.Script.UI.Windows
             if (protectHave == 0) _useProtect = false;
 
             if (t == null || !isEquip) { _detail.text = "Chọn 1 trang bị bên trái"; _btnUp.interactable = false; return; }
+            // Đã tối đa → không nâng tiếp
             if (s.level >= t.maxLv) { _detail.text = $"{GameData.ColoredName(s.tpl, s.level)}\n\nĐã đạt cấp tối đa +{t.maxLv}."; _btnUp.interactable = false; return; }
 
+            // Các mảng trong bảng nâng cấp đánh số theo CẤP ĐÍCH: [next] = điều kiện để lên cấp next
             int next = s.level + 1;
             int stones = GameData.CountItem(t.stoneId[next]);
             bool okStone = stones >= t.stoneQty[next], okYen = GameData.Me.yen >= t.yen[next];
             int pctNow = s.level < t.statPercent.Length ? t.statPercent[s.level] : 0;
             int pctNext = next < t.statPercent.Length ? t.statPercent[next] : 0;
+            // Luật trượt (khớp server): dưới +5 giữ cấp, +5..+9 tụt 1, từ +10 tụt 2
             string fail = s.level < 5 ? "giữ nguyên cấp" : s.level < 10 ? "tụt 1 cấp" : "tụt 2 cấp";
 
             var sb = new StringBuilder();
@@ -122,6 +130,7 @@ namespace Assets.Script.UI.Windows
             sb.Append($"Phí: <color={(okYen ? "#7f7" : "#f77")}>{t.yen[next]:N0} yên</color> (có {GameData.Me.yen:N0})\n");
             sb.Append($"<color=#bbb>Nếu trượt: {(_useProtect ? "giữ nguyên cấp (Bùa bảo hộ)" : fail)}</color>");
             _detail.text = sb.ToString();
+            // Đủ đá và đủ yên mới cho bấm Nâng cấp
             _btnUp.interactable = okStone && okYen;
         }
 

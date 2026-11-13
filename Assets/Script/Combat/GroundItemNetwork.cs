@@ -26,6 +26,7 @@ namespace Assets.Script.Combat
         private class GroundItem
         {
             public int id, templateId, qty;
+            public float dropX, dropY;   // chỗ rơi server gửi (hình có thể dời sang bên cho khỏi chồng)
             public GameObject go;
             public float lastPickTry = -10f;
         }
@@ -102,7 +103,15 @@ namespace Assets.Script.Combat
             r.Cleanup();
 
             if (_items.ContainsKey(it.id)) return;
-            it.go = CreateVisual(it, new Vector3(x, y, 0f));
+            // Nhiều món rơi cùng chỗ (quái chết rơi 2–3 món) → dàn sang 2 bên 0,9 ô / món, tên so le cao thấp → không chồng chữ.
+            // Chỉ dời HÌNH; nhặt vẫn theo vị trí server (tầm nhặt server 3 ô, rộng hơn độ dời).
+            int near = 0;
+            foreach (var other in _items.Values)
+                if (other.go != null && Mathf.Abs(other.dropX - x) < 0.6f && Mathf.Abs(other.dropY - y) < 0.6f) near++;
+            float offset = near == 0 ? 0f : (near % 2 == 1 ? 1f : -1f) * ((near + 1) / 2) * 0.9f;
+            it.dropX = x; it.dropY = y;
+            it.go = CreateVisual(it, new Vector3(x + offset, y, 0f));
+            if (near % 2 == 1) { var lb = it.go.transform.Find("Label"); if (lb != null) lb.localPosition += new Vector3(0f, 0.35f, 0f); }
             _items[it.id] = it;
         }
 
@@ -128,37 +137,104 @@ namespace Assets.Script.Combat
             _items.Clear();
         }
 
+        private const float IconSize = 0.75f;   // cạnh dài của icon trên mặt đất (đơn vị thế giới)
+        private static Sprite _shadowSprite;
+
+        /// <summary>
+        /// Hình đồ rơi: ICON THẬT của vật phẩm (kho ảnh img{iconId}, như trong túi đồ) + bóng đổ dưới chân + tên có viền.
+        /// Vừa rơi ra thì nảy lên rồi lơ lửng nhẹ (ItemBob). Ảnh chưa tải xong / chưa có → ô vuông màu như cũ.
+        /// </summary>
         private static GameObject CreateVisual(GroundItem it, Vector3 pos)
         {
-            if (_squareSprite == null)
-            {
-                var tex = new Texture2D(8, 8);
-                var px = new Color[64];
-                for (int i = 0; i < px.Length; i++) px[i] = Color.white;
-                tex.SetPixels(px);
-                tex.Apply();
-                _squareSprite = Sprite.Create(tex, new Rect(0, 0, 8, 8), new Vector2(0.5f, 0f), 20f); // 8px/20ppu = 0.4 đơn vị
-            }
+            if (_squareSprite == null) _squareSprite = SolidSprite(8, false);
+            if (_shadowSprite == null) _shadowSprite = SolidSprite(32, true);
 
             var go = new GameObject($"GroundItem_{it.id}");
             go.transform.position = pos;
-            var sr = go.AddComponent<SpriteRenderer>();
+
+            // bóng đổ hình bầu dục dưới chân → món đồ "nằm" trên mặt đất
+            var shadow = new GameObject("Shadow");
+            shadow.transform.SetParent(go.transform, false);
+            shadow.transform.localScale = new Vector3(0.7f, 0.2f, 1f);
+            var ssr = shadow.AddComponent<SpriteRenderer>();
+            ssr.sprite = _shadowSprite;
+            ssr.color = new Color(0f, 0f, 0f, 0.35f);
+            ssr.sortingOrder = 4;
+
+            var icon = new GameObject("Icon");
+            icon.transform.SetParent(go.transform, false);
+            icon.transform.localPosition = new Vector3(0f, IconSize * 0.5f + 0.05f, 0f);
+            icon.transform.localScale = Vector3.one * (IconSize / 0.4f) * 0.6f;   // ô vuông tạm (0,4 đơn vị) nhỏ hơn icon thật
+            var sr = icon.AddComponent<SpriteRenderer>();
             sr.sprite = _squareSprite;
             sr.color = it.templateId == ItemIds.HpPotion ? new Color(1f, 0.3f, 0.3f)
                      : it.templateId == ItemIds.MpPotion ? new Color(0.3f, 0.5f, 1f)
                      : new Color(1f, 0.85f, 0.3f);
             sr.sortingOrder = 5;
+            icon.AddComponent<ItemBob>();
+            int iconId = Assets.Script.Data.GameData.Items.TryGetValue(it.templateId, out var tpl) ? tpl.iconId : 0;
+            if (iconId > 0)
+                ImageBank.Get(iconId, sprite =>
+                {
+                    if (sr == null || sprite == null) return;
+                    sr.sprite = sprite;
+                    sr.color = Color.white;
+                    float big = Mathf.Max(sprite.bounds.size.x, sprite.bounds.size.y);
+                    if (big > 0.0001f) icon.transform.localScale = Vector3.one * (IconSize / big);
+                });
 
             var label = new GameObject("Label");
             label.transform.SetParent(go.transform, false);
-            label.transform.localPosition = new Vector3(0f, 0.7f, 0f);
+            label.transform.localPosition = new Vector3(0f, IconSize + 0.45f, 0f);
             var tmp = label.AddComponent<TextMeshPro>();
             string nm = Assets.Script.Data.GameData.ItemName(it.templateId);
             tmp.text = it.qty > 1 ? $"{nm} x{it.qty}" : nm;
-            tmp.fontSize = 2.5f;
+            tmp.fontSize = 2.2f;
             tmp.alignment = TextAlignmentOptions.Center;
+            tmp.enableWordWrapping = false;
+            tmp.outlineWidth = 0.25f;
+            tmp.outlineColor = Color.black;
             tmp.sortingOrder = 6;
             return go;
+        }
+
+        /// <summary>Ảnh trắng vuông (8 px) hoặc tròn mờ mép (bóng đổ), gốc ở giữa.</summary>
+        private static Sprite SolidSprite(int size, bool round)
+        {
+            var tex = new Texture2D(size, size) { wrapMode = TextureWrapMode.Clamp };
+            var px = new Color[size * size];
+            float r = size / 2f;
+            for (int y = 0; y < size; y++)
+                for (int x = 0; x < size; x++)
+                {
+                    float d = Vector2.Distance(new Vector2(x + 0.5f, y + 0.5f), new Vector2(r, r)) / r;
+                    px[y * size + x] = new Color(1, 1, 1, round ? Mathf.Clamp01(1f - d * d) : 1f);
+                }
+            tex.SetPixels(px);
+            tex.Apply();
+            return Sprite.Create(tex, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), size / 0.4f);   // 0,4 đơn vị
+        }
+
+        /// <summary>Đồ rơi: nảy ra (to dần + bật lên) trong 0,25 giây rồi lơ lửng lên xuống nhẹ — dễ thấy trên đất.</summary>
+        private class ItemBob : MonoBehaviour
+        {
+            private float _baseY, _phase, _born;
+
+            private void Start()
+            {
+                _baseY = transform.localPosition.y;
+                _phase = Random.value * 6.28f;
+                _born = Time.time;
+            }
+
+            private void Update()
+            {
+                float t = Mathf.Clamp01((Time.time - _born) / 0.25f);
+                float hop = Mathf.Sin(t * Mathf.PI) * 0.45f;                       // bật lên rồi rơi xuống chỗ nằm
+                var p = transform.localPosition;
+                p.y = _baseY + hop + (t >= 1f ? Mathf.Sin((Time.time + _phase) * 3f) * 0.06f : 0f);
+                transform.localPosition = p;
+            }
         }
     }
 }

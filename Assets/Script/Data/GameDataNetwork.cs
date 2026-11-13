@@ -14,6 +14,7 @@ namespace Assets.Script.Data
     /// </summary>
     public class GameDataNetwork : NetworkListener
     {
+        /// <summary>Đăng ký hàm xử lý cho từng mã gói (Cmd) — NetworkListener gọi đúng hàm khi gói tới.</summary>
         protected override void RegisterHandlers()
         {
             Listen(Cmd.GAME_DATA_ITEMS, OnItems);
@@ -31,6 +32,8 @@ namespace Assets.Script.Data
             Listen(Cmd.MONEY_UPDATE, OnMoney);
         }
 
+        /// <summary>GAME_DATA_ITEMS: short n, [mẫu vật phẩm: id, tên, loại, ô mặc, icon, cấp / hệ yêu cầu, giá, chồng tối đa,
+        /// chỉ số cộng, hồi máu / mana, giao dịch được, mô tả, phòng thủ] × n. Thay toàn bộ GameData.Items.</summary>
         private void OnItems(byte[] data)
         {
             var r = new MessageReader(data);
@@ -52,11 +55,16 @@ namespace Assets.Script.Data
             GameData.Notify(DataKind.Templates);
         }
 
+        /// <summary>
+        /// GAME_DATA_SKILLS: short n, [mẫu kỹ năng + byte số cấp, [thông số từng cấp] × số cấp] × n.
+        /// Sau đó là các "đuôi" thêm dần theo giai đoạn (GĐ7, GĐ8, GĐ12) — server cũ không gửi thì r.Available() = 0 và bỏ qua.
+        /// </summary>
         private void OnSkills(byte[] data)
         {
             var r = new MessageReader(data);
             int n = r.ReadShort();
             GameData.Skills.Clear();
+            // Giữ đúng thứ tự kỹ năng trong gói: các đuôi phía sau ghi theo cùng thứ tự này
             var order = new List<SkillTpl>(n);
             for (int i = 0; i < n; i++)
             {
@@ -111,6 +119,8 @@ namespace Assets.Script.Data
             GameData.Notify(DataKind.Templates);
         }
 
+        /// <summary>GAME_DATA_QUESTS: short n, [mẫu nhiệm vụ: id, tên, mô tả, loại, mục tiêu + số lượng, NPC trả, cấp yêu cầu,
+        /// nhiệm vụ trước, thưởng EXP / yên / vật phẩm] × n.</summary>
         private void OnQuests(byte[] data)
         {
             var r = new MessageReader(data);
@@ -131,6 +141,7 @@ namespace Assets.Script.Data
             GameData.Notify(DataKind.Templates);
         }
 
+        /// <summary>GAME_DATA_MOBS: short n, [int id, UTF tên, short cấp, byte hạng, byte chủ động đánh, short hình, short rộng, short cao] × n.</summary>
         private void OnMobs(byte[] data)
         {
             var r = new MessageReader(data);
@@ -148,6 +159,7 @@ namespace Assets.Script.Data
             GameData.Notify(DataKind.Templates);
         }
 
+        /// <summary>GAME_DATA_NPCS: short n, [int id, UTF tên] × n, rồi (nếu có) [short hình] × n, [short cỡ × 100] × n.</summary>
         private void OnNpcs(byte[] data)
         {
             var r = new MessageReader(data);
@@ -155,6 +167,7 @@ namespace Assets.Script.Data
             var ids = new int[n];
             for (int i = 0; i < n; i++) { ids[i] = r.ReadInt(); GameData.NpcNames[ids[i]] = r.ReadUTF(); }
             // GĐ20: [short art] × n ở cuối (server cũ không gửi → giữ hình mặc định)
+            // Còn đủ n × 2 byte (n số short) mới đọc đuôi — server cũ gửi thiếu không bị đọc lố
             if (r.Available() >= n * 2)
                 for (int i = 0; i < n; i++) GameData.NpcArt[ids[i]] = r.ReadShort();
             // GĐ26: [short cỡ vẽ × 100] × n (server cũ không gửi → cỡ ảnh gốc)
@@ -181,6 +194,8 @@ namespace Assets.Script.Data
             GameData.Notify(DataKind.Templates);
         }
 
+        /// <summary>CHARACTER_INFO: cấp, EXP, điểm tiềm năng / kỹ năng, 4 chỉ số gốc, máu / mana tối đa, sát thương cộng,
+        /// né / chí mạng / tốc chạy, 3 loại tiền, điểm PK (+ phòng thủ, giảm sát thương nếu server mới). Ghi vào GameData.Me.</summary>
         private void OnCharacterInfo(byte[] data)
         {
             var r = new MessageReader(data);
@@ -198,6 +213,7 @@ namespace Assets.Script.Data
             GameData.Notify(DataKind.Character);
         }
 
+        /// <summary>SKILL_LIST: short n, [int id kỹ năng, short cấp đã học] × n.</summary>
         private void OnSkillList(byte[] data)
         {
             var r = new MessageReader(data);
@@ -215,6 +231,7 @@ namespace Assets.Script.Data
             GameData.BagCapacity = r.ReadShort();
             var list = BagSlot.ReadList(r);
             // GĐ22: đuôi [int giây còn lại] × n (0 vĩnh viễn, -1 hết hạn) — server cũ không gửi thì mọi món vĩnh viễn
+            // expireAt lưu theo đồng hồ máy (realtimeSinceStartup): 0 = vĩnh viễn, -1 = đã hết hạn, còn lại = lúc hết hạn
             if (r.Available() >= list.Count * 4)
                 foreach (var s in list) { int left = r.ReadInt(); s.expireAt = left == 0 ? 0f : left < 0 ? -1f : UnityEngine.Time.realtimeSinceStartup + left; }
             r.Cleanup();
@@ -223,6 +240,7 @@ namespace Assets.Script.Data
             GameData.Notify(DataKind.Inventory);
         }
 
+        /// <summary>EQUIPMENT: short n, [int ô trang bị, ô đồ (mẫu, cấp, phẩm chất, ngọc)] × n — danh sách đồ đang mặc.</summary>
         private void OnEquipment(byte[] data)
         {
             var r = new MessageReader(data);
@@ -254,16 +272,19 @@ namespace Assets.Script.Data
             GameData.Notify(DataKind.Character);
         }
 
+        /// <summary>QUEST_LIST: short n, [int id, int tiến độ, byte đã xong] × n — toàn bộ nhiệm vụ đang nhận.</summary>
         private void OnQuestList(byte[] data)
         {
             var r = new MessageReader(data);
             int n = r.ReadShort();
             GameData.MyQuests.Clear();
+            // Thứ tự đọc trong C# là trái → phải: id trước, rồi tiến độ, rồi cờ xong
             for (int i = 0; i < n; i++) GameData.MyQuests[r.ReadInt()] = new[] { r.ReadInt(), (int)r.ReadByte() };
             r.Cleanup();
             GameData.Notify(DataKind.Quests);
         }
 
+        /// <summary>QUEST_UPDATE: int id, int tiến độ, byte đã xong — 1 nhiệm vụ vừa nhận / tiến triển / hoàn thành.</summary>
         private void OnQuestUpdate(byte[] data)
         {
             var r = new MessageReader(data);
@@ -273,9 +294,11 @@ namespace Assets.Script.Data
             r.Cleanup();
             bool isNew = !GameData.MyQuests.TryGetValue(id, out var old);
             GameData.MyQuests[id] = new[] { progress, done };
+            // Chỉ kêu "xong nhiệm vụ" lần đầu chuyển sang xong (không kêu lại mỗi lần cập nhật)
             if (done == 1 && (isNew || old[1] != 1)) Core.GameAudio.Play(Core.GameAudio.QuestDone);
             GameData.Notify(DataKind.Quests);
 
+            // Báo vào khung chat: nhận mới / hoàn thành / tiến độ
             if (GameData.Quests.TryGetValue(id, out var q))
             {
                 if (isNew) Assets.Script.Combat.ChatBox.AddSystem($"Nhận nhiệm vụ: {q.name}");

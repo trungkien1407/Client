@@ -23,6 +23,10 @@ namespace Assets.Script.Map
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Hook() => MapManager.OnMapLoaded += Build;
 
+        /// <summary>
+        /// Map vừa tải xong (MapManager.OnMapLoaded) → dựng lại ảnh: đọc 3 tilemap Ground / Platform / Water,
+        /// mỗi ô tô 1 màu (đất, mặt cỏ, bục, nước; trống = trong suốt) rồi tăng Version để minimap / bản đồ lớn gắn ảnh mới.
+        /// </summary>
         private static void Build(GameObject map)
         {
             var ground = Find(map, "Ground");
@@ -30,22 +34,27 @@ namespace Assets.Script.Map
             var water = Find(map, "Water");
             if (ground == null) return;
 
+            // Thu khung tilemap về đúng vùng có ô (bỏ phần trống thừa khi vẽ map) → lấy được bề rộng / cao thật
             ground.CompressBounds();
             var b = ground.cellBounds;
             int w = Mathf.Max(1, b.xMax);
             int h = Mathf.Max(12, b.yMax + 4);   // chừa khoảng trời phía trên để thấy bục / người đang nhảy
 
+            // Huỷ ảnh của map cũ (Texture2D không tự giải phóng bộ nhớ)
             if (Texture != null) Object.Destroy(Texture);
             Texture = new Texture2D(w, h, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp };
+            // Tô cả mảng điểm ảnh rồi đẩy lên 1 lần (SetPixels32) — nhanh hơn gọi SetPixel từng ô
             var px = new Color32[w * h];
             for (int y = 0; y < h; y++)
                 for (int x = 0; x < w; x++)
                 {
                     var c = new Vector3Int(x, y, 0);
                     Color col = Color.clear;
+                    // Ô đất có ô khác đè lên trên = lòng đất (nâu); không có = mặt đất (xanh cỏ)
                     if (ground.HasTile(c)) col = ground.HasTile(c + Vector3Int.up) ? Earth : Surface;
                     else if (plat != null && plat.HasTile(c)) col = Platform;
                     else if (water != null && water.HasTile(c)) col = Water;
+                    // Mảng 1 chiều: hàng y, cột x → chỉ số y * w + x (hàng 0 = đáy ảnh, khớp trục y của world)
                     px[y * w + x] = col;
                 }
             Texture.SetPixels32(px);

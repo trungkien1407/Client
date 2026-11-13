@@ -120,8 +120,13 @@ namespace Assets.Script.UI.Windows
             if (_tab == 0) DrawBuy(); else DrawMine();
         }
 
+        /// <summary>
+        /// Thẻ Mua hàng: thanh trang (8 món / trang) + mỗi tin bán 1 dòng: icon, tên (+N, phẩm chất, ngọc), giá (đỏ nếu không đủ yên),
+        /// người bán + thời gian còn lại, nút [Mua] (hỏi xác nhận trước). GameData.MarketRows = trang server vừa trả.
+        /// </summary>
         private void DrawBuy()
         {
+            // Làm tròn LÊN: (tổng + 7) / 8 = số trang; ít nhất 1 trang
             int pages = Mathf.Max(1, (GameData.MarketTotal + 7) / 8);
             _pageText.text = $"Trang {GameData.MarketPage + 1}/{pages}  ({GameData.MarketTotal} món)";
             _prev.interactable = GameData.MarketPage > 0;
@@ -129,10 +134,12 @@ namespace Assets.Script.UI.Windows
             if (GameData.MarketRows.Count == 0) { UIKit.Text("Empty", _list, "<color=#888>Không có món nào khớp.</color>", 15).Height(30); return; }
             foreach (var m in GameData.MarketRows)
             {
+                // Chép id ra biến riêng để lambda nút Mua giữ đúng tin bán của dòng này
                 long id = m.id;
                 bool afford = GameData.Me.yen >= m.price;
                 var row = UIKit.Panel("R", _list, UIKit.SlotColor).Height(64);
                 string qty = m.slot.qty > 1 ? $" <color=#fd5>x{m.slot.qty}</color>" : "";
+                // Bán cả chồng: hiện thêm giá mỗi cái để dễ so
                 string each = m.slot.qty > 1 ? $" <color=#9aa>({m.price / m.slot.qty:N0}/cái)</color>" : "";
                 // 3 dòng: tên · giá · người bán + thời gian (cửa sổ hẹp để đặt cạnh Hành trang)
                 string extra = (m.slot.bonus > 0 ? $" <color=#6fd0ff>+{m.slot.bonus}%</color>" : "") + (m.slot.gems.Count > 0 ? $" <color=#e080ff>{m.slot.gems.Count} ngọc</color>" : "");
@@ -146,6 +153,7 @@ namespace Assets.Script.UI.Windows
                     $"Mua {GameData.ColoredName(m.slot.tpl, m.slot.level)} x{m.slot.qty} giá <color=#fd5>{m.price:N0} yên</color>?",
                     "Mua", () => GameActions.MarketBuy(id)), 15);
                 ((RectTransform)buy.transform).Place(new Vector2(1, 0.5f), new Vector2(1, 0.5f), new Vector2(-6, 0), new Vector2(80, 36), new Vector2(1, 0.5f));
+                // Không đủ yên thì làm mờ nút (server vẫn kiểm lại khi mua)
                 buy.interactable = afford;
             }
         }

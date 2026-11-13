@@ -138,23 +138,31 @@ namespace Assets.Script.UI.Windows
             Refresh();
         }
 
+        /// <summary>
+        /// Vẽ lại hòm thư: bên trái danh sách thư (chưa đọc in đậm, còn quà ghi [Quà]), bên phải nội dung thư đang mở
+        /// (GameData.OpenMail, có sau khi server trả MAIL_CONTENT) kèm danh sách quà và nút Nhận quà / Xoá.
+        /// </summary>
         protected override void Refresh()
         {
+            // Chưa có thư nào trong máy → xin danh sách 1 lần (_requested chặn hỏi lặp khi hòm thư trống thật)
             if (GameData.Mails.Count == 0 && !_requested) { _requested = true; GameActions.MailList(); }
             UIKit.Clear(_list);
             foreach (var m in GameData.Mails)
             {
                 long id = m.id;
+                // Server gửi thời gian dạng mili-giây Unix → đổi sang giờ máy
                 string date = DateTimeOffset.FromUnixTimeMilliseconds(m.createdMs).ToLocalTime().ToString("dd/MM HH:mm");
                 string text = (m.read ? "" : "<b>") + m.title + (m.read ? "" : "</b>") +
                               (m.hasAttach && !m.claimed ? " <color=#fd5>[Quà]</color>" : "") +
                               $"\n<size=12><color=#9aa>{m.from} · {date}</color></size>";
+                // Bấm thư → MAIL_READ; thư đang mở tô màu nổi
                 var b = UIKit.Button("M" + id, _list, text, () => GameActions.MailRead(id), 14).Height(50);
                 b.image.color = GameData.OpenMail != null && GameData.OpenMail.id == id ? UIKit.ButtonHot : UIKit.SlotColor;
             }
             if (GameData.Mails.Count == 0) UIKit.Text("Empty", _list, "Hòm thư trống.", 15).Height(30);
 
             var o = GameData.OpenMail;
+            // Đang soạn thư thì khung soạn che chỗ khung đọc
             _view.gameObject.SetActive(!_compose.gameObject.activeSelf);
             if (o == null) { _content.text = "Chọn 1 thư để đọc."; _claim.gameObject.SetActive(false); _delete.gameObject.SetActive(false); return; }
             var sb = new StringBuilder($"<size=19><b>{o.title}</b></size>\n<color=#9aa>Từ: {o.from}</color>\n\n{o.content}\n");
@@ -169,6 +177,7 @@ namespace Assets.Script.UI.Windows
                 if (o.claimed) sb.Append("\n<color=#6f6>(đã nhận)</color>");
             }
             _content.text = sb.ToString();
+            // Nút Nhận quà chỉ hiện khi còn quà chưa nhận
             _claim.gameObject.SetActive(hasGift && !o.claimed);
             _delete.gameObject.SetActive(true);
         }
