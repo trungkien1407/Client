@@ -88,6 +88,7 @@ namespace Assets.Script.Fx
         private int _art, _stage;
         private bool _riding;
         private SkeletonAnimation _sa;
+        private MeshRenderer _saRenderer;   // MeshRenderer của _sa (lấy 1 lần lúc mượn hình, không GetComponent mỗi khung)
         private int _saArt;
         private bool _local, _allowed = true;
         private Player.PlayerVisualController _owner;
@@ -245,7 +246,7 @@ namespace Assets.Script.Fx
 
             // 3. Vẽ thú ngay sau nhân vật (cùng lớp, order − 1): người ngồi đè lên lưng thú
             var mainR = _owner.MainRenderer;
-            var mr = _sa.GetComponent<MeshRenderer>();
+            var mr = _saRenderer;
             if (mainR != null && mr != null)
             {
                 if (mr.sortingLayerID != mainR.sortingLayerID) mr.sortingLayerID = mainR.sortingLayerID;
@@ -361,6 +362,7 @@ namespace Assets.Script.Fx
             }
             sa.gameObject.SetActive(true);
             _sa = sa;
+            _saRenderer = sa.GetComponent<MeshRenderer>();
             _saArt = _art;
             _stage = Mathf.Clamp(_stage, 1, 4);
             ApplySkin();
@@ -396,6 +398,7 @@ namespace Assets.Script.Fx
             if (!Pool.TryGetValue(_saArt, out var st)) Pool[_saArt] = st = new Stack<SkeletonAnimation>();
             st.Push(_sa);
             _sa = null;
+            _saRenderer = null;
             _anim = null;
             _skinApplied = -1;
             VisibleCount = Mathf.Max(0, VisibleCount - 1);
