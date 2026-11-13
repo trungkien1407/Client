@@ -4,7 +4,8 @@ using UnityEngine;
 namespace Assets.Script.Core
 {
     /// <summary>
-    /// ÂM THANH tối giản: phát tiếng hiệu ứng theo tên + nhạc nền, âm lượng lấy từ Cài đặt (PlayerPrefs).
+    /// ÂM THANH tối giản: phát tiếng hiệu ứng theo tên + nhạc nền, âm lượng + công tắc bật / tắt lấy từ Cài đặt (PlayerPrefs).
+    /// Tắt = im hẳn nhưng vẫn nhớ mức âm lượng (bật lại về đúng mức cũ); nhạc tắt vẫn theo dõi bài đang chọn (CurrentMusic).
     ///
     ///   AudioManager.Play("upgrade_ok");      // tiếng hiệu ứng (SFX)
     ///   AudioManager.PlayMusic("bgm_village"); // nhạc nền (lặp)
@@ -15,7 +16,7 @@ namespace Assets.Script.Core
     /// </summary>
     public static class AudioManager
     {
-        public const string PrefMusic = "vol_music", PrefSfx = "vol_sfx";
+        public const string PrefMusic = "vol_music", PrefSfx = "vol_sfx", PrefMusicOn = "music_on", PrefSfxOn = "sfx_on";
         private static AudioSource _sfx, _music;
         private static readonly Dictionary<string, AudioClip> Cache = new Dictionary<string, AudioClip>();
         private static readonly Dictionary<string, float> LastPlay = new Dictionary<string, float>();
@@ -32,6 +33,23 @@ namespace Assets.Script.Core
             set => PlayerPrefs.SetFloat(PrefSfx, value);
         }
 
+        /// <summary>Công tắc nhạc nền (mặc định bật). Tắt → nhạc câm ngay, bật → phát tiếp.</summary>
+        public static bool MusicOn
+        {
+            get => PlayerPrefs.GetInt(PrefMusicOn, 1) == 1;
+            set { PlayerPrefs.SetInt(PrefMusicOn, value ? 1 : 0); if (_music != null) _music.mute = !value; }
+        }
+
+        /// <summary>Công tắc tiếng hiệu ứng (mặc định bật). Tắt → Play() bỏ qua.</summary>
+        public static bool SfxOn
+        {
+            get => PlayerPrefs.GetInt(PrefSfxOn, 1) == 1;
+            set => PlayerPrefs.SetInt(PrefSfxOn, value ? 1 : 0);
+        }
+
+        /// <summary>Nhạc nền đang thật sự kêu (đang phát + không bị tắt) — autotest kiểm công tắc.</summary>
+        public static bool MusicAudible => _music != null && _music.isPlaying && !_music.mute && _music.volume > 0f;
+
         private static void Ensure()
         {
             if (_sfx != null) return;
@@ -41,6 +59,7 @@ namespace Assets.Script.Core
             _music = go.AddComponent<AudioSource>();
             _music.loop = true;
             _music.volume = MusicVolume;
+            _music.mute = !MusicOn;
         }
 
         private static AudioClip Load(string key)
@@ -57,7 +76,7 @@ namespace Assets.Script.Core
         public static void Play(string key)
         {
             var clip = Load(key);
-            if (clip == null) return;
+            if (clip == null || !SfxOn) return;
             // Cùng 1 tiếng trong 60 ms (nhiều gói về cùng khung hình) → phát 1 lần cho khỏi chói tai
             float now = Time.unscaledTime;
             if (LastPlay.TryGetValue(key, out float last) && now - last < 0.06f) return;

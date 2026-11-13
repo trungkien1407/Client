@@ -8,7 +8,7 @@ using UnityEngine.UI;
 namespace Assets.Script.UI.Windows
 {
     /// <summary>
-    /// CÀI ĐẶT (lưu PlayerPrefs trên máy): âm lượng nhạc/hiệu ứng, chất lượng hình, giới hạn FPS (pin điện thoại),
+    /// CÀI ĐẶT (lưu PlayerPrefs trên máy): âm lượng nhạc/hiệu ứng + bật / tắt (bấm vào ô số %), chất lượng hình, giới hạn FPS (pin điện thoại),
     /// thú cưng người khác Hiện / Ẩn (GĐ27 — khu đông người: ẩn để nhẹ máy; thú của mình luôn hiện).
     /// Áp dụng lúc mở game qua SettingsWindow.ApplySaved() (GameHud gọi khi dựng HUD).
     /// </summary>
@@ -37,7 +37,7 @@ namespace Assets.Script.UI.Windows
             _sfx = Line(body, 1, "Hiệu ứng");
             _fps = Line(body, 2, "Giới hạn FPS", "30", "60");
             _quality = Line(body, 3, "Đồ hoạ");
-            var note = UIKit.Text("Note", body, "Điện thoại yếu / tiết kiệm pin: chọn 30 FPS + đồ hoạ thấp.", 13, TextAlignmentOptions.Center, UIKit.DimText);
+            var note = UIKit.Text("Note", body, NoteText, 13, TextAlignmentOptions.Center, UIKit.DimText);
             note.rectTransform.Place(new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 44), new Vector2(0, 30), new Vector2(0.5f, 0));
             _tutorial = UIKit.Button("Tutorial", body, "Hướng dẫn tân thủ", null, 15);
             _logout = UIKit.Button("Logout", body, "Đăng xuất", null, 15);
@@ -47,6 +47,8 @@ namespace Assets.Script.UI.Windows
             PlaceAutoButton();
             PlaceBottomButtons();
         }
+
+        private const string NoteText = "Bấm vào số % để bật / tắt âm. Máy yếu: 30 FPS + đồ hoạ thấp.";
 
         /// <summary>3 nút dưới cùng: [Hướng dẫn tân thủ] [Đổi mật khẩu] [Đăng xuất].</summary>
         private void PlaceBottomButtons()
@@ -78,6 +80,11 @@ namespace Assets.Script.UI.Windows
             _plus[2].onClick.AddListener(() => SetFps(60));
             _minus[3].onClick.AddListener(() => SetQuality(-1));
             _plus[3].onClick.AddListener(() => SetQuality(1));
+            // Bấm ô giá trị nhạc / hiệu ứng = bật / tắt (prefab cũ chỉ có chữ → gắn nút lúc chạy)
+            MakeToggle(_music, () => { AudioManager.MusicOn = !AudioManager.MusicOn; Refresh(); });
+            MakeToggle(_sfx, () => { AudioManager.SfxOn = !AudioManager.SfxOn; Refresh(); });
+            foreach (var t in Body.GetComponentsInChildren<TextMeshProUGUI>(true))
+                if (t.name == "Note") t.text = NoteText;   // prefab cũ còn câu cũ
             _tutorial.onClick.AddListener(() => Get<TutorialWindow>().ShowFromStart());
             if (_logout == null || _password == null)   // prefab xuất trước khi có các nút này
             {
@@ -122,8 +129,25 @@ namespace Assets.Script.UI.Windows
             return v;
         }
 
+        private static void MakeToggle(TextMeshProUGUI t, UnityEngine.Events.UnityAction onClick)
+        {
+            t.raycastTarget = true;
+            var b = t.GetComponent<Button>();
+            if (b == null) b = t.gameObject.AddComponent<Button>();   // Unity: không dùng ?? với Component
+            b.targetGraphic = t;
+            b.onClick.AddListener(onClick);
+        }
+
+        /// <summary>Công tắc để autotest bấm như người chơi.</summary>
+        public void ToggleMusic() => _music.GetComponent<Button>().onClick.Invoke();
+        public void ToggleSfx() => _sfx.GetComponent<Button>().onClick.Invoke();
+        public string MusicText => _music.text;
+        public string SfxText => _sfx.text;
+
         private void Step(float d, bool music)
         {
+            // Đang tắt mà bấm -/+ → bật lại rồi chỉnh
+            if (music) AudioManager.MusicOn = true; else AudioManager.SfxOn = true;
             if (music) AudioManager.MusicVolume = Mathf.Clamp01(Mathf.Round((AudioManager.MusicVolume + d) * 10) / 10f);
             else AudioManager.SfxVolume = Mathf.Clamp01(Mathf.Round((AudioManager.SfxVolume + d) * 10) / 10f);
             Refresh();
@@ -149,8 +173,8 @@ namespace Assets.Script.UI.Windows
 
         protected override void Refresh()
         {
-            _music.text = $"{Mathf.RoundToInt(AudioManager.MusicVolume * 100)}%";
-            _sfx.text = $"{Mathf.RoundToInt(AudioManager.SfxVolume * 100)}%";
+            _music.text = AudioManager.MusicOn ? $"{Mathf.RoundToInt(AudioManager.MusicVolume * 100)}%" : "TẮT";
+            _sfx.text = AudioManager.SfxOn ? $"{Mathf.RoundToInt(AudioManager.SfxVolume * 100)}%" : "TẮT";
             _fps.text = $"{PlayerPrefs.GetInt(PrefFps, 60)}";
             var names = QualitySettings.names;
             _quality.text = names.Length > 0 ? names[QualitySettings.GetQualityLevel()] : "-";

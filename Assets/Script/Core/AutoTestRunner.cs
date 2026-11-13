@@ -231,6 +231,9 @@ namespace Assets.Script.Core
             yield return WaitUntil(() => GameData.PetListReceived, 5);
             foreach (var old in GameData.Pets.ToArray()) GameActions.PetRelease(old.uid);   // lần chạy trước còn sót
             yield return WaitUntil(() => GameData.Pets.Count == 0, 5);
+            // Quái đang đánh mình (ca trước còn gây hấn) → bị đánh là ngã khỏi thú, ca "đang cưỡi" hỏng oan → dọn khu trước
+            GameActions.Chat(1, "/killall");
+            yield return new WaitForSecondsRealtime(0.5f);
             GameActions.Chat(1, "/pet 11 12");
             yield return WaitUntil(() => GameData.MyPet != null, 5);
             var pet = GameData.MyPet;
@@ -556,6 +559,15 @@ namespace Assets.Script.Core
                 GameWindow.SideBySide(set, bag);
                 bag.Hide(); yield return null;
                 Check("Cặp cửa sổ (… | Hành trang): đóng 1 cái → đóng cả 2", !set.IsOpen && !bag.IsOpen && !UIRoot.GameplayBlocked);
+                // Cài đặt: bấm ô % = tắt / bật nhạc nền, hiệu ứng (nhớ mức âm lượng cũ)
+                set.Show(); yield return null;
+                string volBefore = set.MusicText;
+                set.ToggleMusic(); set.ToggleSfx(); yield return null;
+                bool offOk = !AudioManager.MusicOn && !AudioManager.SfxOn && !AudioManager.MusicAudible && set.MusicText == "TẮT" && set.SfxText == "TẮT";
+                set.ToggleMusic(); set.ToggleSfx(); yield return null;
+                bool onOk = AudioManager.MusicOn && AudioManager.SfxOn && set.MusicText == volBefore && set.SfxText != "TẮT";
+                set.Hide();
+                Check($"Cài đặt: bấm ô % tắt nhạc nền + hiệu ứng (hiện TẮT, nhạc câm) → bấm lại bật, về mức cũ {volBefore} ({offOk}/{onOk})", offOk && onOk);
             }
 
             // 3d. Hình NPC theo server (npc_template.art — demo: data/art_demo.json) + mốc cổng có mũi tên
