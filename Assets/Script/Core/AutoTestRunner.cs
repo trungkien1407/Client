@@ -135,6 +135,14 @@ namespace Assets.Script.Core
             yield return new WaitForSecondsRealtime(2f);
             Check("Thấy quái trong map", FindObjectsByType<Entities.MobController>(FindObjectsSortMode.None).Length > 0);
             // "-mountsonly": chỉ chụp 24 thú cưỡi để chỉnh cỡ / chỗ ngồi (PetMount.Tune) rồi thoát — nhanh hơn chạy đủ autotest
+            // "-backdroponly": chỉ chạy phần nền nhiều lớp (chụp ảnh từng chủ đề) — chỉnh nền nhanh
+            if (Array.IndexOf(Environment.GetCommandLineArgs(), "-backdroponly") >= 0)
+            {
+                yield return CheckBackdrop();
+                Debug.Log($"[AutoTest] KẾT QUẢ: {_pass} PASS, {_fail} FAIL");
+                Application.Quit(_fail);
+                yield break;
+            }
             if (Array.IndexOf(Environment.GetCommandLineArgs(), "-mountsonly") >= 0)
             {
                 yield return MountShots();
@@ -149,6 +157,7 @@ namespace Assets.Script.Core
             yield return TestWorld();
             yield return TestAutoAndDungeon();
             yield return TestEconomy();
+            yield return CheckBackdrop();
             yield return CheckHudPad();
             yield return CheckMobDeathFx();
             yield return TestAutoPath();

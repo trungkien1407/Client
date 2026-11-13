@@ -17,6 +17,8 @@ namespace Assets.Script.Map
         [Tooltip("Chỗ xuất hiện khi vào map không qua cổng (đăng nhập, hồi sinh)")] public Vector2 spawn = new Vector2(3.5f, 4.05f);
         [Tooltip("Map có boss thế giới")] public bool hasBoss;
         public Vector2 boss;
+        [Tooltip("Nền nhiều lớp (parallax). Auto = chọn theo số map (Backdrop/BackdropThemes.ForMap)")]
+        public Backdrop.BackdropTheme backdrop = Backdrop.BackdropTheme.Auto;
 
         private void OnDrawGizmos()
         {

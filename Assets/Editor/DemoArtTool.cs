@@ -18,6 +18,7 @@ using UnityEngine;
 ///   5. Âm thanh  09_AmThanh/HieuUng|NhacNen/*.ogg → _Demo/Resources/Audio/&lt;tên GameAudio&gt;.ogg (bảng AudioFiles — chọn tay)
 ///   6. Bụi chân  06_HieuUng/BuiChan_DuongDi/0..4.png → _Demo/Resources/FootDust/dust_0..4.png (Fx.FootDust)
 ///   7. Thú cưng  04_ThuCung_Spine/petN/[export/]&lt;Tên&gt;.json/.atlas/.png → _Demo/Resources/Pets/petN/petN.json … (Fx.PetFollower, GĐ27)
+///   8. Nền map   05_Map/NenTroi_CanhXa/NN.png → _Demo/Resources/Backdrops/&lt;chủ đề&gt;/sky|far|mid|near.png (Map.Backdrop.ParallaxBackdrop)
 /// Code tải theo tên qua AssetSource: Addressables trước (hình chính thức), không có mới lấy _Demo → thay hình thật
 /// = đưa ảnh cùng tên vào Addressables (address "imgN", "MobAnim_N"), không sửa code.
 /// Không mở Editor: -executeMethod DemoArtTool.BatchImport -demoArt &lt;thư mục TaiNguyen&gt;
@@ -70,6 +71,74 @@ public static class DemoArtTool
         int n = CopyPets(Path.Combine(dir, "04_ThuCung_Spine"));
         AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
         EditorUtility.DisplayDialog("Demo art", $"Thú cưng: {n} bộ Spine\n→ {PetDir} (không commit)", "OK");
+    }
+
+    [MenuItem("Tools/Naruto/Demo art/5. Nhập nền map (parallax)", priority = 44)]
+    public static void MenuBackdrops()
+    {
+        string dir = SourceDir(true);
+        if (dir == null) return;
+        int n = CopyBackdrops(Path.Combine(dir, "05_Map", "NenTroi_CanhXa"));
+        EditorUtility.DisplayDialog("Demo art", $"Nền map: {n} ảnh\n→ {BackdropDir} (không commit)", "OK");
+    }
+
+    /// <summary>Không mở Editor: -executeMethod DemoArtTool.BatchBackdrops -demoArt &lt;TaiNguyen&gt; — chỉ chép nền map (bước 8).</summary>
+    public static void BatchBackdrops()
+    {
+        int n = CopyBackdrops(Path.Combine(SourceDir(false), "05_Map", "NenTroi_CanhXa"));
+        Debug.Log($"[DemoArt] nền map {n} ảnh");
+    }
+
+    // ==================== NỀN MAP (PARALLAX) ====================
+    public const string BackdropDir = Root + "/Backdrops";
+
+    // Chủ đề → ảnh trong 05_Map/NenTroi_CanhXa cho từng lớp (null = không có ảnh, ParallaxBackdrop tự vẽ / bỏ lớp).
+    // Lớp bóng cây 1 màu (10–13, 20–23) được ParallaxBackdrop tô lại theo màu chủ đề lúc chạy.
+    private static readonly (string theme, string sky, string far, string mid, string near)[] BackdropFiles =
+    {
+        ("Village", "34", "24", "22", "20"),   // trời mây · núi đá xám · rừng thông · bụi dừa
+        ("Meadow",  "34", "24", "21", "23"),
+        ("Bamboo",  "34", "35", "12", "22"),   // rừng mờ sương · thông · thông
+        ("Rock",    null, "31", "24", "10"),   // núi đỏ hoàng hôn (có trời sẵn) · núi đá · dừa
+        ("Swamp",   null, "05", "11", "21"),   // đầm lầy phế tích · dừa thưa · bụi
+        ("Snow",    "34", "32", "12", "02"),   // núi tuyết (có trời sẵn) · thông · thông phủ tuyết
+        ("Cave",    "04", "25", "15", null),   // nền tối · vòm hang · thạch nhũ
+        ("Arena",   "34", "31", "22", null),
+    };
+
+    /// <summary>8. Ảnh nền → Backdrops/&lt;chủ đề&gt;/sky|far|mid|near.png; đặt Read/Write (để tô lại màu), không mipmap, không thu nhỏ NPOT.</summary>
+    private static int CopyBackdrops(string dir)
+    {
+        if (!Directory.Exists(dir)) { Debug.LogWarning("[DemoArt] thiếu " + dir); return 0; }
+        var copied = new List<string>();
+        foreach (var (theme, sky, far, mid, near) in BackdropFiles)
+        {
+            string to = $"{BackdropDir}/{theme}";
+            Directory.CreateDirectory(to);
+            foreach (var (layer, file) in new[] { ("sky", sky), ("far", far), ("mid", mid), ("near", near) })
+            {
+                if (file == null) continue;
+                string from = Path.Combine(dir, file + ".png"), dst = $"{to}/{layer}.png";
+                if (!File.Exists(from)) { Debug.LogWarning("[DemoArt] thiếu " + from); continue; }
+                File.Copy(from, dst, true);
+                copied.Add(dst);
+            }
+        }
+        AssetDatabase.Refresh(ImportAssetOptions.ForceSynchronousImport);
+        foreach (var path in copied)
+        {
+            if (!(AssetImporter.GetAtPath(path) is TextureImporter ti)) continue;
+            ti.textureType = TextureImporterType.Default;
+            ti.npotScale = TextureImporterNPOTScale.None;
+            ti.isReadable = true;
+            ti.mipmapEnabled = false;
+            ti.wrapMode = TextureWrapMode.Repeat;
+            ti.alphaIsTransparency = true;
+            ti.textureCompression = TextureImporterCompression.Uncompressed;
+            ti.maxTextureSize = 2048;
+            ti.SaveAndReimport();
+        }
+        return copied.Count;
     }
 
     /// <summary>Không mở Editor: -executeMethod DemoArtTool.BatchPets — chỉ chép thú cưng (bước 7).</summary>

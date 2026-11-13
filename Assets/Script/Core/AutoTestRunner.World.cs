@@ -315,5 +315,56 @@ namespace Assets.Script.Core
             Check($"Hiệu ứng chiêu theo dữ liệu: {GameData.Effects.Count} mẫu, diễn thử {shown}", shown > 0 && GameObject.Find("Effects") != null);
             yield return Shot("SkillFx");
         }
+
+        /// <summary>
+        /// Nền nhiều lớp (Map/Backdrop/ParallaxBackdrop): mỗi map có ≥ 4 lớp đúng chủ đề; đi ngang thì lớp gần trôi nhiều hơn lớp xa
+        /// (chiều sâu). Chụp ảnh từng chủ đề để xem bằng mắt.
+        /// </summary>
+        private IEnumerator CheckBackdrop()
+        {
+            int[] maps = { 1, 2, 5, 7, 8, 11, 12 };
+            int ok = 0;
+            foreach (int id in maps)
+            {
+                string before = GameData.MapName;
+                GameActions.Chat(1, "/tele " + id);
+                yield return WaitUntil(() => GameData.MapName != before, 8);
+                yield return new WaitForSecondsRealtime(1.2f);
+                var bd = Map.Backdrop.ParallaxBackdrop.Instance;
+                bool good = bd != null && bd.Layers.Count >= (id >= 12 ? 3 : 4) && bd.Theme == Map.Backdrop.BackdropThemes.ForMap(id);
+                if (good) ok++;
+                if (id == 1 && bd != null && Camera.main != null)
+                {
+                    var cm = Camera.main;
+                    Debug.Log($"[AutoTest] camera {cm.name} pos {cm.transform.position} ortho {cm.orthographicSize} aspect {cm.aspect} mask {cm.cullingMask}");
+                    foreach (var l in bd.Layers)
+                        Debug.Log($"[AutoTest] lớp {l.name}: pos {l.tr.position} scale {l.tr.lossyScale} bounds {l.sr.bounds.min}..{l.sr.bounds.max} visible {l.sr.isVisible} mat {(l.sr.sharedMaterial != null ? l.sr.sharedMaterial.name : "null")} order {l.sr.sortingOrder} layer {l.sr.gameObject.layer} draw {l.sr.drawMode} size {l.sr.size}");
+                }
+                else Debug.Log($"[AutoTest] nền map {id}: {(bd == null ? "không có" : bd.Theme + " / " + bd.Layers.Count + " lớp")}");
+                yield return Shot("Backdrop_" + id);
+            }
+            Check($"Mọi map thử có nền nhiều lớp đúng chủ đề ({ok}/{maps.Length})", ok == maps.Length);
+
+            // Chiều sâu: đứng Đồi Hoa Cúc, đi ngang 20 ô → so độ trượt của từng lớp so với camera
+            string b2 = GameData.MapName;
+            GameActions.Chat(1, "/tele 2 10.5 4.1");
+            yield return WaitUntil(() => GameData.MapName != b2, 8);
+            yield return new WaitForSecondsRealtime(1.5f);
+            var back = Map.Backdrop.ParallaxBackdrop.Instance;
+            var cam = Camera.main;
+            if (back == null || cam == null) { Check("Nền có chiều sâu (parallax)", false); yield break; }
+            Map.Backdrop.ParallaxBackdrop.Layer far = null, near = null;
+            foreach (var l in back.Layers) { if (l.name == "Far") far = l; if (l.name == "Near") near = l; }
+            float farRel0 = far.tr.position.x - cam.transform.position.x, nearRel0 = near.tr.position.x - cam.transform.position.x;
+            float cam0 = cam.transform.position.x;
+            GameActions.Chat(1, "/go 40.5 4.1");
+            yield return new WaitForSecondsRealtime(2f);
+            float camMove = cam.transform.position.x - cam0;
+            float farShift = Mathf.Abs(far.tr.position.x - cam.transform.position.x - farRel0);
+            float nearShift = Mathf.Abs(near.tr.position.x - cam.transform.position.x - nearRel0);
+            Check($"Đi ngang ({camMove:0.0} ô): lớp gần trôi nhiều hơn lớp xa ({nearShift:0.0} > {farShift:0.0}) → có chiều sâu",
+                camMove > 5f && nearShift > farShift + 1f && farShift > 0.5f);
+            yield return Shot("Backdrop_Parallax");
+        }
     }
 }
