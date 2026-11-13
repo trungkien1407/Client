@@ -241,6 +241,35 @@ namespace Assets.Script.Core
         }
 
         /// <summary>
+        /// Nút trên màn hình (UI.HudPad): giữ nút trái / phải → nhân vật đi (như bấm phím) và nút lún xuống;
+        /// thả ra → nút về như cũ. Phím cũng làm nút sáng theo (HudPad đọc ManualInput — gồm cả phím lẫn nút màn hình).
+        /// </summary>
+        private IEnumerator CheckHudPad()
+        {
+            var pad = UI.HudPad.Instance;
+            yield return WaitUntil(() => pad != null && pad.Left != null, 3);
+            Check("Nút trái / phải / nhảy / đánh trên màn hình đã nối (HudPad)", pad != null && pad.Left != null && pad.Right != null && pad.JumpPad != null);
+            if (pad == null || pad.Left == null) yield break;
+            var me = NetworkPlayerManager.Instance.localPlayer;
+            var ev = new UnityEngine.EventSystems.PointerEventData(UnityEngine.EventSystems.EventSystem.current);
+            float x0 = me.transform.position.x;
+            UnityEngine.EventSystems.ExecuteEvents.Execute(pad.Left.gameObject, ev, UnityEngine.EventSystems.ExecuteEvents.pointerDownHandler);
+            yield return new WaitForSecondsRealtime(0.6f);
+            bool leftShown = pad.Left.Shown;
+            float x1 = me.transform.position.x;
+            UnityEngine.EventSystems.ExecuteEvents.Execute(pad.Left.gameObject, ev, UnityEngine.EventSystems.ExecuteEvents.pointerUpHandler);
+            UnityEngine.EventSystems.ExecuteEvents.Execute(pad.Right.gameObject, ev, UnityEngine.EventSystems.ExecuteEvents.pointerDownHandler);
+            yield return new WaitForSecondsRealtime(0.6f);
+            bool rightShown = pad.Right.Shown;
+            float x2 = me.transform.position.x;
+            UnityEngine.EventSystems.ExecuteEvents.Execute(pad.Right.gameObject, ev, UnityEngine.EventSystems.ExecuteEvents.pointerUpHandler);
+            yield return null;
+            yield return null;
+            Check($"Giữ nút trái / phải trên màn hình → nhân vật đi ({x1 - x0:0.00} / {x2 - x1:0.00})", x1 < x0 - 0.2f || x2 > x1 + 0.2f);
+            Check("Đang giữ thì nút lún xuống, thả thì về như cũ", leftShown && rightShown && !pad.Left.Shown && !pad.Right.Shown);
+        }
+
+        /// <summary>
         /// Quái chết (MobController.PlayDeath): hất nhẹ ra xa người chơi → rơi xuyên nền → mờ dần rồi mới biến mất;
         /// trong lúc đó không chọn làm mục tiêu được (Tab / bấm chuột / SelectTarget đều bỏ qua xác).
         /// </summary>
@@ -253,6 +282,22 @@ namespace Assets.Script.Core
             var mob = NetworkMobManager.Instance != null ? NetworkMobManager.Instance.FindNearestAlive(me.transform.position, 60f) : null;
             Check("Có quái để thử hiệu ứng chết", mob != null);
             if (mob == null) yield break;
+            // Chọn quái: tên + cấp chỉ hiện ở thanh mục tiêu phía trên (1 dòng, nằm trên thanh máu của khung); trên đầu quái không có chữ
+            var targeting0 = FindAnyObjectByType<PlayerTargeting>();
+            if (targeting0 != null) targeting0.SelectTarget(mob);
+            yield return null;
+            var top = UISetup.Instance != null ? UISetup.Instance.targetName : null;
+            if (top != null) top.ForceMeshUpdate();
+            Check($"Thanh mục tiêu: tên + cấp quái 1 dòng ({(top != null ? top.GetParsedText() : "?")})",
+                top != null && top.textInfo.lineCount == 1 && top.GetParsedText().Contains("Lv"));
+            var hpFillTop = UISetup.Instance != null ? UISetup.Instance.targetHpFill : null;
+            Check("Tên trên thanh mục tiêu không đè thanh máu của khung",
+                top == null || hpFillTop == null || top.rectTransform.TransformPoint(top.rectTransform.rect.min).y >= hpFillTop.rectTransform.TransformPoint(hpFillTop.rectTransform.rect.max).y - 1f);
+            int withName = 0;   // không quái nào còn chữ tên trên đầu (tên chỉ ở thanh mục tiêu)
+            foreach (var m in FindObjectsByType<Entities.MobController>(FindObjectsSortMode.None))
+                if (m.GetComponentInChildren<TMPro.TextMeshPro>(true) != null) withName++;
+            Check($"Mọi quái đều không hiện tên trên đầu — chỉ thanh máu khi được chọn ({withName} con còn chữ)", withName == 0);
+            yield return Shot("TargetBarName");
             Vector3 p0 = mob.transform.position;
             GameActions.Chat(1, "/killall");
             yield return WaitUntil(() => mob.IsDead, 3);

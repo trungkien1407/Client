@@ -54,7 +54,7 @@ namespace Assets.Script.Entities
         /// <summary>Hạng thật của con này (server gửi): 0 thường · 1 tinh anh · 2 thủ lĩnh — có thể cao hơn hạng của mẫu.</summary>
         public int Rank { get; private set; }
 
-        // Tinh anh / thủ lĩnh sinh ngẫu nhiên: CÙNG KÍCH CỠ quái thường — nhận ra nhờ màu tên + chữ [Tinh anh] / [Thủ lĩnh] (UpdateNameLabel)
+        // Tinh anh / thủ lĩnh sinh ngẫu nhiên: CÙNG KÍCH CỠ quái thường — nhận ra nhờ màu tên trên thanh mục tiêu (UISetup) + chữ [Tinh anh] / [Thủ lĩnh] (TargetTitle)
 
         public void Initialize(int id, short tempId, int hp, int max, int rank = 0)
         {
@@ -70,7 +70,6 @@ namespace Assets.Script.Entities
             _attackAnimUntil = 0f;
             _hurtUntil = 0f;
             _deathStart = -1f;   // bỏ đà rơi của lần chết trước
-            if (_nameLabel != null) _nameLabel.gameObject.SetActive(true);
             _loadToken++;   // hình đang tải dở của lần dùng trước (pool) bỏ đi
             AppliedArt = -1;
             UseAnim(null);
@@ -129,7 +128,6 @@ namespace Assets.Script.Entities
             OnHpChanged?.Invoke(currentHp, maxHp);
             ChangeState(MobState.Dead);
             if (hpBarContainer != null) hpBarContainer.SetActive(false);
-            if (_nameLabel != null) _nameLabel.gameObject.SetActive(false);
             // Hướng hất: ra xa nhân vật mình (gói MOB_DIE không có người hạ — người chơi thường đứng gần quái mình đánh)
             var me = Manager.NetworkPlayerManager.Instance != null ? Manager.NetworkPlayerManager.Instance.localPlayer : null;
             float side = me != null && me.transform.position.x > transform.position.x ? -1f : 1f;
@@ -230,7 +228,6 @@ namespace Assets.Script.Entities
             _isReady = true;
             UpdateSpriteFrame();
             AdjustHpBarPosition();
-            UpdateNameLabel();
         }
 
         private int AnimState => _currentState switch
@@ -250,21 +247,10 @@ namespace Assets.Script.Entities
         // ==========================================
         // NHÃN TÊN + CẤP TRÊN ĐẦU (màu theo hạng) — tạo bằng code, không cần sửa prefab
         // ==========================================
-        private TMPro.TextMeshPro _nameLabel;
-
-        private void UpdateNameLabel()
+        /// <summary>Tên quái KHÔNG hiện trên đầu (2026-11-13 — cho gọn màn hình); chỉ hiện trên thanh mục tiêu khi chọn.
+        /// "Ốc Sên Lv2 [Tinh anh]" + màu theo hạng: boss tím · thủ lĩnh đỏ · tinh anh vàng · thường trắng.</summary>
+        private string Title(out Color color)
         {
-            if (_nameLabel == null)
-            {
-                var go = new GameObject("NameLabel");
-                go.transform.SetParent(transform, false);
-                _nameLabel = go.AddComponent<TMPro.TextMeshPro>();
-                _nameLabel.fontSize = 2.6f;
-                _nameLabel.alignment = TMPro.TextAlignmentOptions.Center;
-                _nameLabel.sortingOrder = 20;
-                _nameLabel.outlineWidth = 0.2f;
-                _nameLabel.outlineColor = Color.black;
-            }
             Data.GameData.Mobs.TryGetValue(templateId, out var tpl);
             string name = tpl != null ? tpl.name : (_visualData != null ? _visualData.mobName : $"Quái {templateId}");
             int tplRank = tpl != null ? tpl.rank : 0;
@@ -272,10 +258,18 @@ namespace Assets.Script.Entities
             // Boss của mẫu (Cóc Chúa, Nhện Chúa...) ghi [Boss]; quái thường được nâng ngẫu nhiên ghi [Thủ lĩnh] / [Tinh anh]
             bool boss = tplRank >= 2;
             string rankTag = boss ? " [Boss]" : rank == 2 ? " [Thủ lĩnh]" : rank == 1 ? " [Tinh anh]" : "";
-            _nameLabel.text = tpl != null ? $"{name} Lv{tpl.level}{rankTag}" : name;
-            _nameLabel.color = boss ? new Color(0.85f, 0.45f, 1f) : rank == 2 ? new Color(1f, 0.35f, 0.3f) : rank == 1 ? new Color(1f, 0.85f, 0.3f) : Color.white;
+            color = boss ? new Color(0.85f, 0.45f, 1f) : rank == 2 ? new Color(1f, 0.35f, 0.3f) : rank == 1 ? new Color(1f, 0.85f, 0.3f) : Color.white;
+            return tpl != null ? $"{name} Lv{tpl.level}{rankTag}" : name;
+        }
 
-            _nameLabel.transform.localPosition = new Vector3(0, TopY + 0.35f, 0);
+        /// <summary>Tên hiện trên THANH MỤC TIÊU phía trên màn hình (PlayerTargeting → UISetup): tên + cấp + hạng, tô màu theo hạng.</summary>
+        public string TargetTitle
+        {
+            get
+            {
+                string t = Title(out var c);
+                return $"<color=#{ColorUtility.ToHtmlStringRGB(c)}>{t}</color>";
+            }
         }
 
         /// <summary>
@@ -297,7 +291,6 @@ namespace Assets.Script.Entities
             _spriteRenderer.sprite = _placeholderSprite;
             _spriteRenderer.color = new Color(0.6f, 0.3f, 0.8f, 0.85f);
             _isReady = true;
-            UpdateNameLabel();
         }
 
         public void SetVisual(MobVisualData visualData)
@@ -331,7 +324,6 @@ namespace Assets.Script.Entities
 
                     // 2. Tính toán lại vị trí thanh máu dựa trên ảnh vừa gán
                     AdjustHpBarPosition();
-                    UpdateNameLabel();
                 }
             };
         }

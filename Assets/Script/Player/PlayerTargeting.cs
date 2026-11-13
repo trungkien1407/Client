@@ -251,7 +251,8 @@ namespace Assets.Script.Player
             currentTarget = newTarget;
             currentTarget.OnTargeted();
 
-            string targetName = currentTarget.GetTargetName();
+            // Quái: tên + cấp + hạng (có màu) lên thanh mục tiêu; người / NPC: tên như cũ
+            string targetName = currentTarget is MobController mob ? mob.TargetTitle : currentTarget.GetTargetName();
 
             if (currentTarget is IHasHealth healthTarget)
             {

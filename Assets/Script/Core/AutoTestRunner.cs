@@ -149,6 +149,7 @@ namespace Assets.Script.Core
             yield return TestWorld();
             yield return TestAutoAndDungeon();
             yield return TestEconomy();
+            yield return CheckHudPad();
             yield return CheckMobDeathFx();
             yield return TestAutoPath();
             yield return TestSession();

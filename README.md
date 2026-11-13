@@ -65,11 +65,15 @@ Thư mục khác trong `Assets/`: `Editor/` (tool Editor), `Prefabs/` (`basePlay
 | 4. Build Addressables | |
 | 5. Cấu hình hình ảnh quái & NPC | điền `MobDatabase` |
 | Map → 1 / 2 / 3 | nhập điểm vào prefab (1 lần) · **xuất map cho server** (`data/maps/map_N.json`) · đổi thư mục |
+| Map → 4 / 5 | sửa mép cỏ - tuyết theo ô hàng xóm · gắn va chạm nước (trigger + tag `Water`) |
 | UI → 1 / 2 / 3 | tạo bộ prefab mẫu · xuất cửa sổ/HUD còn thiếu ra prefab · xuất lại cửa sổ đang chọn |
+| UI → 4 / 5 | dàn lại màn đăng nhập · chụp thử màn đăng nhập ra `Builds/UIPreview/Auth` |
 | Demo art → 1 / 2 / 3 / 4 | nhập hình demo nội bộ vào `Assets/_Demo` · đổi thư mục nguồn · âm thanh + bụi chân · thú cưng (24 bộ Spine) |
 | Build → PC / Android | build Addressables + game ra `Builds/` |
 
-Code các tool: `Assets/Editor/` (`NarutoProjectTools`, `MapDataTool`, `UIPrefabTool`, `ContentSetupTool`, `DemoArtTool`, `BuildTool`).
+Code các tool: `Assets/Editor/` (`NarutoProjectTools`, `MapDataTool`, `TileEdgeTool`, `WaterTool`, `UIPrefabTool`, `AuthScreenTool`, `ContentSetupTool`, `DemoArtTool`, `BuildTool`).
+
+Tool **dùng lại được ở dự án khác** nằm riêng ở package `Packages/com.vocvach.spine-tools` (menu **Tools → VocVach → Spine**, chụp bảng anim / skin Spine) — cách cài: `Packages/com.vocvach.spine-tools/README.md`. Danh sách mọi tool + tool nào tách được thành package: `D:\Server\Server\docs\ky-thuat\TOOLS.md`.
 
 ## Tài liệu (ở repo server)
 

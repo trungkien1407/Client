@@ -145,17 +145,19 @@ namespace Assets.Script.UI
             // "12  76.4%" — số cấp vàng to, % EXP trắng nhỏ ngay sau (đỡ phải nhìn xuống thanh EXP dưới màn hình)
             _v.levelText.text = c.level <= 0 ? "" : c.expToNext > 0 ? $"{c.level} <size=72%><color=#f2f2f2>{pct * 100:F1}%</color></size>"
                 : $"{c.level} <size=72%><color=#f2f2f2>MAX</color></size>";   // cấp tối đa: không còn % EXP
-            _v.expText.text = (c.expToNext > 0 ? $"Cấp {c.level}   EXP {pct * 100:F1}%   ({c.exp:N0}/{c.expToNext:N0})" : $"Cấp {c.level}   (cấp tối đa)") +
-                            (c.potential > 0 ? $"   <color=#fd5>+{c.potential} điểm tiềm năng (C)</color>" : "") +
-                            (c.skillPoints > 0 ? $"   <color=#7cf>+{c.skillPoints} điểm kỹ năng (K)</color>" : "");
+            // Thanh EXP dưới cùng chỉ còn MÀU (cấp + % đã có ở góc trên, cạnh avatar) — 2026-11-13
+            _v.expText.text = "";
         }
 
+        /// <summary>
+        /// Dòng nhỏ dưới minimap: chỉ còn điểm PK (khi > 0). Yên / Xu / Lượng xem trong Hành trang (dải tiền dưới túi) —
+        /// không hiện ngoài màn hình cho gọn (2026-11-13).
+        /// </summary>
         private void UpdateMoney()
         {
             if (_v == null) return;
             var c = GameData.Me;
-            _v.money.text = $"Yên {c.yen:N0}   <color=#7cf>Xu {c.xu:N0}</color>   <color=#f8c>Lượng {c.luong:N0}</color>" +
-                          (c.pkPoint > 0 ? $"   <color=#f55>PK {c.pkPoint}</color>" : "");
+            _v.money.text = c.pkPoint > 0 ? $"<color=#f55>PK {c.pkPoint}</color>" : "";
         }
 
         // ================= PvP =================

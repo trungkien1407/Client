@@ -72,6 +72,18 @@ namespace Assets.Script.Core
                 foreach (var t in bag.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true))
                     if (t.name == "Money" && t.text.Contains("Xu") && t.text.Contains("Lượng") && t.fontSize >= 16) moneyOk = true;
                 Check("Hành trang hiện dải Yên · Xu · Lượng chữ to", moneyOk);
+                int hudMoneyShown = 0, hudMoneyFound = 0;   // chữ "Money" của HUD = không nằm trong cửa sổ nào
+                foreach (var t in FindObjectsByType<TMPro.TextMeshProUGUI>(FindObjectsSortMode.None))
+                    if (t.name == "Money" && t.GetComponentInParent<GameWindow>(true) == null)
+                    {
+                        hudMoneyFound++;
+                        if (t.text.Contains("Yên") || t.text.Contains("Lượng")) hudMoneyShown++;
+                    }
+                Check($"Ngoài màn hình (HUD) không hiện Yên / Lượng — chỉ xem trong Hành trang ({hudMoneyFound} ô, {hudMoneyShown} còn tiền)",
+                    hudMoneyFound > 0 && hudMoneyShown == 0);
+                var expTextGo = GameObject.Find("ExpText");
+                var expTmp = expTextGo != null ? expTextGo.GetComponent<TMPro.TextMeshProUGUI>() : null;
+                Check("Thanh EXP dưới cùng chỉ hiện màu (không chữ cấp / %)", expTmp == null || string.IsNullOrEmpty(expTmp.text));
                 set.Show();
                 GameWindow.SideBySide(set, bag);
                 bag.Hide(); yield return null;

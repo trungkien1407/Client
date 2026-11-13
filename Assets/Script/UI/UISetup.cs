@@ -46,6 +46,30 @@ namespace Assets.Script.UI
             Instance = this;
             // Khung mục tiêu bật sẵn trong scene → ẩn đi, chỉ hiện khi đã chọn quái/người (PlayerTargeting.SetTarget)
             HideTarget();
+            LayoutTargetName();
+        }
+
+        /// <summary>
+        /// Tên mục tiêu (TargetTxt trong scene): ô cũ rộng 200, chữ 36, tự xuống dòng → tên dài ("Ốc Sên Lv2 [Tinh anh]") gãy 2 dòng
+        /// tràn đè lên thanh máu. Sửa lúc chạy (không phải sửa scene): 1 dòng, rộng bằng khung, tự co chữ, nằm TRÊN thanh máu.
+        /// </summary>
+        private void LayoutTargetName()
+        {
+            if (targetName == null || targetPanel == null) return;
+            var rt = targetName.rectTransform;
+            float w = ((RectTransform)targetPanel.transform).rect.width;
+            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 1f);
+            rt.pivot = new Vector2(0.5f, 0f);                       // đáy chữ = mép trên khung → không bao giờ đè thanh máu
+            rt.anchoredPosition = new Vector2(0f, 2f);
+            rt.sizeDelta = new Vector2(w > 0 ? w : 352f, 34f);
+            targetName.enableWordWrapping = false;
+            targetName.overflowMode = TextOverflowModes.Ellipsis;   // quá dài (sau khi co chữ) → "..."
+            targetName.enableAutoSizing = true;
+            targetName.fontSizeMin = 16; targetName.fontSizeMax = 28;
+            targetName.fontStyle = FontStyles.Bold;
+            targetName.alignment = TextAlignmentOptions.Bottom;
+            targetName.outlineWidth = 0.25f;                        // viền đen → nổi trên nền game
+            targetName.outlineColor = new Color32(0, 0, 0, 255);
         }
 
         // ===============================================

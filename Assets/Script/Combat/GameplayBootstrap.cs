@@ -35,6 +35,7 @@ namespace Assets.Script.Combat
             go.AddComponent<Assets.Script.Data.AccountNetwork>();  // đổi mật khẩu
             go.AddComponent<Assets.Script.UI.GameHud>();           // thanh EXP, nút menu, tiền, banner, khung sự kiện
             go.AddComponent<Assets.Script.UI.MobileControls>();    // joystick + nút ảo (chỉ hiện trên máy cảm ứng)
+            go.AddComponent<Assets.Script.UI.HudPad>();            // nút trái / phải / nhảy / đánh có sẵn trên HUD: bấm được + sáng theo phím
         }
     }
 }

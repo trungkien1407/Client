@@ -66,6 +66,7 @@ namespace Assets.Script.Core
                 var auNear = NetworkMobManager.Instance?.FindNearestAlive(auMe.transform.position, 60f);
                 bool auInRange = auNear != null && auNear.DistanceFrom(auMe.transform.position) <= auRange - 0.15f;
                 bool auCame = false;
+                int auTeleAtHit = -1;   // số lần xin dịch chuyển LÚC ĐÒN ĐẦU TRÚNG (sau đó quái chết, tự động dịch chuyển sang con khác là đúng luật)
                 float auJump = 0f;
                 Vector3 auPrev = auMe.transform.position;
                 AutoPlay.Instance.SetOn(true, null);
@@ -79,11 +80,13 @@ namespace Assets.Script.Core
                         if (auClose != null && auClose.DistanceFrom(auMe.transform.position) <= AutoPlay.TeleMinDist) auCame = true;
                     }
                     auPrev = auMe.transform.position;
+                    if (auTeleAtHit < 0 && CombatNetwork.MyMobHits > auHits) auTeleAtHit = AutoPlay.TeleRequests;
+                    if (auInRange && auTeleAtHit >= 0) break;   // quái trong tầm: đòn đầu trúng là đủ, không chờ "nhảy"
                     yield return null;
                 }
-                if (auInRange || (auCame && AutoPlay.TeleRequests == auTele))
+                if (auInRange || (auCame && auTeleAtHit == auTele))
                     Check($"Có Tự động luyện tập, quái {(auInRange ? $"đã trong tầm {auRange:0.#} ô" : $"tự tới gần ≤ {AutoPlay.TeleMinDist} ô")} → đánh luôn, không dịch chuyển ({CombatNetwork.MyMobHits - auHits} đòn)",
-                        AutoPlay.TeleRequests == auTele && CombatNetwork.MyMobHits > auHits);
+                        auTeleAtHit == auTele && CombatNetwork.MyMobHits > auHits);
                 else
                     Check($"Có Tự động luyện tập → dịch chuyển tới quái rồi đánh (xin {AutoPlay.TeleRequests - auTele} lần, nhảy {auJump:0.0} ô, {CombatNetwork.MyMobHits - auHits} đòn)",
                         AutoPlay.TeleRequests > auTele && auJump >= 2f && CombatNetwork.MyMobHits > auHits);

@@ -42,6 +42,8 @@ namespace Assets.Script.Player
         [System.NonSerialized] public float AutoMoveX;
         /// <summary>Hướng người chơi đang tự bấm (phím / joystick) — ActionInput đọc để huỷ tự chạy.</summary>
         public Vector2 ManualInput { get; private set; }
+        /// <summary>Đang giữ phím nhảy (W / ↑ / nút tay cầm) — HudPad làm nút Nhảy trên màn hình sáng theo.</summary>
+        public bool JumpHeld => controls != null && controls.Player.Jump.IsPressed();
         public bool IsGrounded => isGrounded;
         // Chết → khoá điều khiển + ngừng gửi PLAYER_MOVE. Đọc cờ chung (CombatNetwork đặt khi PLAYER_DIE / REVIVE).
         private static bool isDead => Assets.Script.Player.LocalPlayerState.IsDead;
@@ -131,7 +133,9 @@ namespace Assets.Script.Player
             // Chết, đang gõ chat, bị choáng hoặc đang mở cửa sổ (túi, shop...) -> không nhận phím di chuyển
             bool blocked = isDead || Assets.Script.Combat.ChatBox.IsTyping || Assets.Script.Player.LocalPlayerState.IsStunned
                            || Assets.Script.UI.Kit.UIRoot.GameplayBlocked;
-            ManualInput = blocked ? Vector2.zero : controls.Player.Move.ReadValue<Vector2>();
+            var mv = controls.Player.Move.ReadValue<Vector2>();
+            mv.x = Mathf.Clamp(mv.x + Assets.Script.UI.HudPad.Horizontal, -1f, 1f);   // + nút trái / phải trên màn hình (HudPad)
+            ManualInput = blocked ? Vector2.zero : mv;
             moveInput = ManualInput;
             if (blocked) AutoMoveX = 0f;
             else if (Mathf.Abs(moveInput.x) < 0.01f && AutoMoveX != 0f) moveInput.x = AutoMoveX;   // không tự bấm → đi theo tự chạy
