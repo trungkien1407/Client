@@ -29,7 +29,7 @@ namespace Assets.Script.Core
             { GameKey.AutoToggle, new[] { Key.Z } },                              // bật / tắt tự động (AutoPlay)
             { GameKey.Mount, new[] { Key.R } },                                   // lên / xuống thú cưỡi (khi còn sống)
             { GameKey.TalkNpc, new[] { Key.F } },
-            { GameKey.OpenChat, new[] { Key.T } },                                // Enter đã dành cho Action
+            { GameKey.OpenChat, new[] { Key.X } },                                // chat nhanh (2026-11-15: T → X); Enter đã dành cho Action
             { GameKey.CloseWindow, new[] { Key.Escape } },
             { GameKey.Skill1, new[] { Key.Digit1 } },
             { GameKey.Skill2, new[] { Key.Digit2 } },

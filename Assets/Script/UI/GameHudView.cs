@@ -15,7 +15,7 @@ namespace Assets.Script.UI
         /// <summary>Thứ tự nút menu — GameHud nối hành động theo đúng thứ tự này.</summary>
         public static readonly string[] MenuLabels =
             { "Nhân vật", "Túi", "Kỹ năng", "Nhiệm vụ", "Nói (F)", "Hoạt động", "Xã hội", "Thư", "Xếp hạng", "Cẩm nang", "Cài đặt", "Hoà bình" };
-        public const int MenuActivity = 5, MenuMail = 7, MenuPk = 11;
+        public const int MenuTalk = 4, MenuActivity = 5, MenuMail = 7, MenuPk = 11;
 
         public Image expFill;
         public TextMeshProUGUI expText, levelText, money, banner, eventText, partyText, questText, stun;

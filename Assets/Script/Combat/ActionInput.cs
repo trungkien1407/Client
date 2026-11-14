@@ -14,7 +14,7 @@ namespace Assets.Script.Combat
     /// PHÍM ENTER = "LÀM VIỆC VỚI MỤC TIÊU":
     ///   quái  → đánh bằng chiêu đang chọn (GIỮ Enter = đánh liên tục)
     ///   NPC   → nói chuyện
-    ///   người → mở bảng tương tác (giao dịch, nhóm, tỉ thí...) — muốn đánh người thì vẫn dùng J
+    ///   người → mở bảng tương tác (giao dịch, nhóm, tỉ thí...); đang tỉ thí với người đó / bật Đồ sát → ĐÁNH
     ///   vật phẩm trên đất → NHẶT (J / nút Đánh cũng vào đây khi đang chọn vật phẩm — CombatInput.CastSelected)
     /// Chưa chọn mục tiêu → tự chọn quái gần nhất, không có quái thì NPC gần nhất.
     /// Mục tiêu ở XA → nhân vật tự chạy tới (PlayerMovement.AutoMoveX), tới nơi thì làm việc đó.
@@ -64,8 +64,14 @@ namespace Assets.Script.Combat
             if (UI.Kit.UIRoot.GameplayBlocked) return;   // đang mở cửa sổ (nút Đánh cảm ứng cũng vào đây)
             if (LocalPlayerState.IsStunned) { ChatBox.AddSystem("Đang bị choáng!"); return; }
 
-            // Đang chọn vật phẩm → chạy tới nhặt (xét TRƯỚC chiêu hỗ trợ: CastSelected chuyển sang đây khi chọn vật phẩm → tránh gọi vòng)
+            // Đang chọn NPC / người không phải đối thủ → chạy tới nói chuyện / mở bảng tương tác (xét TRƯỚC chiêu hỗ trợ — CastSelected chuyển sang đây → tránh gọi vòng)
             var sel = CurrentTarget();
+            if (IsTalk(sel))
+            {
+                if (InRange(me, sel)) { StopRun(); DoActionOn(sel); } else StartRun(sel);
+                return;
+            }
+            // Đang chọn vật phẩm → chạy tới nhặt (cùng lý do: xét trước chiêu hỗ trợ)
             if (sel != null && sel.GetTargetType() == TargetType.Item)
             {
                 var g = GroundItemNetwork.Instance;
@@ -105,6 +111,17 @@ namespace Assets.Script.Combat
             return t != null && t.GetTargetType() == TargetType.Item;
         }
 
+        /// <summary>Mục tiêu để NÓI CHUYỆN / TƯƠNG TÁC (không phải đánh): NPC, hoặc người chơi không phải đối thủ.</summary>
+        private static bool IsTalk(ITargetable t) => t != null && (t.GetTargetType() == TargetType.NPC
+            || (t.GetTargetType() == TargetType.Player && !Data.GameData.IsHostile(t.GetId())));
+
+        /// <summary>Đang chọn NPC / người không phải đối thủ (CombatInput: J / nút Đánh lúc này = nói chuyện; HudPad đổi hình nút thành chat).</summary>
+        public static bool TargetIsTalk()
+        {
+            var t = _instance != null ? _instance.CurrentTarget() : null;
+            return IsTalk(t);
+        }
+
         private ITargetable CurrentOrNearest(Vector3 from)
         {
             if (_targeting == null) _targeting = FindAnyObjectByType<PlayerTargeting>();
@@ -141,6 +158,7 @@ namespace Assets.Script.Combat
                 case TargetType.Mob: return SkillCaster.SkillRange(SelectedSkill());
                 case TargetType.NPC: return Data.NpcNetwork.TalkRange;
                 case TargetType.Item: return 1.2f;   // đứng sát rồi nhặt (server cho tới 3 ô)
+                case TargetType.Player when Data.GameData.IsHostile(t.GetId()): return SkillCaster.SkillRange(SelectedSkill());   // tỉ thí / Đồ sát → tầm chiêu
                 default: return 3f;   // người: đứng gần mới giao dịch / mời được (server TRADE_RANGE 6)
             }
         }
@@ -160,7 +178,11 @@ namespace Assets.Script.Combat
             {
                 case TargetType.Mob: CombatInput.CastSelected(); break;
                 case TargetType.NPC: Data.GameActions.NpcTalk(t.GetId()); break;
-                case TargetType.Player: GameWindow.Get<PlayerActionWindow>().ShowFor(t.GetId(), t.GetTargetName()); break;
+                case TargetType.Player:
+                    // Đang tỉ thí với người này / bật Đồ sát → Enter = ĐÁNH (trước đây vẫn mở bảng tương tác giữa trận)
+                    if (Data.GameData.IsHostile(t.GetId())) CombatInput.CastSelected();
+                    else GameWindow.Get<PlayerActionWindow>().ShowFor(t.GetId(), t.GetTargetName());
+                    break;
                 case TargetType.Item: GroundItemNetwork.Instance?.Pick(t.GetId()); break;
             }
         }
@@ -171,7 +193,7 @@ namespace Assets.Script.Combat
             var me = Me();
             if (me == null || LocalPlayerState.IsDead || LocalPlayerState.IsStunned) return;
             var t = _targeting != null ? _targeting.currentTarget : null;
-            if (Alive(t) && t.GetTargetType() == TargetType.Mob && InRange(me, t) && SkillCooldowns.Ready(SelectedSkill())) CombatInput.CastSelected();   // chưa hồi thì chờ, không nhắc
+            if (Alive(t) && (t.GetTargetType() == TargetType.Mob || (t.GetTargetType() == TargetType.Player && Data.GameData.IsHostile(t.GetId()))) && InRange(me, t) && SkillCooldowns.Ready(SelectedSkill())) CombatInput.CastSelected();   // chưa hồi thì chờ, không nhắc
         }
 
         // ---------------------------------------------------------------- tự chạy

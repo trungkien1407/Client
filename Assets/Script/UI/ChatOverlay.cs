@@ -28,6 +28,29 @@ namespace Assets.Script.UI
             ((RectTransform)_chatBtn.transform).Place(new Vector2(0, 0), new Vector2(0, 0), new Vector2(0, -40), new Vector2(80, 34), Vector2.zero);
         }
 
-        protected override void Bind() => _chatBtn.onClick.AddListener(() => GameWindow.Get<ChatWindow>().OpenAndFocus());
+        protected override void Bind()
+        {
+            _chatBtn.onClick.AddListener(() => GameWindow.Get<ChatWindow>().OpenAndFocus());
+            // Cùng kiểu với khung nhiệm vụ / thông báo (2026-11-15): nền tối trong suốt bo góc phía sau các dòng chat, nút "Chat (X)" kiểu chip
+            var bg = transform.Find("Bg") as RectTransform;
+            if (bg == null)
+            {
+                bg = UIKit.Rect("Bg", transform).Fill();
+                bg.SetAsFirstSibling();
+                var img = bg.gameObject.AddComponent<Image>();
+                img.raycastTarget = false;
+                UIStyle.SetRound(img, UIStyle.PanelBg, 1.6f);
+            }
+            _chatBtn.SetLabel("Chat (X)");
+            ((RectTransform)_chatBtn.transform).sizeDelta = new Vector2(96, 32);
+            UIStyle.Chip(_chatBtn, 14);
+        }
+
+        private void LateUpdate()
+        {
+            // Không có dòng chat nào → ẩn nền (khỏi 1 khung trống giữa màn hình)
+            var bg = transform.Find("Bg");
+            if (bg != null) { bool on = lines != null && !string.IsNullOrEmpty(lines.text); if (bg.gameObject.activeSelf != on) bg.gameObject.SetActive(on); }
+        }
     }
 }

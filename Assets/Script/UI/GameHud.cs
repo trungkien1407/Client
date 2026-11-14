@@ -82,7 +82,8 @@ namespace Assets.Script.UI
             ((RectTransform)_leaveDungeon.transform).Place(new Vector2(1, 1), new Vector2(1, 1), new Vector2(-4, -4), new Vector2(56, 30), new Vector2(1, 1));
             if (!HudMenuIcons.Apply(_v, MinimapWidth)) HudMenuIcons.LayoutText(_v, MinimapWidth);
             CharacterTabs.Init();                          // Nhân vật · Hành trang · Kỹ năng · Thú cưng = 1 cửa sổ có tab
-            StyleRightColumn();   // có hình kho → 12 nút menu thành icon (không có → giữ nút chữ)   // icon choáng / chậm / bỏng / tăng sức mạnh / phân thân (cạnh ô cấp)
+            StyleRightColumn();
+            BuildHudExtras();   // có hình kho → 12 nút menu thành icon (không có → giữ nút chữ)   // icon choáng / chậm / bỏng / tăng sức mạnh / phân thân (cạnh ô cấp)
 
             // Hành động nút menu — cùng thứ tự GameHudView.MenuLabels
             System.Action[] actions =
@@ -146,6 +147,71 @@ namespace Assets.Script.UI
             UIStyle.Chip(_v.zoneBtn, 14);
             var mini = _v.transform.Find("Minimap") ?? _v.transform.Find("MinimapHud");
             if (mini != null) UIStyle.AddRing(mini, UIStyle.ChipBorder, 2f);
+        }
+
+        // ================= Phần HUD thêm 2026-11-15 =================
+        private GameObject _partyPanel;
+        private Button _menuToggle;
+        private bool _menuHidden;
+
+        /// <summary>
+        /// Dựng lúc chạy (không phải xuất lại prefab): nút ẩn / hiện thanh chức năng, khung sự kiện dưới 2 hàng nút (trước đè lên hàng dưới),
+        /// khung nhiệm vụ cùng kiểu, danh sách nhóm dưới nút Auto / Cưỡi, bấm avatar mở cửa sổ nhân vật.
+        /// </summary>
+        private void BuildHudExtras()
+        {
+            float menuW = HudMenuIcons.Columns * HudMenuIcons.Cell;
+            // 1. Nút ẩn / hiện thanh chức năng — bên trái 2 hàng nút
+            _menuToggle = UIKit.Button("MenuToggle", _v.transform, "Ẩn", ToggleMenu, 13);
+            ((RectTransform)_menuToggle.transform).Place(new Vector2(1, 1), new Vector2(1, 1), new Vector2(-MinimapWidth - menuW - 6, -10), new Vector2(46, 28), new Vector2(1, 1));
+            UIStyle.Chip(_menuToggle, 13);
+            // 2. Khung sự kiện (boss / phó bản / bảo trì): kiểu khung HUD, nằm DƯỚI 2 hàng nút
+            UIStyle.HudPanel(_v.eventPanel);
+            UIStyle.Readable(_v.eventText, 0.18f);
+            PlaceEventPanel();
+            // 3. Khung nhiệm vụ (trái): cùng kiểu
+            UIStyle.HudPanel(_v.questBtn.image);
+            UISkin.KeepLabelColor(_v.questBtn);
+            UIStyle.Readable(_v.questText, 0.15f);
+            // 4. Nhóm: khung dưới nút Cưỡi (cột phải), chỉ hiện khi có nhóm
+            var panel = UIKit.Panel("PartyPanel", _v.transform, UIStyle.PanelBg);
+            panel.rectTransform.Place(new Vector2(1, 1), new Vector2(1, 1), MountHud.Pos + new Vector2(0, -MountHud.Size.y - 8), new Vector2(MinimapHud.W + 20, 150), new Vector2(1, 1));
+            UIStyle.HudPanel(panel);
+            panel.raycastTarget = false;
+            _v.partyText.transform.SetParent(panel.transform, false);
+            _v.partyText.rectTransform.Fill(8, 6, 6, 6);
+            _v.partyText.fontSize = 13;
+            UIStyle.Readable(_v.partyText, 0.15f);
+            _partyPanel = panel.gameObject;
+            _partyPanel.SetActive(GameData.Party.Count > 0);
+            // 5. Bấm avatar (khung máu góc trái) → cửa sổ nhân vật
+            var av = UISetup.Instance != null ? UISetup.Instance.avatarSlot : null;
+            if (av != null && av.GetComponent<Button>() == null)
+            {
+                av.raycastTarget = true;
+                var b = av.gameObject.AddComponent<Button>();
+                b.transition = Selectable.Transition.None;
+                b.onClick.AddListener(() => CharacterTabs.Open(0));
+            }
+        }
+
+        /// <summary>Ẩn / hiện các nút chức năng (phím tắt vẫn dùng được). Khung sự kiện dời lên khi ẩn.</summary>
+        private void ToggleMenu()
+        {
+            _menuHidden = !_menuHidden;
+            for (int i = 0; i < _v.menu.Length; i++)
+                if (_v.menu[i] != null && !HudMenuIcons.IsHidden(i)) _v.menu[i].gameObject.SetActive(!_menuHidden);
+            _menuToggle.SetLabel(_menuHidden ? "Menu" : "Ẩn");
+            PlaceEventPanel();
+        }
+
+        /// <summary>Khung sự kiện ngay dưới 2 hàng nút (hoặc sát trên cùng khi đã ẩn nút).</summary>
+        private void PlaceEventPanel()
+        {
+            float y = _menuHidden ? -44f : -8f - 2 * HudMenuIcons.RowH - 8f;
+            if (_v.money != null) _v.money.rectTransform.anchoredPosition = new Vector2(-MinimapWidth, y);   // dòng PK (nếu có) ngay trên khung sự kiện
+            var rt = _v.eventPanel.rectTransform;
+            rt.anchoredPosition = new Vector2(rt.anchoredPosition.x, y - 26f);
         }
 
         private void UpdateExp()
@@ -298,6 +364,7 @@ namespace Assets.Script.UI
         private void UpdateParty()
         {
             if (_v == null) return;
+            if (_partyPanel != null) _partyPanel.SetActive(GameData.Party.Count > 0);
             if (GameData.Party.Count == 0) { _v.partyText.text = ""; return; }
             var sb = new StringBuilder("<color=#fd5>Nhóm</color>\n");
             foreach (var m in GameData.Party)
@@ -318,11 +385,10 @@ namespace Assets.Script.UI
             return _targeting != null ? _targeting.currentTarget : null;
         }
 
+        /// <summary>Nút "Tương tác" giữa trên màn hình: BỎ (2026-11-15) — chọn người rồi bấm Enter / nút Đánh (đổi thành hình chat) là mở bảng tương tác.</summary>
         private void UpdateInteract()
         {
-            var t = CurrentTarget();
-            bool show = t is Component c && c != null && t.GetTargetType() == TargetType.Player;
-            if (_v.interactBtn.gameObject.activeSelf != show) _v.interactBtn.gameObject.SetActive(show);
+            if (_v.interactBtn.gameObject.activeSelf) _v.interactBtn.gameObject.SetActive(false);
         }
 
         private void OpenInteract()

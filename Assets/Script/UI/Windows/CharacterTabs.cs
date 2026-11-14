@@ -29,6 +29,8 @@ namespace Assets.Script.UI.Windows
         };
 
         private const float TabW = 116f, TabH = 34f, Gap = 5f;
+        /// <summary>Mọi tab CÙNG 1 khung (2026-11-15) — trước mỗi cửa sổ 1 cỡ (460×500 … 780×540) nên đổi tab bị nhảy, hàng tab lệch.</summary>
+        public static readonly Vector2 GroupSize = new Vector2(780f, 540f);
         private static int _stepFrame = -1;   // 1 lần bấm ← / → chỉ đổi 1 tab (tab mới cũng đọc phím trong cùng khung hình)
         private static int _last;          // tab mở gần nhất — nút "Nhân vật" trên HUD mở lại tab này
         private static bool _inited;
@@ -78,6 +80,7 @@ namespace Assets.Script.UI.Windows
                 ((RectTransform)w.transform).anchoredPosition = ((RectTransform)other.transform).anchoredPosition;
                 other.Hide();
             }
+            ((RectTransform)w.transform).sizeDelta = GroupSize;   // cùng khung với các tab khác
             var host = w.GetComponent<Host>() ?? w.gameObject.AddComponent<Host>();
             host.Build(w, idx);
         }

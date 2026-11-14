@@ -5,6 +5,7 @@ using Assets.Script.Combat;
 using Assets.Script.Data;
 using Assets.Script.Manager;
 using Assets.Script.Player;
+using Assets.Script.UI;
 using Assets.Script.UI.Kit;
 using Assets.Script.UI.Windows;
 using UnityEngine;
@@ -101,12 +102,57 @@ namespace Assets.Script.Core
             Check("Bấm tab Hành trang → đổi sang Hành trang tại đúng chỗ, tab cũ đóng",
                 iw.IsOpen && !cw.IsOpen && ((RectTransform)iw.transform).anchoredPosition == pos);
             yield return Shot("CharTabs");
+            // mọi tab cùng 1 khung + chụp từng tab để soi bố cục bên trong
+            var sizes = new System.Collections.Generic.List<Vector2>();
+            for (int t = 0; t < 4; t++)
+            {
+                CharacterTabs.Open(t);
+                yield return new WaitForSecondsRealtime(0.35f);
+                var open = UnityEngine.Object.FindObjectsByType<GameWindow>(FindObjectsSortMode.None).FirstOrDefault(w => w.IsOpen && w.GetComponentInChildren<UnityEngine.UI.Button>(true) != null && CharacterTabs.IndexOf(w.GetType()) == t);
+                if (open != null) sizes.Add(((RectTransform)open.transform).sizeDelta);
+                yield return Shot("CharTab" + t);
+            }
+            Check($"4 tab nhân vật cùng 1 khung ({string.Join(" · ", sizes.Select(v => $"{v.x:0}×{v.y:0}"))})", sizes.Count == 4 && sizes.All(v => v == sizes[0]));
             iw.transform.Find("Tabs/Tab2")?.GetComponent<UnityEngine.UI.Button>()?.onClick.Invoke();
             yield return new WaitForSecondsRealtime(0.3f);
             Check("Tab Kỹ năng mở được từ hàng tab", GameWindow.Get<SkillWindow>().IsOpen && !iw.IsOpen);
             CharacterTabs.Toggle();
             yield return null;
             Check("Nút Nhân vật trên HUD bấm lần nữa → đóng", !GameWindow.Get<SkillWindow>().IsOpen);
+
+            // 2b. HUD 2026-11-15: phím chat X · nút ẩn menu · khung sự kiện dưới 2 hàng nút · bấm avatar · nút Đánh hình chat khi chọn NPC
+            Check("Chat nhanh bằng phím X", GameInput.Bindings[GameKey.OpenChat].Contains(UnityEngine.InputSystem.Key.X));
+            var toggle = GameObject.Find("MenuToggle")?.GetComponent<UnityEngine.UI.Button>();
+            var menu0 = GameObject.Find("Menu0");
+            Check("Có nút ẩn / hiện thanh chức năng", toggle != null);
+            if (toggle != null && menu0 != null)
+            {
+                toggle.onClick.Invoke(); yield return null;
+                bool hid = !menu0.activeInHierarchy;
+                yield return Shot("Hud_MenuAn");
+                toggle.onClick.Invoke(); yield return null;
+                Check("Bấm nút ẩn → thanh chức năng ẩn, bấm lại → hiện", hid && menu0.activeInHierarchy);
+            }
+            Check("Không còn nút \"Nói (F)\" trên thanh chức năng", GameObject.Find("Menu4") == null || !GameObject.Find("Menu4").activeInHierarchy);
+            var ev = GameObject.Find("EventPanel")?.GetComponent<RectTransform>();
+            Check($"Khung sự kiện nằm dưới 2 hàng nút (y {(ev != null ? ev.anchoredPosition.y : 0):0})", ev == null || ev.anchoredPosition.y <= -8f - 2 * HudMenuIcons.RowH);
+            Check("Bấm avatar mở cửa sổ nhân vật (avatar có nút)", UISetup.Instance == null || UISetup.Instance.avatarSlot == null || UISetup.Instance.avatarSlot.GetComponent<UnityEngine.UI.Button>() != null);
+            var meNow = NetworkPlayerManager.Instance.localPlayer;
+            var npc0 = Object.FindObjectsByType<Assets.Script.Entities.NpcEntity>(FindObjectsSortMode.None)
+                .OrderBy(n => Mathf.Abs(n.transform.position.x - meNow.transform.position.x)).FirstOrDefault();
+            var tg = Object.FindAnyObjectByType<PlayerTargeting>();
+            if (npc0 != null && tg != null && HudPad.Instance != null)
+            {
+                // đứng cạnh NPC (chọn mục tiêu xa quá 12 ô thì tự bỏ chọn)
+                var ci2 = System.Globalization.CultureInfo.InvariantCulture;
+                GameActions.Chat(1, "/go " + (npc0.transform.position.x + 2f).ToString("0.0", ci2) + " " + (npc0.transform.position.y + 0.3f).ToString("0.0", ci2));
+                yield return new WaitForSecondsRealtime(1f);
+                tg.SelectTarget(npc0);
+                yield return new WaitForSecondsRealtime(0.3f);
+                Check("Chọn NPC → nút Đánh đổi thành hình chat", HudPad.Instance.AttackShowsTalk);
+                yield return Shot("Hud_NutChat");
+                tg.ClearTarget();
+            }
 
             // 3. Chữ tên NPC: vật liệu ĐANG VẼ (Renderer, không phải chỉ trường của TMP) có viền + bóng
             var npc = Object.FindObjectsByType<Assets.Script.Entities.NpcEntity>(FindObjectsSortMode.None).FirstOrDefault();

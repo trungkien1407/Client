@@ -60,9 +60,12 @@ namespace Assets.Script.Player
             Assets.Script.UI.NameTag.Attach(this); // tên + gia tộc trên đầu (màu theo PK)
         }
 
+        private float _lastNetTime;   // lúc nhận vị trí gần nhất từ server
+
         public void UpdateNetworkData(float serverX, float serverY, byte dir, byte state)
         {
             Vector2 newTarget = new Vector2(serverX, serverY);
+            _lastNetTime = Time.time;
 
             currentState = (MoveState)state;
 
@@ -109,6 +112,10 @@ namespace Assets.Script.Player
             visualCtrl.SetWaterSink(currentState != MoveState.JumpUp && currentState != MoveState.Fall
                                     && Map.WaterLine.StandingOnWater(transform.position));
 
+            // Đang "chạy" mà 0,35 giây không có vị trí mới (server gửi 20 lần / giây khi còn đi) và đã tới nơi → thực ra đã đứng.
+            // Chặn trường hợp nhận trạng thái chạy cũ (vd vừa qua cổng đổi map) rồi người đó đứng yên không gửi gì → "chạy tại chỗ".
+            bool stale = Time.time - _lastNetTime > 0.35f && ((Vector2)transform.position - targetPos).sqrMagnitude < 0.0025f;
+            if (currentState == MoveState.Run && stale) currentState = MoveState.Idle;
             if (currentState == MoveState.Run) visualCtrl.PlayAnimation(AnimNames.Run, true);
             else if (currentState == MoveState.JumpUp || currentState == MoveState.Fall) visualCtrl.PlayAnimation(AnimNames.Fall, true);
 

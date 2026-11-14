@@ -121,6 +121,10 @@ namespace Assets.Script.Core
             var tg = FindAnyObjectByType<PlayerTargeting>();
             meMove = NetworkPlayerManager.Instance?.localPlayer;
             Entities.MobController tgA = null, tgB = null;
+            // nhiều bot chạy chung map có thể vừa đánh chết quái → chờ quái hồi tối đa 10 s
+            for (float waitMob = 0f; tgA == null && waitMob < 10f; waitMob += 0.5f)
+            {
+            if (waitMob > 0f) yield return new WaitForSecondsRealtime(0.5f);
             if (tg != null && meMove != null && NetworkMobManager.Instance != null)
                 foreach (var m1 in NetworkMobManager.Instance.All)
                 {
@@ -129,6 +133,7 @@ namespace Assets.Script.Core
                         if (m2 != null && !m2.IsDead && Mathf.Abs(m2.transform.position.x - m1.transform.position.x) is > 7.5f and < 11f) { tgA = m1; tgB = m2; break; }
                     if (tgA != null) break;
                 }
+            }
             Check("Đồi Hoa Cúc có 2 quái cách nhau 7,5–11 ô để thử tự chọn mục tiêu", tgA != null);
             if (tgA != null)
             {
@@ -330,9 +335,16 @@ namespace Assets.Script.Core
                 Check($"Đồ rơi hiện icon thật của vật phẩm ({withIcon}/{drops})", withIcon > 0);
                 yield return Shot("GroundItems");
                 // NHẶT TAY: đi ngang không tự nhặt nữa → chọn vật phẩm làm mục tiêu + bấm đánh (J) → tự chạy tới nhặt
+                // món GẦN nhất (/killall hạ cả map → đồ rơi khắp nơi; món ở xa sau bậc địa hình chạy không tới trong 8 giây)
                 Interfaces.ITargetable item = null;
+                float bestD = float.MaxValue;
+                var mePos = NetworkPlayerManager.Instance.localPlayer.transform.position;
                 foreach (var t in FindObjectsByType<Transform>(FindObjectsSortMode.None))
-                    if (t.name.StartsWith("GroundItem_") && t.TryGetComponent(out Interfaces.ITargetable it)) { item = it; break; }
+                    if (t.name.StartsWith("GroundItem_") && t.TryGetComponent(out Interfaces.ITargetable it))
+                    {
+                        float d = Mathf.Abs(t.position.x - mePos.x) + Mathf.Abs(t.position.y - mePos.y) * 3f;
+                        if (d < bestD) { bestD = d; item = it; }
+                    }
                 Check("Đồ rơi chọn được làm mục tiêu (có khung chọn + ITargetable)", item != null);
                 if (item != null && targeting != null)
                 {

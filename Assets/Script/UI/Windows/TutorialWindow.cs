@@ -36,7 +36,7 @@ namespace Assets.Script.UI.Windows
                 "<b>2. Đánh quái</b>\n\nĐến gần quái là tự chọn mục tiêu (hoặc <b>Click</b> / <b>Tab</b>), <b>Enter</b> để đánh (ở xa tự chạy lại, giữ Enter đánh liên tục).\nPhím <b>1–5</b> dùng kỹ năng ở ô đó. <b>Q / E</b> uống bình máu / chakra. <b>R</b> hồi sinh khi chết.",
                 "<b>3. Nhận nhiệm vụ</b>\n\nChọn <b>Hokage</b> rồi bấm <b>Enter</b> (hoặc đứng gần bấm <b>F</b>) để nói chuyện.\nLàm theo bảng <b>Nhiệm vụ</b> bên trái màn hình (phím <b>L</b> xem chi tiết) — xong quay lại trả để nhận thưởng.",
                 "<b>4. Mạnh lên</b>\n\n<b>C</b> nhân vật (cộng điểm tiềm năng) · <b>K</b> kỹ năng · <b>I</b> túi đồ (mặc trang bị).\nGặp <b>Thợ Rèn</b> để <b>nâng cấp</b> trang bị lên +16 và cất đồ vào <b>rương</b>.",
-                "<b>5. Chơi cùng mọi người</b>\n\n<b>T</b> để chat (/a thế giới, /g gia tộc, /w Tên nhắn riêng).\nClick 1 người chơi rồi <b>Enter</b> → <b>Tương tác</b>: mời nhóm, giao dịch, kết bạn, tỉ thí.\n<b>O</b> xã hội · <b>M</b> thư.\n<b>H</b> hoạt động hằng ngày (việc nên làm + lịch boss) · <b>G</b> cẩm nang (tra cứu mọi tính năng).",
+                "<b>5. Chơi cùng mọi người</b>\n\n<b>X</b> để chat (/a thế giới, /g gia tộc, /w Tên nhắn riêng).\nChọn 1 người chơi rồi bấm <b>Enter</b> (hoặc nút Đánh — đổi thành hình chat) → bảng tương tác: mời nhóm, giao dịch, kết bạn, tỉ thí.\n<b>O</b> xã hội · <b>M</b> thư.\n<b>H</b> hoạt động hằng ngày (việc nên làm + lịch boss) · <b>G</b> cẩm nang (tra cứu mọi tính năng).",
             };
 
         protected override void Configure()

@@ -91,6 +91,10 @@ namespace Assets.Script.Core
                 Check("Cặp cửa sổ (… | Hành trang): đóng 1 cái → đóng cả 2", !set.IsOpen && !bag.IsOpen && !UIRoot.GameplayBlocked);
                 // Cài đặt: bấm ô % = tắt / bật nhạc nền, hiệu ứng (nhớ mức âm lượng cũ)
                 set.Show(); yield return null;
+                // trạng thái âm thanh lưu trong PlayerPrefs (lần chạy trước có thể đang TẮT) → đưa về BẬT trước khi thử
+                if (!AudioManager.MusicOn) set.ToggleMusic();
+                if (!AudioManager.SfxOn) set.ToggleSfx();
+                yield return null;
                 string volBefore = set.MusicText;
                 set.ToggleMusic(); set.ToggleSfx(); yield return null;
                 bool offOk = !AudioManager.MusicOn && !AudioManager.SfxOn && !AudioManager.MusicAudible && set.MusicText == "TẮT" && set.SfxText == "TẮT";

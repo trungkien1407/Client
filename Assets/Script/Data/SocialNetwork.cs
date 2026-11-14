@@ -68,8 +68,9 @@ namespace Assets.Script.Data
         private void OnDuelState(byte[] data)
         {
             var r = new MessageReader(data);
-            int state = r.ReadByte(); r.ReadInt(); string msg = r.ReadUTF();
+            int state = r.ReadByte(); int opponent = r.ReadInt(); string msg = r.ReadUTF();
             r.Cleanup();
+            GameData.DuelOpponent = state == 0 ? -1 : opponent;   // đang tỉ thí → Enter / nút Đánh = đánh người đó
             // Tin nhắn hệ thống đi kèm đã vào khung chat; ở đây hiện banner to giữa màn hình
             UI.GameHud.Banner(msg, state == 0 ? 3f : 2f);
         }

@@ -20,14 +20,14 @@ namespace Assets.Script.UI
             "menu_char", "menu_bag", "menu_skill", "menu_quest", "menu_talk", "menu_activity",
             "menu_social", "menu_mail", "menu_top", "menu_guide", "menu_settings", "menu_peace",
         };
-        private const float Cell = 62f, Size = 44f, RowH = 62f;
+        public const float Cell = 62f, Size = 44f, RowH = 76f;   // RowH 62 → 76 (2026-11-15): chữ hàng trên không sát nút hàng dưới
         public const int Columns = 5;
 
         /// <summary>
         /// Nút ẨN khỏi HUD: Túi (1) và Kỹ năng (2) đã gộp vào nút "Nhân vật" (cửa sổ có tab — CharacterTabs). Phím I / K vẫn dùng được.
         /// Mảng nút 12 ô giữ nguyên (prefab GameHudView không phải xuất lại) — chỉ tắt đi và xếp lại các nút còn lại.
         /// </summary>
-        public static bool IsHidden(int i) => i == 1 || i == 2;
+        public static bool IsHidden(int i) => i == 1 || i == 2 || i == GameHudView.MenuTalk;   // Nói (F): Enter / nút Đánh đã nói chuyện với NPC (2026-11-15)
 
         /// <summary>Không có hình kho (nút chữ): tắt nút ẩn + xếp lại {Columns} nút / hàng sang trái minimap.</summary>
         public static void LayoutText(GameHudView v, float minimapW)
@@ -40,7 +40,7 @@ namespace Assets.Script.UI
                 if (IsHidden(i)) { b.gameObject.SetActive(false); continue; }
                 int row = slot / Columns, col = slot % Columns;
                 slot++;
-                ((RectTransform)b.transform).Place(new Vector2(1, 1), new Vector2(1, 1), new Vector2(-minimapW - col * 78, -8 - row * 40), new Vector2(74, 34), new Vector2(1, 1));
+                ((RectTransform)b.transform).Place(new Vector2(1, 1), new Vector2(1, 1), new Vector2(-minimapW - col * 78, -8 - row * 44), new Vector2(74, 34), new Vector2(1, 1));
             }
         }
 

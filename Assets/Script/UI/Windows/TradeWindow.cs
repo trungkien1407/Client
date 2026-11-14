@@ -65,16 +65,66 @@ namespace Assets.Script.UI.Windows
             ((RectTransform)_cancel.transform).Place(new Vector2(1, 0), new Vector2(1, 0), new Vector2(0, 8), new Vector2(140, 44), new Vector2(1, 0));
         }
 
+        private RectTransform _mineGrid, _theirsGrid;
+        private TextMeshProUGUI _mineHead, _theirsHead;
+
+        /// <summary>
+        /// Bố cục mới (2026-11-15, dựng lúc chạy — prefab cũ vẫn dùng được): mỗi bên 1 dòng đầu (tên + nhãn trạng thái + yên) và LƯỚI Ô ĐỒ có icon
+        /// như túi đồ; dưới cùng: ô yên + [Đặt], dòng nhắc, 1 NÚT CHÍNH đổi theo bước (Khoá → Xác nhận → chờ) và [Huỷ] đỏ.
+        /// Trước: đồ liệt kê bằng chữ, 3 nút Khoá / Xác nhận / Huỷ giống hệt nhau → khó biết bấm gì.
+        /// </summary>
         protected override void Bind()
         {
             _setYen.onClick.AddListener(() =>
             {
                 if (int.TryParse(_yen.text, out int v) && v >= 0) GameActions.TradeSetYen(v);
             });
-            _lock.onClick.AddListener(GameActions.TradeLock);
-            _confirm.onClick.AddListener(GameActions.TradeConfirm);
+            _lock.onClick.AddListener(MainAction);
             _cancel.onClick.AddListener(GameActions.TradeCancel);
+            _confirm.gameObject.SetActive(false);   // gộp vào nút chính
             GameData.OnChanged += k => { if (k == DataKind.Trade || k == DataKind.Templates) RefreshIfOpen(); };
+
+            ((RectTransform)transform).sizeDelta = new Vector2(480, 470);   // vừa đặt cạnh Hành trang (780) trên màn 1280
+            (_mineHead, _mineGrid) = Side((RectTransform)_mine.transform.parent, _mine, false);
+            (_theirsHead, _theirsGrid) = Side((RectTransform)_theirs.transform.parent, _theirs, true);
+
+            var yenRt = (RectTransform)_yen.transform;
+            yenRt.Place(new Vector2(0, 0), new Vector2(0, 0), new Vector2(0, 74), new Vector2(180, 36), Vector2.zero);
+            ((RectTransform)_setYen.transform).Place(new Vector2(0, 0), new Vector2(0, 0), new Vector2(186, 74), new Vector2(92, 36), Vector2.zero);
+            _setYen.SetLabel("Đặt yên");
+            UIStyle.Chip(_setYen, 14);
+            _status.rectTransform.Place(new Vector2(0, 0), new Vector2(1, 0), new Vector2(0, 44), new Vector2(0, 26), new Vector2(0, 0));
+            _status.fontSize = 14;
+            ((RectTransform)_lock.transform).Place(new Vector2(0, 0), new Vector2(0, 0), new Vector2(0, 0), new Vector2(300, 40), Vector2.zero);
+            ((RectTransform)_cancel.transform).Place(new Vector2(1, 0), new Vector2(1, 0), new Vector2(0, 0), new Vector2(140, 40), new Vector2(1, 0));
+            UIStyle.Chip(_cancel, 16);
+            _cancel.image.color = new Color(0.55f, 0.16f, 0.14f, 0.95f);
+        }
+
+        /// <summary>Khung 1 bên: dòng đầu (tên, trạng thái, yên) cao 52 px + lưới ô đồ 4 cột phía dưới. Khung chừa 120 px đáy cho phần nút.</summary>
+        private static (TextMeshProUGUI head, RectTransform grid) Side(RectTransform panel, TextMeshProUGUI head, bool right)
+        {
+            panel.offsetMin = new Vector2(right ? 5 : 0, 120);
+            panel.offsetMax = new Vector2(right ? 0 : -5, 0);
+            UIStyle.HudPanel(panel.GetComponent<Image>());
+            head.rectTransform.Place(new Vector2(0, 1), new Vector2(1, 1), new Vector2(0, -6), new Vector2(-16, 52), new Vector2(0.5f, 1));
+            head.alignment = TextAlignmentOptions.TopLeft;
+            head.fontSize = 15;
+            var grid = UIKit.Grid("Slots", panel, new Vector2(62, 70), new Vector2(6, 6), 3);
+            grid.Fill(8, 8, 64, 8);
+            // dòng nhắc khi chưa có đồ: nằm ngang cả khung (không phải 1 ô lưới — trước bị bóp chữ trong ô 62 px)
+            var hint = UIKit.Text("Hint", panel, "", 13, TextAlignmentOptions.Top);
+            hint.rectTransform.Fill(8, 8, 70, 8);
+            hint.raycastTarget = false;
+            return (head, grid);
+        }
+
+        /// <summary>Nút chính theo bước: chưa khoá → Khoá; 2 bên đã khoá → Xác nhận; còn lại chờ bên kia (nút mờ).</summary>
+        private void MainAction()
+        {
+            var me = GameData.TradeMine; var other = GameData.TradeTheirs;
+            if (!me.locked) GameActions.TradeLock();
+            else if (other.locked && !me.confirmed) GameActions.TradeConfirm();
         }
 
         public void OpenWithBag()
@@ -83,25 +133,46 @@ namespace Assets.Script.UI.Windows
             SideBySide(this, Open<InventoryWindow>());
         }
 
-        private static string Side(string who, TradeSide s)
+        /// <summary>Dòng đầu 1 bên: tên + nhãn trạng thái màu + số yên.</summary>
+        private static string Head(string who, TradeSide s)
         {
-            var sb = new StringBuilder($"<b>{who}</b>  ");
-            sb.Append(s.confirmed ? "<color=#6f6>[ĐÃ XÁC NHẬN]</color>" : s.locked ? "<color=#fd5>[ĐÃ KHOÁ]</color>" : "<color=#aaa>[đang chọn]</color>");
-            sb.Append($"\n<color=#fd5>{s.yen:N0} yên</color>\n");
-            foreach (var it in s.items) sb.Append("• ").Append(GameData.ColoredName(it.tpl, it.level)).Append(it.qty > 1 ? $" x{it.qty}" : "").Append('\n');
-            if (s.items.Count == 0) sb.Append("<color=#888>(chưa có đồ)</color>");
-            return sb.ToString();
+            string tag = s.confirmed ? "<color=#6f6>● ĐÃ XÁC NHẬN</color>" : s.locked ? "<color=#fd5>● ĐÃ KHOÁ</color>" : "<color=#aab>● đang chọn</color>";
+            return $"<b>{who}</b>   <size=13>{tag}</size>\n<color=#fd5>{s.yen:N0} yên</color>";
+        }
+
+        /// <summary>Vẽ lưới ô đồ có icon (như túi đồ). Trống → dòng nhắc.</summary>
+        private static void Slots(RectTransform grid, TradeSide s, bool mine)
+        {
+            UIKit.Clear(grid);
+            for (int i = 0; i < s.items.Count; i++)
+            {
+                var it = s.items[i];
+                string qty = it.qty > 1 ? $"\n<color=#ffd56b>x{it.qty}</color>" : "";
+                var b = UIKit.Button("S" + i, grid, GameData.ColoredName(it.tpl, it.level) + qty, null, 11);
+                b.image.color = UIKit.SlotColor;
+                b.interactable = false;
+                ItemIcon.ForItem(b, it.tpl, ItemIcon.Place.Top, 32);
+                ItemGlow.Add(b, it.level);
+            }
+            var hint = grid.parent.Find("Hint")?.GetComponent<TextMeshProUGUI>();
+            if (hint != null) hint.text = s.items.Count > 0 ? "" : mine ? "<color=#99a>Chọn đồ trong Hành trang\nrồi bấm [Đưa vào GD]</color>" : "<color=#99a>(chưa có đồ)</color>";
         }
 
         protected override void Refresh()
         {
-            SetTitle($"Giao dịch với {GameData.TradeWithName}");
+            string who = string.IsNullOrEmpty(GameData.TradeWithName) ? "đối phương" : GameData.TradeWithName;   // chưa có tên (mở thử) → chữ dự phòng
+            SetTitle($"Giao dịch với {who}");
             var me = GameData.TradeMine; var other = GameData.TradeTheirs;
-            _mine.text = Side("Bạn đưa", me);
-            _theirs.text = Side(GameData.TradeWithName + " đưa", other);
-            _lock.interactable = !me.locked;
-            _yen.interactable = !me.locked;
-            _confirm.interactable = me.locked && other.locked && !me.confirmed;
+            _mine.text = Head("Bạn đưa", me);
+            _theirs.text = Head(char.ToUpper(who[0]) + who.Substring(1) + " đưa", other);
+            if (_mineGrid != null) Slots(_mineGrid, me, true);
+            if (_theirsGrid != null) Slots(_theirsGrid, other, false);
+            _yen.interactable = _setYen.interactable = !me.locked;
+            // nút chính theo bước — vàng khi có việc để bấm, mờ khi đang chờ bên kia
+            bool canConfirm = me.locked && other.locked && !me.confirmed;
+            _lock.SetLabel(!me.locked ? "Khoá (chốt đồ của mình)" : canConfirm ? "Xác nhận giao dịch" : me.confirmed ? "Đã xác nhận — chờ bên kia" : "Đã khoá — chờ bên kia");
+            _lock.interactable = !me.locked || canConfirm;
+            _lock.image.color = _lock.interactable ? UIKit.ButtonHot : new Color(0.45f, 0.45f, 0.5f, 1f);
             _status.text = !me.locked ? "Bỏ đồ / yên rồi bấm Khoá."
                          : !other.locked ? "Chờ bên kia khoá..."
                          : !me.confirmed ? "Kiểm tra kỹ rồi bấm Xác nhận."

@@ -17,6 +17,16 @@ namespace Assets.Script.UI.Kit
         public static readonly Color ChipBorder = new Color(1f, 0.82f, 0.40f, 0.85f);
         public static readonly Color ChipOn = new Color(0.16f, 0.55f, 0.30f, 0.92f);   // nút đang bật (Auto: Bật, đang cưỡi)
         public static readonly Color Gold = new Color(1f, 0.84f, 0.42f);
+        /// <summary>Nền khung thông tin trên HUD (chat, nhiệm vụ, sự kiện, nhóm) — cùng 1 màu cho đồng bộ.</summary>
+        public static readonly Color PanelBg = new Color(0.05f, 0.07f, 0.12f, 0.55f);
+
+        /// <summary>Khung thông tin HUD: nền tối trong suốt bo góc + viền vàng mờ (chat, nhiệm vụ, sự kiện, nhóm).</summary>
+        public static void HudPanel(Image img)
+        {
+            if (img == null) return;
+            SetRound(img, PanelBg, 1.6f);
+            AddRing(img.transform, new Color(1f, 0.82f, 0.40f, 0.35f), 1.6f);
+        }
 
         private static Sprite _round, _ring;
 

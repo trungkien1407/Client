@@ -39,6 +39,7 @@ namespace Assets.Script.UI
             _right.Show(_right.Held || x > 0.1f);
             _jump.Show(_jump.Held || (me != null && me.JumpHeld));
             if (_attack != null) _attack.Show(_attack.Held || GameInput.Held(GameKey.Attack) || GameInput.Held(GameKey.Action));
+            UpdateAttackIcon();
             _jump.Down = false;
         }
 
@@ -55,6 +56,51 @@ namespace Assets.Script.UI
         }
 
         private void OnDisable() => Horizontal = 0f;
+
+        // ---- Nút Đánh đổi hình thành CHAT khi đang chọn NPC / người không phải đối thủ (2026-11-15) ----
+        private UnityEngine.UI.Image _attackImg, _talkIcon;
+        private bool _talkShown;
+        private float _nextIcon;
+
+        /// <summary>
+        /// Chọn NPC / người chơi (không tỉ thí, không Đồ sát) → nút Đánh hiện biểu tượng chat (ẩn nắm đấm), bấm = nói chuyện / mở bảng tương tác
+        /// (CombatInput.CastSelected chuyển sang ActionInput). Bỏ chọn / chọn quái → nắm đấm như cũ. Kiểm 6 lần / giây.
+        /// </summary>
+        private void UpdateAttackIcon()
+        {
+            if (_attack == null || Time.unscaledTime < _nextIcon) return;
+            _nextIcon = Time.unscaledTime + 0.15f;
+            if (_attackImg == null) _attackImg = _attack.GetComponent<UnityEngine.UI.Image>();
+            bool talk = Combat.ActionInput.TargetIsTalk();
+            if (talk == _talkShown || _attackImg == null) return;
+            _talkShown = talk;
+            if (_talkIcon == null)
+            {
+                // biểu tượng chat (hình kho "menu_talk" nếu có; không có → bong bóng vẽ bằng chữ) đè giữa nút, nắm đấm mờ đi
+                var go = new GameObject("TalkIcon", typeof(RectTransform));
+                go.transform.SetParent(_attack.transform, false);
+                var rt = (RectTransform)go.transform;
+                rt.anchorMin = new Vector2(0.18f, 0.18f); rt.anchorMax = new Vector2(0.82f, 0.82f); rt.offsetMin = rt.offsetMax = Vector2.zero;
+                var sp = UISkin.Get("menu_talk");
+                if (sp != null)
+                {
+                    _talkIcon = go.AddComponent<UnityEngine.UI.Image>();
+                    _talkIcon.sprite = sp; _talkIcon.preserveAspect = true; _talkIcon.raycastTarget = false;
+                }
+                else
+                {
+                    var t = go.AddComponent<TMPro.TextMeshProUGUI>();
+                    t.text = "Nói"; t.fontSize = 30; t.fontStyle = TMPro.FontStyles.Bold; t.alignment = TMPro.TextAlignmentOptions.Center; t.raycastTarget = false;
+                    UIStyle.Readable(t);
+                }
+            }
+            _attackImg.color = talk ? new Color(1f, 1f, 1f, 0.25f) : Color.white;   // nắm đấm mờ đi khi là nút chat
+            var icon = _attack.transform.Find("TalkIcon");
+            if (icon != null) icon.gameObject.SetActive(talk);
+        }
+
+        /// <summary>Nút Đánh đang hiện hình chat (AutoTestRunner đọc).</summary>
+        public bool AttackShowsTalk => _talkShown;
 
         /// <summary>1 nút: biết đang bị giữ (chuột / ngón tay) + hiện trạng thái "đang bấm" (lún + tối).</summary>
         public class Pad : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerExitHandler
