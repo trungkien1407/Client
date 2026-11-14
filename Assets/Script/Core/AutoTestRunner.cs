@@ -144,6 +144,14 @@ namespace Assets.Script.Core
                 Application.Quit(_fail);
                 yield break;
             }
+            // "-crowdshots": nhiều người chơi (bot TestCrowd chạy song song) cùng khu đánh boss → kiểm + chụp rồi thoát
+            if (Array.IndexOf(Environment.GetCommandLineArgs(), "-crowdshots") >= 0)
+            {
+                yield return CrowdShots();
+                Debug.Log($"[AutoTest] KẾT QUẢ: {_pass} PASS, {_fail} FAIL");
+                Application.Quit(_fail);
+                yield break;
+            }
             // "-npconly": ghép thân + chân mọi bộ hình NPC → NpcArtSheet.png (soi chỗ nối) rồi thoát
             if (Array.IndexOf(Environment.GetCommandLineArgs(), "-npconly") >= 0)
             {
