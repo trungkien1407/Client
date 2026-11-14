@@ -90,9 +90,11 @@ namespace Assets.Script.Combat
                 if (to != null && to.gameObject.activeInHierarchy) lastPos = to.position;   // quái chết / bị thu hồi → số hiện ở chỗ cuối
                 if (to != null || lastPos != Vector3.zero) DamagePopup.Show(lastPos, DamageText(damage), color);
                 if (mine && firstOfCast && damage > 0) Core.GameAudio.Play(Core.GameAudio.Hit);   // chiêu diện rộng: kêu 1 lần
-                // Vụ nổ Spine của chiêu (bộ <Tên>FX) thay hiệu ứng trúng theo dữ liệu; chiêu diện rộng nổ lớn chỉ 1 lần
-                bool spine = motion.impact != null && to != null && to.gameObject.activeInHierarchy && (firstOfCast || !motion.impactOnce)
-                             && Fx.CharFx.Play(pvc.FxSet, motion.impact, motion.ground ? to.position : BodyCenter(to), pvc.FxScale,
+                // Vụ nổ Spine của chiêu (bộ <Tên>FX) thay hiệu ứng trúng theo dữ liệu. Vật bay chỉ bay tới MỤC TIÊU CHÍNH (SpineFxDelay);
+                // mục tiêu bị lan chỉ có vụ nổ — chiêu "nổ lớn 1 lần" (impactOnce) thì mục tiêu phụ nổ nhỏ (0,55 lần) cho đỡ rối mắt
+                float fxScale = pvc != null ? pvc.FxScale * (firstOfCast || !motion.impactOnce ? 1f : 0.55f) : 1f;
+                bool spine = motion.impact != null && to != null && to.gameObject.activeInHierarchy
+                             && Fx.CharFx.Play(pvc.FxSet, motion.impact, motion.ground ? to.position : BodyCenter(to), fxScale,
                                                from != null && to.position.x > from.position.x,
                                                motion.ground ? Fx.CharFx.Anchor.Ground : Fx.CharFx.Anchor.Center);
                 if (!spine && !(motion.impact != null && Fx.CharFx.Has(pvc != null ? pvc.FxSet : null, motion.impact))) PlayHitFx(from, to, skillId);

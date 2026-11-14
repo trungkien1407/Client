@@ -99,7 +99,7 @@ namespace Assets.Script.Core
                 }
                 Check($"Hệ {cls}: mọi chiêu có anim ({(missing.Count == 0 ? "đủ" : "thiếu " + string.Join(", ", missing))})", missing.Count == 0);
                 string basic = vis.ResolveMotion(cls).anim;
-                Check($"Hệ {cls}: đòn cơ bản → {basic}", cls == 2 ? basic == AnimNames.Throw : basic == AnimNames.Punch || basic == AnimNames.Kick);
+                Check($"Hệ {cls}: đòn cơ bản → {basic}", basic == AnimNames.Punch || basic == AnimNames.Kick);   // cả 3 hệ cận chiến (2026-11-15)
                 Check($"Hệ {cls}: chiêu chưa có trong bảng → anim dự phòng ({vis.ResolveMotion(9999).anim})", vis.ResolveMotion(9999).anim != null);
                 // GĐ24: vật bay / vụ nổ khai trong bảng có thật trong bộ <Tên>FX (thiếu bộ FX demo → bỏ qua, chiêu vẫn chạy)
                 yield return WaitUntil(() => Fx.CharFx.Loaded(vis.FxSet), 5);

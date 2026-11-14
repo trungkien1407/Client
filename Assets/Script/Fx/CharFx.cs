@@ -35,6 +35,7 @@ namespace Assets.Script.Fx
         private static readonly Dictionary<string, Stack<SkeletonAnimation>> Pool = new Dictionary<string, Stack<SkeletonAnimation>>();
         private static readonly Dictionary<(string, string), Vector3> Centers = new Dictionary<(string, string), Vector3>();
         private static readonly Dictionary<(string, string), Vector3> Bottoms = new Dictionary<(string, string), Vector3>();
+        private static readonly Dictionary<(string, string), Vector3> Heads = new Dictionary<(string, string), Vector3>();
         private readonly List<Live> _live = new List<Live>();
 
         /// <summary>Số vật bay / vụ nổ đã phát từ lúc mở game (AutoTestRunner đo).</summary>
@@ -98,7 +99,7 @@ namespace Assets.Script.Fx
             l.target = target;
             l.lastTarget = to;
             l.flight = Mathf.Max(0.05f, flight);
-            l.offset = Centers[(set, anim)];
+            l.offset = Heads[(set, anim)];   // ĐẦU vật bay (phi tiêu / mũi tên / quả cầu) tới đúng giữa thân mục tiêu rồi tắt — không phải tâm cả vệt đuôi
             l.start = Time.time + delay;
             l.until = l.start + l.flight;
             l.sa.gameObject.SetActive(delay <= 0f);
@@ -187,6 +188,9 @@ namespace Assets.Script.Fx
             t.localScale = keepScale;
             Centers[(set, anim)] = any ? new Vector3(b.center.x, b.center.y, 0f) : Vector3.zero;
             Bottoms[(set, anim)] = any ? new Vector3(b.center.x, b.min.y, 0f) : Vector3.zero;
+            // Đầu vật bay: hình gốc bay sang TRÁI, vệt đuôi kéo dài phía PHẢI → đầu = mép trái + nửa chiều cao (đầu vật bay coi như tròn).
+            // Trước lấy tâm cả khung (phi tiêu + vệt đuôi dài) đặt vào mục tiêu → phi tiêu thật vượt quá mục tiêu cả đoạn rồi mới tắt.
+            Heads[(set, anim)] = any ? new Vector3(b.min.x + Mathf.Min(b.size.x, b.size.y) * 0.5f, b.center.y, 0f) : Vector3.zero;
         }
 
         private static void Recycle(Live l)

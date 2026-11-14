@@ -38,7 +38,7 @@ namespace Assets.Script.Core
             if (farMob != null)
             {
                 var ci = System.Globalization.CultureInfo.InvariantCulture;   // máy tiếng Việt viết "1,5" — server cần "1.5"
-                // Đứng NGOÀI tầm chiêu đang chọn (Sakura đánh xa 5 ô — cách 5 ô là đánh luôn, không cần chạy) + 4 ô.
+                // Đứng NGOÀI tầm chiêu đang chọn (chiêu đánh xa thì trong tầm là đánh luôn, không cần chạy) + 4 ô.
                 // Quái đi lang thang: chờ xong mà nó đã tới trong tầm → dịch ra xa lại, tối đa 3 lần
                 float enterRange = SkillCaster.SkillRange(SkillBarManager.Instance != null ? SkillBarManager.Instance.GetSelectedSkillId() : -1);
                 for (int tries = 0; tries < 3; tries++)

@@ -153,11 +153,21 @@ namespace Assets.Script.Combat
             foreach (var other in _items.Values)
                 if (other.go != null && Mathf.Abs(other.dropX - x) < 0.6f && Mathf.Abs(other.dropY - y) < 0.6f) near++;
             float offset = near == 0 ? 0f : (near % 2 == 1 ? 1f : -1f) * ((near + 1) / 2) * 0.9f;
+            // dời sang bên mà hụt khỏi mép bục (lơ lửng) → thử bên kia, không được thì để chồng tại chỗ (server đã đặt chỗ rơi lên mặt đất)
+            if (offset != 0f && !HasGround(x + offset, y)) offset = HasGround(x - offset, y) ? -offset : 0f;
             it.dropX = x; it.dropY = y;
             it.go = CreateVisual(it, new Vector3(x + offset, y, 0f));
             AddTarget(it);
             if (near % 2 == 1) { var lb = it.go.transform.Find("Label"); if (lb != null) lb.localPosition += new Vector3(0f, 0.35f, 0f); }
             _items[it.id] = it;
+        }
+
+        /// <summary>Dưới điểm (x, y) trong ~0,6 ô có nền (collider tĩnh, không phải trigger) không.</summary>
+        private static bool HasGround(float x, float y)
+        {
+            foreach (var h in Physics2D.RaycastAll(new Vector2(x, y + 0.3f), Vector2.down, 0.9f))
+                if (h.collider != null && !h.collider.isTrigger && (h.rigidbody == null || h.rigidbody.bodyType == RigidbodyType2D.Static)) return true;
+            return false;
         }
 
         /// <summary>ITEM_REMOVE: int groundId (đã bị nhặt hoặc hết 60s)</summary>

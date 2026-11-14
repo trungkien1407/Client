@@ -212,7 +212,7 @@ namespace Assets.Script.Player
         // hào quang... là attachment FX trong Spine), nên không phát thêm hiệu ứng ra chiêu theo dữ liệu (HasBuiltInCastFx).
         // Chọn anim theo thứ tự (ResolveMotion):
         //   1. bảng SkillAnim (hệ, chiêu) — chọn tay theo ảnh chụp anim (Tools/VocVach/Spine/Chụp bảng anim)
-        //   2. đòn cơ bản (chiêu 1 / 2 / 3) → BasicMotion của hệ (đấm – đá luân phiên; Sakura đánh xa → ném shuriken)
+        //   2. đòn cơ bản (chiêu 1 / 2 / 3) → BasicMotion của hệ (đấm – đá luân phiên; 2026-11-15: Sakura cũng cận chiến như 2 hệ kia)
         //   3. chiêu chưa có trong bảng (vd chiêu mới thêm ở AdminTool) → anim dự phòng theo LOẠI chiêu: đánh → AttackFallback,
         //      hỗ trợ / buff → BuffFallback; bộ Spine thiếu anim nào thì thử anim kế tiếp
         //   4. cuối cùng: đấm – đá.
@@ -245,7 +245,7 @@ namespace Assets.Script.Player
         private static readonly Dictionary<int, SkillMotion[]> BasicMotion = new Dictionary<int, SkillMotion[]>
         {
             { 1, PunchKick },                                               // Naruto: đấm – đá (cận chiến 1,8 ô)
-            { 2, new[] { new SkillMotion(AnimNames.Throw, 1.7f, 0.45f, fly: "Skill10_Shuriken", impact: "Skill10_Impact") } },  // Sakura: Phi Tiêu đánh xa 5 ô → shuriken bay
+            { 2, PunchKick },                                               // Sakura: Quyền Cước cận chiến 1,8 ô (trước: Phi Tiêu ném xa 5 ô — 1 hệ đánh xa lạc lõng)
             { 3, PunchKick },                                               // Sasuke: đòn nhanh cận chiến
         };
         private static readonly Dictionary<(int cls, int skill), SkillMotion> SkillAnim = new Dictionary<(int, int), SkillMotion>

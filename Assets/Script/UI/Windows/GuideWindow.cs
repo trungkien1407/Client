@@ -38,7 +38,7 @@ namespace Assets.Script.UI.Windows
              "Mỗi cấp được <b>1 điểm kỹ năng</b> (Kỹ năng – K): học chiêu mới hoặc nâng cấp chiêu cũ, rồi gán vào ô 1–5.\n" +
              "Ra chiêu thì nhân vật đứng yên tới hết đòn; bấm tiếp lúc đòn sắp xong sẽ tự ra ngay sau đó. Số sát thương hiện đúng lúc đòn trúng.\n\n" +
              "<b>Đấu sĩ</b> (đấm đá cận chiến): máu và phòng thủ cao nhất, Trảm Phong đánh diện rộng, Thiết Thể tăng phòng thủ.\n" +
-             "<b>Hỗ trợ</b> (phi tiêu): đánh xa 5 ô, Hồi Phục cho cả nhóm, Cổ Vũ tăng sức mạnh nhóm.\n" +
+             "<b>Hỗ trợ</b>: đấm đá cận chiến (làm chậm), Hồi Phục cho cả nhóm, Cổ Vũ tăng sức mạnh nhóm.\n" +
              "<b>Sát thủ</b> (đấm đá tốc độ): ra đòn nhanh, chí mạng cao, Ám Sát kết liễu kẻ ít máu, nhưng máu mỏng.\n\n" +
              "Về trường của hệ mình (3 cổng trên thềm cao ở Làng Lá) để nhận nhiệm vụ trường."),
             ("Thế giới & đường đi",

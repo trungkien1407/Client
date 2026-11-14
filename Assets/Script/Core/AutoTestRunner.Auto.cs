@@ -62,7 +62,7 @@ namespace Assets.Script.Core
                 GameActions.Chat(1, "/go 28.5 8");
                 yield return new WaitForSecondsRealtime(1.5f);
                 auHits = CombatNetwork.MyMobHits; auTele = AutoPlay.TeleRequests;
-                // Hệ đánh xa (Sakura 5 ô): quái gần nhất có thể đã TRONG TẦM từ chỗ đứng → đúng luật là đánh luôn, không xin dịch chuyển
+                // Chiêu đánh xa đang chọn: quái gần nhất có thể đã TRONG TẦM từ chỗ đứng → đúng luật là đánh luôn, không xin dịch chuyển
                 float auRange = SkillCaster.SkillRange(SkillBarManager.Instance != null ? SkillBarManager.Instance.GetSelectedSkillId() : -1);
                 var auNear = NetworkMobManager.Instance?.FindNearestAlive(auMe.transform.position, 60f);
                 bool auInRange = auNear != null && auNear.DistanceFrom(auMe.transform.position) <= auRange - 0.15f;

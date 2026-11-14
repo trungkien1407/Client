@@ -63,8 +63,8 @@ namespace Assets.Script.UI.Windows
                 bool support = s.type == (int)SkillType.Support; // hồi máu / tăng sức mạnh — hiện mô tả + MP + hồi chiêu
                 bool locked = next != null && next.levelRequire > GameData.Me.level; // GĐ7: chưa đủ cấp nhân vật
                 if (curLv != null) info += passive ? $"<size=14>Hiện tại: {curLv.info}</size>\n"
-                    : support ? $"<size=14>Hiện tại: {curLv.info} · {curLv.manaUse} MP · hồi {curLv.coolDown / 1000f:0.#}s</size>\n"
-                    : $"<size=14>Hiện tại: {curLv.info} · {curLv.manaUse} MP · hồi {curLv.coolDown / 1000f:0.#}s · tầm {Range(curLv)}</size>\n";
+                    : support ? $"<size=14>Hiện tại: {curLv.info} · {curLv.manaUse} MP · hồi {curLv.coolDown / 1000f:0.#}s{(curLv.aoe > 0 ? $" · phạm vi {curLv.aoe:0.#} ô" : "")}</size>\n"
+                    : $"<size=14>Hiện tại: {curLv.info} · {curLv.manaUse} MP · hồi {curLv.coolDown / 1000f:0.#}s · tầm {Range(curLv)}{Splash(curLv)}</size>\n";
                 // Cấp kế: dòng mô tả cấp của server (đủ sát thương + hiệu ứng làm chậm / choáng...), chiêu đánh thêm MP
                 if (next != null) info += passive || support ? $"<size=14><color=#7cf>Cấp kế: {next.info}</color></size>"
                     : $"<size=14><color=#7cf>Cấp kế: {next.info} · {next.manaUse} MP</color></size>";
@@ -96,6 +96,9 @@ namespace Assets.Script.UI.Windows
 
         /// <summary>Tầm chiêu để hiện: 0 trong dữ liệu = 5 ô (giống SkillCaster / server).</summary>
         private static string Range(SkillLevel lv) => $"{(lv.range > 0 ? lv.range : 5f):0.#} ô";
+
+        /// <summary>Chiêu lan: " · lan X ô" (server đánh thêm mọi quái trong X ô quanh mục tiêu chính — CombatService.attackMonster).</summary>
+        private static string Splash(SkillLevel lv) => lv.aoe > 0 ? $" · <color=#fb7>lan {lv.aoe:0.#} ô</color>" : "";
 
         /// <summary>Gán skill vào ô phím: báo server lưu + cập nhật thanh skill trên HUD ngay.</summary>
         private static void AssignShortcut(int slot, int skillId)
