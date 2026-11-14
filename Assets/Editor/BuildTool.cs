@@ -17,6 +17,11 @@ using UnityEngine;
 /// Mỗi lần build: (1) ghi địa chỉ server vào Resources/server_config.json (nếu có -serverHost/-serverPort),
 /// (2) build lại Addressables, (3) build game ra thư mục Builds/.
 ///
+/// BẢN DEV và BẢN PHÁT HÀNH (2026-11-14):
+///   BuildWindows        → Builds/PC/NinjaOnline.exe          — CÓ code tự test (cờ AUTOTEST: chạy được "-autotest", "-mountsonly"...)
+///   BuildWindowsRelease → Builds/PC_Release/NinjaOnline.exe  — KHÔNG có code tự test (Core/AutoTestRunner*.cs bọc #if AUTOTEST || UNITY_EDITOR)
+///   BuildAndroid        → bản phát hành (không có code tự test)
+///
 /// [CẦN ĐIỀN khi phát hành Android lên Store]
 ///   - Keystore riêng: Player Settings → Publishing Settings (đừng dùng debug key). Giữ file keystore + mật khẩu cẩn thận.
 ///   - Đổi AndroidPackageName dưới đây sang tên của bạn (vd com.tencongty.tengame) — đổi sau khi đã lên Store là KHÔNG được.
@@ -27,8 +32,14 @@ public static class BuildTool
     private const string AndroidPackageName = "com.kien.ninjaonline"; // [CẦN ĐIỀN]
     private const string ServerConfigPath = "Assets/Resources/server_config.json";
 
-    [MenuItem("Tools/Naruto/Build/PC (Windows)", priority = 20)]
-    public static void BuildWindows() => Build(BuildTarget.StandaloneWindows64, "Builds/PC/NinjaOnline.exe");
+    /// <summary>Cờ biên dịch bật code tự test (AutoTestRunner) — chỉ bản dev.</summary>
+    private const string AutotestDefine = "AUTOTEST";
+
+    [MenuItem("Tools/Naruto/Build/PC (Windows) — bản dev, có autotest", priority = 20)]
+    public static void BuildWindows() => Build(BuildTarget.StandaloneWindows64, "Builds/PC/NinjaOnline.exe", autotest: true);
+
+    [MenuItem("Tools/Naruto/Build/PC (Windows) — bản phát hành", priority = 22)]
+    public static void BuildWindowsRelease() => Build(BuildTarget.StandaloneWindows64, "Builds/PC_Release/NinjaOnline.exe", autotest: false);
 
     [MenuItem("Tools/Naruto/Build/Android (APK)", priority = 21)]
     public static void BuildAndroid()
@@ -48,7 +59,7 @@ public static class BuildTool
         Build(BuildTarget.Android, "Builds/Android/NinjaOnline.apk");
     }
 
-    private static void Build(BuildTarget target, string output)
+    private static void Build(BuildTarget target, string output, bool autotest = false)
     {
         ApplyServerArgs();
 
@@ -74,11 +85,12 @@ public static class BuildTool
             locationPathName = output,
             target = target,
             options = BuildOptions.None,
+            extraScriptingDefines = autotest ? new[] { AutotestDefine } : null,   // chỉ áp cho lần build này, không đổi Player Settings
         });
 
         var s = report.summary;
         if (s.result == BuildResult.Succeeded)
-            Debug.Log($"[Build] ✅ {target} xong: {Path.GetFullPath(output)}  ({s.totalSize / (1024f * 1024f):F1} MB, {s.totalTime.TotalSeconds:F0}s)");
+            Debug.Log($"[Build] ✅ {target} {(autotest ? "(dev, có autotest)" : "(phát hành)")} xong: {Path.GetFullPath(output)}  ({s.totalSize / (1024f * 1024f):F1} MB, {s.totalTime.TotalSeconds:F0}s)");
         else
             Fail($"{target} thất bại: {s.result}, {s.totalErrors} lỗi");
     }

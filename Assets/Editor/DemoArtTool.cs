@@ -142,6 +142,20 @@ public static class DemoArtTool
     }
 
     /// <summary>Không mở Editor: -executeMethod DemoArtTool.BatchPets — chỉ chép thú cưng (bước 7).</summary>
+    /// <summary>
+    /// Tính lại vị trí thân (bodyOffsetPx) cho mọi bộ NPC đã nhập trong _Demo/Resources/NpcArt — sau khi sửa cách đo / bảng chỉnh tay.
+    /// Dòng lệnh: Unity -batchmode -quit -projectPath ... -executeMethod DemoArtTool.BatchNpcFit
+    /// </summary>
+    [MenuItem("Tools/Naruto/Demo art/6. Tính lại vị trí thân NPC", priority = 45)]
+    public static void BatchNpcFit()
+    {
+        int n = 0;
+        foreach (var dir in Directory.GetDirectories(NpcArtDir))
+            if (int.TryParse(Path.GetFileName(dir), out int art) && BuildNpcArt(art)) n++;
+        AssetDatabase.SaveAssets();
+        Debug.Log($"[DemoArt] Đã tính lại vị trí thân {n} bộ NPC");
+    }
+
     public static void BatchPets()
     {
         int n = CopyPets(Path.Combine(SourceDir(false), "04_ThuCung_Spine"));
@@ -500,10 +514,79 @@ public static class DemoArtTool
         if (isNew) so = ScriptableObject.CreateInstance<NpcArtSO>();
         so.body = body;
         so.legs = AssetDatabase.LoadAssetAtPath<Sprite>($"{NpcArtDir}/{art}/img1.png");
-        so.bodyOffsetPx = so.legs != null ? FitBodyOnLegs($"{NpcArtDir}/{art}/img0.png", $"{NpcArtDir}/{art}/img1.png") : Vector2.zero;
+        so.bodyOffsetPx = so.legs != null ? FitNpc(art, $"{NpcArtDir}/{art}/img0.png", $"{NpcArtDir}/{art}/img1.png") : Vector2.zero;
         if (isNew) AssetDatabase.CreateAsset(so, path);
         else EditorUtility.SetDirty(so);
         return true;
+    }
+
+    /// <summary>
+    /// CHỈNH TAY vị trí thân của vài bộ NPC mà cách đo tự động chưa đẹp (xem bằng autotest "-npconly" → NpcArtSheet.png).
+    /// art → (x, y) điểm ảnh, cùng nghĩa với NpcArtSO.bodyOffsetPx.
+    /// </summary>
+    private static readonly Dictionary<int, Vector2> NpcFitOverride = new Dictionary<int, Vector2>
+    {
+        { 9, new Vector2(-18, 14) },    // ninja áo đỏ: dải vải thõng phải cắm vào ủng trái
+        { 12, new Vector2(18, 16) },    // ông lão chống gậy: ảnh chân có khúc cuối cây gậy → nối liền thân gậy
+    };
+
+    /// <summary>
+    /// Vị trí thân của bộ NPC {art} (2026-11-14): NGANG theo FitBodyOnLegs (so dải cột — canh ngang tốt), DỌC theo FitWaist (eo / lưng quần)
+    /// nếu cách cũ bị hở không quá 20 px (đồ thòng xuống làm đáy thân thấp hơn eo); chênh hơn thế (áo choàng dài phủ chân) thì giữ cách cũ.
+    /// Có trong NpcFitOverride thì lấy bảng chỉnh tay.
+    /// </summary>
+    private static Vector2 FitNpc(int art, string bodyPath, string legsPath)
+    {
+        if (NpcFitOverride.TryGetValue(art, out var manual)) return manual;
+        var old = FitBodyOnLegs(bodyPath, legsPath);
+        float? waistDy = FitWaist(bodyPath, legsPath);
+        float dy = waistDy.HasValue && old.y - waistDy.Value > 0 && old.y - waistDy.Value <= 20 ? waistDy.Value : old.y;
+        return new Vector2(old.x, dy);
+    }
+
+    /// <summary>
+    /// Độ cao đặt thân theo EO: chân — hàng trên cùng mà khối chính (đoạn cột liền dài nhất) rộng ≥ 55% bề ngang lớn nhất của chân (lưng quần);
+    /// thân — từ đáy lên, hàng đầu tiên mà khối chính rộng ≥ 70% lưng quần (bỏ gậy, vạt áo, đồ thòng xuống). Eo chồng xuống lưng quần 3 px.
+    /// Trả độ cao (điểm ảnh, cùng nghĩa bodyOffsetPx.y) hoặc null nếu không đo được.
+    /// </summary>
+    private static float? FitWaist(string bodyPath, string legsPath, int overlap = 3)
+    {
+        var b = ReadPng(bodyPath); var l = ReadPng(legsPath);
+        if (b == null || l == null) return null;
+        try
+        {
+            var bp = b.GetPixels32(); var lp = l.GetPixels32();
+            // Texture2D: hàng 0 = ĐÁY ảnh → duyệt chân từ trên xuống (y giảm), thân từ dưới lên (y tăng)
+            int lMax = 0;
+            for (int y = 0; y < l.height; y++) lMax = Mathf.Max(lMax, MainRunWidth(lp, l.width, y));
+            int lTop = -1, lWidth = 0;
+            for (int y = l.height - 1; y >= 0; y--)
+            {
+                int w = MainRunWidth(lp, l.width, y);
+                if (w >= 0.55f * lMax && w > 0) { lTop = y; lWidth = w; break; }
+            }
+            if (lTop < 0) return null;
+            int waist = -1;
+            for (int y = 0; y < b.height; y++)
+                if (MainRunWidth(bp, b.width, y) >= 0.7f * lWidth) { waist = y; break; }
+            if (waist < 0) return null;
+            return Mathf.Round(lTop + 1 - overlap - waist);
+        }
+        finally { UnityEngine.Object.DestroyImmediate(b); UnityEngine.Object.DestroyImmediate(l); }
+    }
+
+    /// <summary>Bề rộng đoạn cột đục liền dài nhất của hàng y (bỏ qua khe hở ≤ 2 px).</summary>
+    private static int MainRunWidth(Color32[] px, int width, int y)
+    {
+        int best = 0, start = -1, last = -10;
+        for (int x = 0; x < width; x++)
+        {
+            if (px[y * width + x].a <= 128) continue;
+            if (x - last > 3) start = x;   // đoạn mới
+            last = x;
+            best = Mathf.Max(best, last - start + 1);
+        }
+        return best;
     }
 
     /// <summary>

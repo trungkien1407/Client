@@ -178,8 +178,19 @@ namespace Assets.Script.UI
             if (targetPanel != null) targetPanel.SetActive(true);
             if (targetHPOnly != null) targetHPOnly.SetActive(true);
 
-            if (targetName != null) targetName.text = name;
+            SetTargetName(name);
             UpdateTargetHP(hp, maxhp);
+        }
+
+        /// <summary>
+        /// Đặt tên mục tiêu + gắn viền / bóng đổ MỖI LẦN hiện (sau khi khung đã bật). Gắn 1 lần ở Awake không ăn: lúc đó khung còn ẩn,
+        /// chữ TextMeshPro chưa khởi tạo → bật lên lại vẽ bằng vật liệu cũ (tên trắng chìm vào nền trời / tuyết trắng). Gọi lại không tốn gì.
+        /// </summary>
+        private void SetTargetName(string name)
+        {
+            if (targetName == null) return;
+            targetName.text = name;
+            Assets.Script.UI.Kit.UIStyle.Readable(targetName);
         }
 
         public void HideTarget()
@@ -191,7 +202,7 @@ namespace Assets.Script.UI
         {
             if (targetPanel != null) targetPanel.SetActive(true);
             if (targetHPOnly != null) targetHPOnly.SetActive(false);
-            if (targetName != null) targetName.text = name;
+            SetTargetName(name);
             if (hpTextTarget != null) hpTextTarget.text = string.Empty;
         }
 

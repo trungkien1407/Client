@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if AUTOTEST || UNITY_EDITOR   // code tự test: chỉ có trong Editor + bản build dev (BuildTool.BuildWindows bật cờ AUTOTEST); bản phát hành không có
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -177,3 +178,4 @@ namespace Assets.Script.Core
         }
     }
 }
+#endif

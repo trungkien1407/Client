@@ -41,9 +41,12 @@ namespace Assets.Script.Fx
         public const float RiderHip = 0.28f;
         private const float CullEvery = 0.5f;
 
-        // Chỉnh riêng từng bộ thú nếu đo tự động chưa đẹp (chụp cả 24 con: autotest "-mountsonly"): art → (hệ số cỡ, độ nâng thêm
-        // đơn vị thế giới). Không có = (1, 0).
-        private static readonly Dictionary<int, (float size, float seat)> Tune = new Dictionary<int, (float, float)>();
+        // Chỉnh riêng từng bộ thú nếu đo tự động chưa đẹp (chụp cả 24 con: autotest "-mountsonly"): art → (hệ số cỡ, độ nâng thêm,
+        // dời chỗ ngồi về phía ĐUÔI — đơn vị thế giới). Không có = (1, 0, 0).
+        private static readonly Dictionary<int, (float size, float seat, float back)> Tune = new Dictionary<int, (float, float, float)>
+        {
+            { 524, (1.1f, -0.3f, 0.22f) },   // Cừu Tuyết: lông xoăn giữa lưng làm mặt lưng đo cao + yên lùi về sau → người ngồi trên đầu; dời về đuôi, hạ thấp
+        };
 
         // BẢNG ĐO TỪNG BỘ THÚ (2026-11-12): art → (mặt lưng tại chỗ ngồi, đỉnh hình) — đơn vị xương (đã nhân tỉ lệ nhập), dáng 4, tư thế gốc.
         // Đo bằng ẢNH (autotest "-mountsonly" chụp thú không người + nền cùng chỗ → Tools/do_thu_cuoi.py tách hình thú, đo điểm ảnh).
@@ -232,8 +235,19 @@ namespace Assets.Script.Fx
             float top = Mathf.Max(0.05f, _bTop), wide = Mathf.Max(0.05f, _bWidth), back = Mathf.Clamp(_bBack, 0.05f, top);
             float s = Mathf.Min(BackHeight / back, Mathf.Min(MaxWidth / wide, MaxTop / top)) * (0.9f + 0.05f * _stage) * sizeK;
             _sa.transform.localScale = new Vector3(ownerLeft ? -s : s, s, 1f);   // cùng hướng nhìn với nhân vật (2026-11-12: trước bị ngược)
-            _lift = Mathf.Max(0.15f, back * s - RiderHip + tune.seat);
-            _owner.SetRide(true, _lift);
+            // Người ĐI THEO XƯƠNG LƯNG thú (chọn 1 lần — FindSeat): anim chạy làm thân nhún / xô tới lui → người nhún theo,
+            // không đứng im lơ lửng / lòi ra khỏi lưng. Lệch ngang = vị trí xương (gần tâm thân), kẹp để anim lạ không kéo người đi xa.
+            float dx = 0f, dy = 0f;
+            var bones = _sa.Skeleton.Bones;
+            if (_seatIdx >= 0 && _seatIdx < bones.Count)
+            {
+                var bone = bones.Items[_seatIdx];
+                dx = Mathf.Clamp(bone.WorldX * s, -0.4f, 0.4f) * (ownerLeft ? -1f : 1f);
+                dy = Mathf.Clamp((bone.WorldY - _seatSetupY) * s, -0.3f, 0.3f);
+            }
+            dx += tune.back * (ownerLeft ? 1f : -1f);   // thú quay trái thì đuôi ở bên phải (+x)
+            _lift = Mathf.Max(0.15f, back * s - RiderHip + tune.seat + dy);
+            _owner.SetRide(true, _lift, dx);
 
             // 2. Anim thú theo chuyển động của chủ: lên → jump · xuống → fall · chạy ngang → run · còn lại idle
             string anim = v.y > 1.5f ? "jump" : v.y < -1.5f ? "fall" : Mathf.Abs(v.x) > 0.4f ? "run" : "idle";
@@ -258,6 +272,32 @@ namespace Assets.Script.Fx
         private static readonly Dictionary<int, Vector3> Measured = new Dictionary<int, Vector3>();
         private static float[] _vb = new float[256];
         private float _bTop = 1f, _bWidth = 1f, _bBack = 0.6f;
+        // Xương "chỗ ngồi" của từng (bộ, dáng): chỉ số trong Skeleton.Bones + độ cao ở tư thế gốc (đơn vị xương)
+        private static readonly Dictionary<int, Vector2> SeatCache = new Dictionary<int, Vector2>();
+        private int _seatIdx = -1;
+        private float _seatSetupY;
+
+        /// <summary>
+        /// Chọn xương làm CHỖ NGỒI: ở tư thế gốc, xương gần điểm giữa lưng nhất (x ≈ 0, y ≈ 0,85 × mặt lưng), ưu tiên tên kiểu thân / lưng / hông.
+        /// Bỏ xương gốc (ở chân, không nhún). Gọi khi skeleton đang ở tư thế gốc (trong Measure).
+        /// </summary>
+        private static Vector2 FindSeat(Spine.Skeleton sk, float back)
+        {
+            int best = -1; float bestScore = float.MaxValue, bestY = 0f;
+            var bones = sk.Bones;
+            for (int i = 0; i < bones.Count; i++)
+            {
+                var b = bones.Items[i];
+                if (b.Parent == null) continue;
+                float score = Mathf.Abs(b.WorldX) + Mathf.Abs(b.WorldY - back * 0.85f);
+                string n = b.Data.Name.ToLowerInvariant();
+                if (n.Contains("body") || n.Contains("spine") || n.Contains("hip") || n.Contains("pelvis") || n.Contains("torso")
+                    || n.Contains("chest") || n.Contains("back") || n.Contains("than") || n.Contains("lung")) score -= back * 0.3f;
+                if (b.WorldY < back * 0.35f) score += back;   // xương chân / gần đất: không nhún theo thân
+                if (score < bestScore) { bestScore = score; best = i; bestY = b.WorldY; }
+            }
+            return new Vector2(best, bestY);
+        }
 
         /// <summary>Đo đỉnh (tính từ chân, y = 0) + bề ngang phần hình đang vẽ của thú (Skeleton.GetBounds).</summary>
         private void Measure()
@@ -276,11 +316,15 @@ namespace Assets.Script.Fx
                 else back = MeasureBack(sk, Mathf.Max(0.02f, w * 0.04f));
                 m = new Vector3(topY, Mathf.Max(0.01f, w), back > 0.01f ? back : topY * 0.6f);
                 Measured[key] = m;
+                SeatCache[key] = FindSeat(sk, m.z);
                 _sa.AnimationState.Apply(sk);
             }
             _bTop = m.x;
             _bWidth = m.y;
             _bBack = m.z;
+            var seat = SeatCache.TryGetValue(key, out var st) ? st : new Vector2(-1, 0);
+            _seatIdx = (int)seat.x;
+            _seatSetupY = seat.y;
         }
 
         /// <summary>

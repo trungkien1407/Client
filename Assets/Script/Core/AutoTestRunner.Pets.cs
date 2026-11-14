@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if AUTOTEST || UNITY_EDITOR   // code tự test: chỉ có trong Editor + bản build dev (BuildTool.BuildWindows bật cờ AUTOTEST); bản phát hành không có
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -223,6 +224,18 @@ namespace Assets.Script.Core
                 Debug.Log($"[AutoTest] MOUNT tpl={tpl} art={a} name={GameData.MyPet?.name} cao={ds.x:F2} rong={ds.y:F2} lung={(pm != null ? pm.DrawnBack : 0):F2} nang={(vis != null ? vis.RideLift : 0):F2}");
                 Check($"Thú cưỡi {tpl} ({GameData.MyPet?.name}) hiện + người ngồi trên", pm != null && pm.Showing && vis != null && vis.IsRiding);
                 yield return Shot($"Mount_{tpl:00}_{a}");
+                // Đang chạy: người phải nhún theo lưng thú (đi theo xương chỗ ngồi), không đứng im / lòi khỏi lưng — chụp 2 khung khác nhịp
+                float y0 = vis != null ? vis.RideLift : 0f, yMin = y0, yMax = y0;
+                me.AutoMoveX = tpl % 2 == 0 ? -1f : 1f;
+                for (int f = 0; f < 24; f++)
+                {
+                    yield return null;
+                    if (vis != null) { yMin = Mathf.Min(yMin, vis.RideLift); yMax = Mathf.Max(yMax, vis.RideLift); }
+                    if (f == 14) yield return Shot($"MountRun_{tpl:00}_{a}");
+                }
+                me.AutoMoveX = 0f;
+                Debug.Log($"[AutoTest] MOUNTRUN tpl={tpl} art={a} nang {yMin:F2}..{yMax:F2}");
+                yield return new WaitForSecondsRealtime(0.4f);
                 // Ảnh đo: ẩn người, giữ thú — kèm toạ độ chân trên màn hình + số điểm ảnh / đơn vị + tỉ lệ thú đang vẽ
                 if (mr != null) mr.enabled = false;
                 if (pm != null && pm.Showing)
@@ -247,3 +260,4 @@ namespace Assets.Script.Core
         }
     }
 }
+#endif

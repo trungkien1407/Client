@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if AUTOTEST || UNITY_EDITOR   // code tự test: chỉ có trong Editor + bản build dev (BuildTool.BuildWindows bật cờ AUTOTEST); bản phát hành không có
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -143,6 +144,14 @@ namespace Assets.Script.Core
                 Application.Quit(_fail);
                 yield break;
             }
+            // "-npconly": ghép thân + chân mọi bộ hình NPC → NpcArtSheet.png (soi chỗ nối) rồi thoát
+            if (Array.IndexOf(Environment.GetCommandLineArgs(), "-npconly") >= 0)
+            {
+                yield return NpcArtShots();
+                Debug.Log($"[AutoTest] KẾT QUẢ: {_pass} PASS, {_fail} FAIL");
+                Application.Quit(_fail);
+                yield break;
+            }
             // "-bossshots": gọi 3 boss thế giới, đánh + chụp ảnh (báo cáo / slide) rồi thoát
             if (Array.IndexOf(Environment.GetCommandLineArgs(), "-bossshots") >= 0)
             {
@@ -187,3 +196,4 @@ namespace Assets.Script.Core
         }
     }
 }
+#endif

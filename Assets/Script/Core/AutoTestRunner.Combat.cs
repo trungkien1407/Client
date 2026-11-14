@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if AUTOTEST || UNITY_EDITOR   // code tự test: chỉ có trong Editor + bản build dev (BuildTool.BuildWindows bật cờ AUTOTEST); bản phát hành không có
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -290,6 +291,9 @@ namespace Assets.Script.Core
             if (top != null) top.ForceMeshUpdate();
             Check($"Thanh mục tiêu: tên + cấp quái 1 dòng ({(top != null ? top.GetParsedText() : "?")})",
                 top != null && top.textInfo.lineCount == 1 && top.GetParsedText().Contains("Lv"));
+            // Vật liệu ĐANG VẼ (canvasRenderer), không chỉ trường của TMP — gắn ở Awake lúc khung ẩn thì trường đổi mà hình không đổi
+            var topMat = top != null ? top.canvasRenderer.GetMaterial() : null;
+            Check($"Tên mục tiêu có viền + bóng đổ khi hiện (vật liệu đang vẽ: {(topMat != null ? topMat.name : "?")})", topMat != null && topMat.name.Contains("Readable"));
             var hpFillTop = UISetup.Instance != null ? UISetup.Instance.targetHpFill : null;
             Check("Tên trên thanh mục tiêu không đè thanh máu của khung",
                 top == null || hpFillTop == null || top.rectTransform.TransformPoint(top.rectTransform.rect.min).y >= hpFillTop.rectTransform.TransformPoint(hpFillTop.rectTransform.rect.max).y - 1f);
@@ -349,3 +353,4 @@ namespace Assets.Script.Core
         }
     }
 }
+#endif

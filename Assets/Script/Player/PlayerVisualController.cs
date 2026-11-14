@@ -31,7 +31,7 @@ namespace Assets.Script.Player
         /// <summary>Còn bao lâu nữa hết động tác đang diễn (giây, 0 = rảnh).</summary>
         public float ActionLockRemaining => Mathf.Max(0f, _actionLockUntil - Time.time);
         // ---- ĐI TRÊN NƯỚC: hạ phần hình xuống ngang ngọn sóng (Map/WaterLine) — vật lý không đổi ----
-        private float _visualBaseY, _sink, _sinkTarget;
+        private float _visualBaseY, _visualBaseX, _sink, _sinkTarget;
 
         /// <summary>Đang đi trên mặt nước → hình hạ WaterLine.Depth cho chân chạm sóng (trượt mượt, không giật).</summary>
         public void SetWaterSink(bool onWater) => _sinkTarget = onWater ? Map.WaterLine.Sink : 0f;
@@ -42,20 +42,25 @@ namespace Assets.Script.Player
         // ---- THÚ CƯỠI (GĐ28): Fx.PetMount gọi SetRide — nhân vật nâng lên lưng thú + anim di chuyển đổi thành "ride" ----
         public const string RideAnim = "ride";
         private bool _riding;
-        private float _lift;
+        private float _lift, _rideX;   // nâng lên lưng thú + lệch ngang theo xương lưng thú (đơn vị thế giới)
         /// <summary>Đang ngồi trên thú (đang vẽ thú dưới chân).</summary>
         public bool IsRiding => _riding;
         /// <summary>Nhân vật đang được nâng bao nhiêu (đơn vị thế giới).</summary>
         public float RideLift => _lift;
 
-        /// <summary>Lên (on, nâng {lift}) / xuống thú. Đổi trạng thái thì đổi anim ngay (đang diễn đòn thì để đòn diễn nốt).</summary>
-        public void SetRide(bool on, float lift)
+        /// <summary>
+        /// Lên (on, nâng {lift}, lệch ngang {x}) / xuống thú. PetMount gọi MỖI KHUNG HÌNH với vị trí xương lưng thú → người nhún theo nhịp chạy.
+        /// Đổi trạng thái thì đổi anim ngay (đang diễn đòn thì để đòn diễn nốt).
+        /// </summary>
+        public void SetRide(bool on, float lift, float x = 0f)
         {
             lift = on ? lift : 0f;
-            if (on == _riding && Mathf.Approximately(lift, _lift)) return;
+            x = on ? x : 0f;
+            if (on == _riding && Mathf.Approximately(lift, _lift) && Mathf.Approximately(x, _rideX)) return;
             bool changed = on != _riding;
             _riding = on;
             _lift = lift;
+            _rideX = x;
             ApplyVisualY();
             if (!changed || mainSkeleton == null || mainSkeleton.AnimationState == null || IsActionLocked) return;
             string anim = on && HasAnim(RideAnim) ? RideAnim : idleAnimation;
@@ -69,12 +74,13 @@ namespace Assets.Script.Player
             var lp = mainVisualObj.transform.localPosition;
             // localPosition tính theo tỉ lệ của thân (thân có thể scale < 1) → đổi độ nâng (đơn vị thế giới) ra đơn vị cục bộ
             float sy = Mathf.Abs(transform.lossyScale.y) > 1e-4f ? Mathf.Abs(transform.lossyScale.y) : 1f;
-            mainVisualObj.transform.localPosition = new Vector3(lp.x, _visualBaseY - _sink + _lift / sy, lp.z);
+            float sx = Mathf.Abs(transform.lossyScale.x) > 1e-4f ? transform.lossyScale.x : 1f;   // có dấu: thân lật bằng scale âm cũng đúng chiều
+            mainVisualObj.transform.localPosition = new Vector3(_visualBaseX + _rideX / sx, _visualBaseY - _sink + _lift / sy, lp.z);
         }
 
         private void Awake()
         {
-            if (mainVisualObj != null) _visualBaseY = mainVisualObj.transform.localPosition.y;
+            if (mainVisualObj != null) { _visualBaseY = mainVisualObj.transform.localPosition.y; _visualBaseX = mainVisualObj.transform.localPosition.x; }
             // Đảm bảo trạng thái ban đầu chuẩn
             if (jumpFXObj != null) jumpFXObj.SetActive(false);
             if (deathVisualObj != null) deathVisualObj.SetActive(false);
@@ -108,8 +114,8 @@ namespace Assets.Script.Player
             _ghostUntil = 0f;
             _transformUntil = 0f; _transformed = false;   // Initialize dưới đặt lại skin Normal
             _sink = _sinkTarget = 0f;                       // thân lấy từ pool có thể đang hạ (người trước đứng trên nước)
-            _riding = false; _lift = 0f;                    // … và đang ngồi trên thú (GĐ28)
-            if (mainVisualObj != null) { var lp0 = mainVisualObj.transform.localPosition; mainVisualObj.transform.localPosition = new Vector3(lp0.x, _visualBaseY, lp0.z); }
+            _riding = false; _lift = 0f; _rideX = 0f;       // … và đang ngồi trên thú (GĐ28)
+            if (mainVisualObj != null) { var lp0 = mainVisualObj.transform.localPosition; mainVisualObj.transform.localPosition = new Vector3(_visualBaseX, _visualBaseY, lp0.z); }
             // 1. Reset trạng thái sống
             if (mainVisualObj != null) mainVisualObj.SetActive(true);
             if (deathVisualObj != null) deathVisualObj.SetActive(false);
