@@ -23,6 +23,7 @@ namespace Assets.Script.UI
             lines.rectTransform.Fill(4, 4, 2, 2);
             lines.outlineWidth = 0.2f;
             lines.outlineColor = new Color32(0, 0, 0, 200);
+            Assets.Script.UI.Kit.UIStyle.Readable(lines);   // viền + bóng đổ → đọc được cả trên nền trắng
             _chatBtn = UIKit.Button("ChatBtn", transform, "Chat", null, 15);
             ((RectTransform)_chatBtn.transform).Place(new Vector2(0, 0), new Vector2(0, 0), new Vector2(0, -40), new Vector2(80, 34), Vector2.zero);
         }

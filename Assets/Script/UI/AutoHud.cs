@@ -14,13 +14,12 @@ namespace Assets.Script.UI
     {
         public static readonly Vector2 Pos = new Vector2(-8, -MinimapHud.H - 14 - 30 - 20), Size = new Vector2(MinimapHud.W, 30);   // dưới nút Khu (GameHudView.zoneBtn), cách 20
         private Button _btn;
-        private Color _normal;
-        private bool _hasNormal;
 
         public static AutoHud Create(Transform parent)
         {
-            var btn = UIKit.Button("AutoBtn", parent, "Auto", AutoPlay.Toggle, 14);
+            var btn = UIKit.Button("AutoBtn", parent, "Auto (Z)", AutoPlay.Toggle, 14);
             ((RectTransform)btn.transform).Place(new Vector2(1, 1), new Vector2(1, 1), Pos, Size, new Vector2(1, 1));
+            UIStyle.Chip(btn, 14);   // chip tối viền vàng như nút Khu; bật → xanh lá
             var hud = btn.gameObject.AddComponent<AutoHud>();
             hud._btn = btn;
             return hud;
@@ -37,10 +36,8 @@ namespace Assets.Script.UI
         private void Show(bool on)
         {
             if (_btn == null) return;
-            // Màu gốc lấy ở lần đổi đầu tiên: UISkin tô nút SAU Start (SkinButtonLater) — lấy sớm sẽ ra màu chưa skin
-            if (!_hasNormal && _btn.image != null) { _normal = _btn.image.color; _hasNormal = true; }
-            _btn.SetLabel(on ? "Auto: Bật" : "Auto");
-            if (_btn.image != null) _btn.image.color = on ? UIKit.ButtonHot : _normal;
+            _btn.SetLabel(on ? "Auto: Bật" : "Auto (Z)");
+            UIStyle.SetChipOn(_btn, on);
         }
     }
 }

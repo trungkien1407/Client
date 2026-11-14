@@ -30,23 +30,26 @@ namespace Assets.Script.UI.Kit
         public bool IsOpen => gameObject.activeSelf;
 
         /// <summary>Lấy (tạo nếu chưa có) cửa sổ loại T.</summary>
-        public static T Get<T>() where T : GameWindow
+        public static T Get<T>() where T : GameWindow => (T)Get(typeof(T));
+
+        /// <summary>Như Get&lt;T&gt; nhưng loại cửa sổ truyền bằng Type (CharacterTabs mở tab theo danh sách loại).</summary>
+        public static GameWindow Get(Type type)
         {
             var root = UIRoot.Instance;
-            var existing = root.WindowLayer.GetComponentInChildren<T>(true);
+            var existing = (GameWindow)root.WindowLayer.GetComponentInChildren(type, true);
             if (existing != null) return existing;
 
-            T w;
-            var prefab = UIPrefabs.Window(typeof(T));
+            GameWindow w;
+            var prefab = UIPrefabs.Window(type);
             if (prefab != null)
             {
                 var go = UIPrefabs.Spawn(prefab, root.WindowLayer);
-                go.name = typeof(T).Name;
-                w = go.GetComponent<T>();
+                go.name = type.Name;
+                w = (GameWindow)go.GetComponent(type);
                 w.Frame = w.GetComponent<WindowFrame>();
                 w.Configure();
             }
-            else w = (T)CreateByCode(typeof(T), root.WindowLayer);
+            else w = CreateByCode(type, root.WindowLayer);
 
             w.Frame.close.onClick.AddListener(w.Hide);
             w.Bind();
@@ -94,12 +97,35 @@ namespace Assets.Script.UI.Kit
         protected virtual void Bind() { }
         protected virtual void Refresh() { }
 
+        /// <summary>Báo mỗi khi 1 cửa sổ được mở (CharacterTabs nghe để gắn thanh tab + đóng tab cũ cùng nhóm).</summary>
+        public static event Action<GameWindow> Shown;
+
         public void Show()
         {
             gameObject.SetActive(true);
             UIRoot.Instance.BringToFront(this);
             _dirty = false;
             Refresh();
+            Shown?.Invoke(this);
+        }
+
+        /// <summary>Đang đi cặp với cửa sổ khác (Shop | Hành trang...) — lúc đó ẩn thanh tab.</summary>
+        public bool HasPartner => _partner != null;
+
+        /// <summary>Cửa sổ đang mở nằm trên cùng (nhận phím mũi tên đổi tab...).</summary>
+        public bool IsTopMost
+        {
+            get
+            {
+                if (!IsOpen) return false;
+                var layer = transform.parent;
+                for (int i = layer.childCount - 1; i >= 0; i--)
+                {
+                    var w = layer.GetChild(i).GetComponent<GameWindow>();
+                    if (w != null && w.IsOpen) return w == this;
+                }
+                return false;
+            }
         }
 
         /// <summary>

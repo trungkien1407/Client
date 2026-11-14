@@ -44,6 +44,7 @@ namespace Assets.Script.UI
             _text.enableWordWrapping = false;
             _text.outlineWidth = 0.2f;
             _text.outlineColor = Color.black;
+            Assets.Script.UI.Kit.UIStyle.Readable(_text);   // viền + bóng đổ → đọc được cả trên nền trắng
             _text.rectTransform.sizeDelta = new Vector2(8, 1.2f);
             // Vẽ trên mọi sprite (nhân vật, NPC, map): sorting layer TRÊN CÙNG + order cao
             var r = _text.GetComponent<MeshRenderer>();

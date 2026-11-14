@@ -28,7 +28,8 @@ namespace Assets.Script.Combat
 
         private static AutoPath _instance;
 
-        private int _questId = -1;       // -1 = không tự đi
+        private bool _active;            // đang tự đi
+        private int _questId;            // nhiệm vụ cần tới; số ÂM = -mapId (đi tới 1 map chọn trên bản đồ thế giới)
         private bool _waiting;           // đã hỏi server, chờ trả lời
         private byte _kind;              // bước hiện tại: 1 tới cổng / 2 ở map đích
         private Vector2 _point;          // đích của bước hiện tại
@@ -39,7 +40,7 @@ namespace Assets.Script.Combat
         private int _tries;
 
         /// <summary>Đang tự đi (AutoTestRunner đọc).</summary>
-        public static bool IsActive => _instance != null && _instance._questId >= 0;
+        public static bool IsActive => _instance != null && _instance._active;
         /// <summary>Chữ server gửi ở bước gần nhất, vd "Sói Rừng — Rừng Trúc (còn 2 map)" (AutoTestRunner đọc).</summary>
         public static string LastText { get; private set; } = "";
         /// <summary>Kiểu bước gần nhất: 0 không đi được / 1 tới cổng / 2 ở map đích.</summary>
@@ -62,7 +63,10 @@ namespace Assets.Script.Combat
         protected override void RegisterHandlers() => Listen(Cmd.AUTO_PATH, OnAutoPath);
 
         // ---------------------------------------------------------------- bắt đầu / dừng
-        /// <summary>Bắt đầu tự đi tới nơi làm nhiệm vụ questId.</summary>
+        /// <summary>Tự đi tới 1 map (bấm map trên bản đồ thế giới, phím B). Server nhận -mapId trong AUTO_PATH_REQ.</summary>
+        public static void BeginMap(int mapId) => Begin(-mapId);
+
+        /// <summary>Bắt đầu tự đi tới nơi làm nhiệm vụ questId (questId âm = -mapId: tới map đó).</summary>
         public static void Begin(int questId)
         {
             if (_instance == null || LocalPlayerState.IsDead) return;
@@ -70,6 +74,7 @@ namespace Assets.Script.Combat
             if (AutoPlay.IsOn) AutoPlay.Instance.SetOn(false, "Tắt Tự động để Tự đi.");
             ActionInput.Cancel();
             _instance._questId = questId;
+            _instance._active = true;
             _instance.Ask();
             ChatBox.AddSystem("Đang tìm đường...");
         }
@@ -77,8 +82,8 @@ namespace Assets.Script.Combat
         /// <summary>Thôi tự đi (reason != null → báo lên khung chat).</summary>
         public static void Stop(string reason = null)
         {
-            if (_instance == null || _instance._questId < 0) return;
-            _instance._questId = -1;
+            if (_instance == null || !_instance._active) return;
+            _instance._active = false;
             _instance._kind = 0;
             _instance._waiting = false;
             var me = Me();
@@ -119,7 +124,7 @@ namespace Assets.Script.Combat
             r.Cleanup();
             LastKind = kind;
             LastText = text;
-            if (_questId < 0) return;   // đã huỷ trong lúc chờ
+            if (!_active) return;   // đã huỷ trong lúc chờ
             _waiting = false;
             if (kind == 0) { Stop(text); return; }
 
@@ -141,7 +146,7 @@ namespace Assets.Script.Combat
         protected override void Update()
         {
             base.Update();   // NetworkListener đăng ký nghe gói AUTO_PATH ở đây — thiếu dòng này là không nhận được gói
-            if (_questId < 0) return;
+            if (!_active) return;
             var me = Me();
             if (me == null) return;
             if (LocalPlayerState.IsDead) { Stop("Đã thôi tự đi."); return; }

@@ -142,6 +142,8 @@ namespace Assets.Script.Data
         public static void QuestGuide() => Send(Cmd.QUEST_GUIDE_REQ, null);
         /// <summary>Hỏi bước kế tiếp để tới nơi làm nhiệm vụ (Combat.AutoPath gọi).</summary>
         public static void AutoPath(int questId) => Send(Cmd.AUTO_PATH_REQ, w => w.WriteInt(questId));
+        /// <summary>Xin bản đồ thế giới (danh sách map + cổng nối).</summary>
+        public static void WorldMap() => Send(Cmd.WORLD_MAP_REQ, null);
         public static void OnlineClaim(int index) => Send(Cmd.ONLINE_CLAIM, w => w.WriteByte((byte)index));
         public static void GiftcodeUse(string code) => Send(Cmd.GIFTCODE_USE, w => w.WriteUTF(code ?? ""));
 

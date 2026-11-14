@@ -204,6 +204,8 @@
         public const short QUEST_GUIDE_REQ = 724;   // C→S rỗng
         public const short QUEST_GUIDE = 725;       // S→C short n, [int questId, byte status(0 đang làm/1 có thể nhận/2 chờ trả), byte daily, UTF nơi đến]
         public const short AUTO_PATH_REQ = 726;     // C→S int questId — "Tự đi" (hỏi lại mỗi lần vào map mới)
+        public const short WORLD_MAP_REQ = 728;     // C→S rỗng — bản đồ thế giới (phím B, tab "Thế giới")
+        public const short WORLD_MAP = 729;         // S→C short mapĐangĐứng, byte n, [short id, UTF tên, byte an toàn, short cấp thấp, short cấp cao, byte k, [short map nối] x k] x n
         public const short AUTO_PATH = 727;         // S→C byte kiểu(0 không đi được/1 tới cổng/2 ở map đích), float x, float y, byte loại đích(1 NPC/2 quái), int mẫu, UTF chữ
         public const short ACTIVITY_REQ = 860;      // C→S rỗng
         public const short ACTIVITY_INFO = 861;     // S→C short điểm, byte bit mốc đã nhận, byte n,[UTF tên, short tiến độ, short đích, byte điểm có, byte điểm tối đa], byte m,[short cần, UTF thưởng], byte k,[UTF dòng lịch]

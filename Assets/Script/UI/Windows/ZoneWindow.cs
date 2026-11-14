@@ -72,8 +72,24 @@ namespace Assets.Script.UI.Windows
                     Data.GameActions.ChangeZone(id);
                     Hide();
                 }, 16);
-                b.image.color = id == _current ? UIKit.ButtonHot : UIKit.SlotColor;
-                b.interactable = id == _current || fill < 1f;
+                // kiểu chip tối bo góc (như nút HUD); khu đang ở = nền vàng chữ nâu; thanh nhỏ dưới đáy = độ đông
+                UIStyle.Chip(b, 16);
+                bool cur = id == _current;
+                b.image.color = cur ? UIStyle.Gold : new Color(0.16f, 0.17f, 0.28f, 0.95f);
+                var label = b.GetComponentInChildren<TextMeshProUGUI>(true);
+                if (cur && label != null)
+                {
+                    label.text = $"<b>Khu {id + 1}</b>\n<size=13>{n}/{max} · đang ở</size>";
+                    label.color = new Color(0.25f, 0.13f, 0.08f);
+                    label.fontSharedMaterial = label.font.material;
+                }
+                var bar = UIKit.Rect("Crowd", b.transform);
+                bar.Place(new Vector2(0, 0), new Vector2(0, 0), new Vector2(10, 5), new Vector2(Mathf.Max(4f, 92f * Mathf.Clamp01(fill)), 4), Vector2.zero);
+                var bi = bar.gameObject.AddComponent<Image>();
+                bi.raycastTarget = false;
+                ColorUtility.TryParseHtmlString(col, out var cc);
+                bi.color = cc;
+                b.interactable = cur || fill < 1f;
             }
         }
     }

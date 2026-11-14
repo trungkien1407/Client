@@ -27,6 +27,7 @@ namespace Assets.Script.Data
             Listen(Cmd.MAP_INFO, OnMapInfo);
             Listen(Cmd.ACTIVITY_INFO, OnActivityInfo);
             Listen(Cmd.QUEST_GUIDE, OnQuestGuide);
+            Listen(Cmd.WORLD_MAP, OnWorldMap);
             Listen(Cmd.GUIDE_TIP, OnGuideTip);
         }
 
@@ -194,6 +195,24 @@ namespace Assets.Script.Data
                 UI.GameHud.Banner(lo > 0 ? name + "\n<size=18><color=#ddd>Quái cấp " + lo + "–" + hi + "</color></size>" : name, 2.5f);
             Map.PortalMarkers.Show(portals);
             Combat.AutoPath.OnEnteredMap();   // đang "Tự đi" → hỏi server bước tiếp ở map mới
+        }
+
+        /// <summary>WORLD_MAP: short map đang đứng, byte n, [short id, UTF tên, byte an toàn, short cấp thấp, short cao, byte k, [short map nối] x k] x n</summary>
+        private void OnWorldMap(byte[] data)
+        {
+            var r = new MessageReader(data);
+            GameData.WorldMapHere = r.ReadShort();
+            int n = r.ReadByte();
+            GameData.WorldMap.Clear();
+            for (int i = 0; i < n; i++)
+            {
+                var m = new WorldMapNode { id = r.ReadShort(), name = r.ReadUTF(), safe = r.ReadByte() == 1, lvMin = r.ReadShort(), lvMax = r.ReadShort() };
+                m.links = new int[r.ReadByte()];
+                for (int k = 0; k < m.links.Length; k++) m.links[k] = r.ReadShort();
+                GameData.WorldMap.Add(m);
+            }
+            r.Cleanup();
+            GameData.Notify(DataKind.WorldMap);
         }
 
         private void OnActivityInfo(byte[] data)

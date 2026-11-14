@@ -172,6 +172,8 @@ namespace Assets.Script.Data
     public class ActivityMilestone { public int need; public string reward; }
     /// <summary>GĐ9 — 1 dòng sổ tay nhiệm vụ: status 0 đang làm / 1 có thể nhận / 2 xong chờ trả; where = nơi đến (server dựng).</summary>
     public class QuestGuideRow { public int questId, status; public bool daily; public string where; }
+    /// <summary>1 map trên bản đồ thế giới (WORLD_MAP): links = các map nối bằng cổng.</summary>
+    public class WorldMapNode { public int id, lvMin, lvMax; public string name; public bool safe; public int[] links; }
 
     /// <summary>Thông tin PvP của 1 người (PLAYER_PVP_INFO): chế độ, điểm PK, gia tộc → màu tên.</summary>
     public class PvpInfo { public int pkMode, pkPoint, glow, petArt, petStage; public bool riding; public string guild = ""; }   // glow = hào quang 0..3 theo cấp vũ khí · petArt/petStage = thú đang mang (GĐ27)
@@ -291,6 +293,9 @@ namespace Assets.Script.Data
         public static string GiftcodeMessage = "";
         public static bool OnlineClaimedAt(int i) => (OnlineClaimed & (1 << i)) != 0;
         public static readonly List<QuestGuideRow> QuestGuide = new List<QuestGuideRow>();
+        /// <summary>Bản đồ thế giới (server gửi khi mở tab "Thế giới") + map đang đứng.</summary>
+        public static readonly List<WorldMapNode> WorldMap = new List<WorldMapNode>();
+        public static int WorldMapHere = -1;
         // Chợ (MARKET_*)
         public static int MarketNpc = -1, MarketMax = 8, MarketFeePermil = 10, MarketTaxPercent = 5, MarketHours = 48;
         public static int MarketTotal, MarketPage;
@@ -374,7 +379,7 @@ namespace Assets.Script.Data
             MyPkMode = 0; Pvp.Clear(); TransformUntil.Clear(); Party.Clear(); PartyLeader = 0; Friends.Clear(); Mails.Clear(); OpenMail = null; MailUnread = 0;
             Guild.id = 0; Guild.members.Clear(); Tops.Clear();
             DungeonState = 0; EventState = 0; ArenaScore.Clear(); MaintEndTime = 0;
-            ActivityPoints = 0; ActivityClaimed = 0; Activities.Clear(); Milestones.Clear(); EventSchedule.Clear(); QuestGuide.Clear();
+            ActivityPoints = 0; ActivityClaimed = 0; Activities.Clear(); Milestones.Clear(); EventSchedule.Clear(); QuestGuide.Clear(); WorldMap.Clear(); WorldMapHere = -1;
             OnlineSeconds = 0; OnlineClaimed = 0; OnlineGifts.Clear(); GiftcodeMessage = "";
             MarketNpc = -1; MarketRows.Clear(); MarketMine.Clear(); MarketMessage = "";
             OnSessionReset?.Invoke();
@@ -385,7 +390,7 @@ namespace Assets.Script.Data
     {
         Templates, Character, Inventory, Equipment, Skills, Quests,
         Money, Storage, Upgrade, Trade, Party, Friends, Mails, Guild, Top, Pvp, Event,
-        Activity, QuestGuide, Market, Gem, Pets,
+        Activity, QuestGuide, Market, Gem, Pets, WorldMap,
         PartyHp   // chỉ máu / chakra / cấp đồng đội đổi (PARTY_HP, tới 5 lần/giây) — Party = danh sách nhóm đổi
     }
 }

@@ -51,6 +51,7 @@ namespace Assets.Script.Combat
             tmp.alignment = TextAlignmentOptions.Center;
             tmp.outlineWidth = 0.2f;
             tmp.outlineColor = Color.black;
+            Assets.Script.UI.Kit.UIStyle.Readable(tmp);   // viền + bóng đổ → đọc được cả trên nền trắng
             tmp.sortingOrder = 100; // vẽ đè lên nhân vật/quái
             var popup = go.AddComponent<DamagePopup>();
             popup._text = tmp;

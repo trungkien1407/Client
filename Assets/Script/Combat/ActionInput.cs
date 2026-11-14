@@ -15,6 +15,7 @@ namespace Assets.Script.Combat
     ///   quái  → đánh bằng chiêu đang chọn (GIỮ Enter = đánh liên tục)
     ///   NPC   → nói chuyện
     ///   người → mở bảng tương tác (giao dịch, nhóm, tỉ thí...) — muốn đánh người thì vẫn dùng J
+    ///   vật phẩm trên đất → NHẶT (J / nút Đánh cũng vào đây khi đang chọn vật phẩm — CombatInput.CastSelected)
     /// Chưa chọn mục tiêu → tự chọn quái gần nhất, không có quái thì NPC gần nhất.
     /// Mục tiêu ở XA → nhân vật tự chạy tới (PlayerMovement.AutoMoveX), tới nơi thì làm việc đó.
     /// Bấm phím di chuyển / mục tiêu mất / chết / quá 8 giây → thôi tự chạy.
@@ -63,6 +64,16 @@ namespace Assets.Script.Combat
             if (UI.Kit.UIRoot.GameplayBlocked) return;   // đang mở cửa sổ (nút Đánh cảm ứng cũng vào đây)
             if (LocalPlayerState.IsStunned) { ChatBox.AddSystem("Đang bị choáng!"); return; }
 
+            // Đang chọn vật phẩm → chạy tới nhặt (xét TRƯỚC chiêu hỗ trợ: CastSelected chuyển sang đây khi chọn vật phẩm → tránh gọi vòng)
+            var sel = CurrentTarget();
+            if (sel != null && sel.GetTargetType() == TargetType.Item)
+            {
+                var g = GroundItemNetwork.Instance;
+                if (g != null && !g.CanPick(sel.GetId())) { ChatBox.AddSystem("Vật phẩm của người khác — chờ thành đồ tự do (tên vàng) mới nhặt được."); return; }
+                if (InRange(me, sel)) { StopRun(); DoActionOn(sel); } else StartRun(sel);
+                return;
+            }
+
             // Chiêu hỗ trợ (hồi máu / tăng sức mạnh) lên bản thân + đồng đội: không cần mục tiêu, không chạy
             int skill = SelectedSkill();
             if (Data.GameData.Skills.TryGetValue(skill, out var tpl) && tpl.type == (int)Constants.SkillType.Support)
@@ -79,6 +90,21 @@ namespace Assets.Script.Combat
         }
 
         // ---------------------------------------------------------------- chọn mục tiêu
+        /// <summary>Mục tiêu người chơi đang chọn (còn tồn tại), không tự chọn thêm.</summary>
+        private ITargetable CurrentTarget()
+        {
+            if (_targeting == null) _targeting = FindAnyObjectByType<PlayerTargeting>();
+            var t = _targeting != null ? _targeting.currentTarget : null;
+            return Alive(t) ? t : null;
+        }
+
+        /// <summary>Đang chọn vật phẩm trên đất (CombatInput hỏi: J / nút Đánh lúc này = nhặt).</summary>
+        public static bool TargetIsItem()
+        {
+            var t = _instance != null ? _instance.CurrentTarget() : null;
+            return t != null && t.GetTargetType() == TargetType.Item;
+        }
+
         private ITargetable CurrentOrNearest(Vector3 from)
         {
             if (_targeting == null) _targeting = FindAnyObjectByType<PlayerTargeting>();
@@ -114,6 +140,7 @@ namespace Assets.Script.Combat
             {
                 case TargetType.Mob: return SkillCaster.SkillRange(SelectedSkill());
                 case TargetType.NPC: return Data.NpcNetwork.TalkRange;
+                case TargetType.Item: return 1.2f;   // đứng sát rồi nhặt (server cho tới 3 ô)
                 default: return 3f;   // người: đứng gần mới giao dịch / mời được (server TRADE_RANGE 6)
             }
         }
@@ -134,6 +161,7 @@ namespace Assets.Script.Combat
                 case TargetType.Mob: CombatInput.CastSelected(); break;
                 case TargetType.NPC: Data.GameActions.NpcTalk(t.GetId()); break;
                 case TargetType.Player: GameWindow.Get<PlayerActionWindow>().ShowFor(t.GetId(), t.GetTargetName()); break;
+                case TargetType.Item: GroundItemNetwork.Instance?.Pick(t.GetId()); break;
             }
         }
 

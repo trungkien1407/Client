@@ -325,6 +325,25 @@ namespace Assets.Script.Core
             {
                 Check($"Đồ rơi hiện icon thật của vật phẩm ({withIcon}/{drops})", withIcon > 0);
                 yield return Shot("GroundItems");
+                // NHẶT TAY: đi ngang không tự nhặt nữa → chọn vật phẩm làm mục tiêu + bấm đánh (J) → tự chạy tới nhặt
+                Interfaces.ITargetable item = null;
+                foreach (var t in FindObjectsByType<Transform>(FindObjectsSortMode.None))
+                    if (t.name.StartsWith("GroundItem_") && t.TryGetComponent(out Interfaces.ITargetable it)) { item = it; break; }
+                Check("Đồ rơi chọn được làm mục tiêu (có khung chọn + ITargetable)", item != null);
+                if (item != null && targeting != null)
+                {
+                    var label = ((Component)item).transform.Find("Label")?.GetComponent<TMPro.TextMeshPro>();
+                    Check("Đồ mình hạ (100% sát thương) rơi ra: mình nhặt được — tên trắng (của mình) hoặc vàng (đồ lặt vặt tự do), không xám", label != null && label.color.r > 0.95f && label.color.g > 0.8f);
+                    int bag0 = 0; foreach (var s0 in GameData.Inventory) bag0 += s0.qty;
+                    targeting.SelectTarget(item);
+                    Check("Chọn vật phẩm → ActionInput coi là mục tiêu Item", ActionInput.TargetIsItem());
+                    CombatInput.CastSelected();   // = bấm J
+                    int gid = item.GetId();
+                    yield return WaitUntil(() => !GroundItemNetwork.Instance.Has(gid), 8);
+                    yield return new WaitForSecondsRealtime(0.4f);
+                    int bag1 = 0; foreach (var s1 in GameData.Inventory) bag1 += s1.qty;
+                    Check($"Chọn vật phẩm + bấm đánh → chạy tới nhặt (túi {bag0} → {bag1})", !GroundItemNetwork.Instance.Has(gid) && bag1 > bag0);
+                }
             }
             else Debug.Log("[AutoTest] lần này không có đồ rơi — bỏ qua kiểm icon đồ rơi");
         }

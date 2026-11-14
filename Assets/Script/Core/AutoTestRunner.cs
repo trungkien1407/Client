@@ -143,6 +143,14 @@ namespace Assets.Script.Core
                 Application.Quit(_fail);
                 yield break;
             }
+            // "-bossshots": gọi 3 boss thế giới, đánh + chụp ảnh (báo cáo / slide) rồi thoát
+            if (Array.IndexOf(Environment.GetCommandLineArgs(), "-bossshots") >= 0)
+            {
+                yield return BossShots();
+                Debug.Log($"[AutoTest] KẾT QUẢ: {_pass} PASS, {_fail} FAIL");
+                Application.Quit(_fail);
+                yield break;
+            }
             if (Array.IndexOf(Environment.GetCommandLineArgs(), "-mountsonly") >= 0)
             {
                 yield return MountShots();
@@ -162,6 +170,7 @@ namespace Assets.Script.Core
             yield return CheckMobDeathFx();
             yield return CheckVillageDoor();
             yield return TestAutoPath();
+            yield return TestTabsAndWorldMap();
             yield return TestSession();
 
             // Skin bằng hình kho (chỉ khi máy có Resources/UISkin — demo nội bộ): khung cửa sổ, nút menu HUD thành icon

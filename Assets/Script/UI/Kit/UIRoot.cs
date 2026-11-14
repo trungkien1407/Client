@@ -104,6 +104,21 @@ namespace Assets.Script.UI.Kit
             }
         }
 
+        /// <summary>
+        /// BỎ FOCUS sau khi bấm nút: Unity giữ nút vừa bấm làm "đang chọn" → phím Enter (đánh / nói chuyện) bị EventSystem hiểu
+        /// là "bấm lại nút đó" (vd mở lại Chọn khu / Bản đồ) và phím mũi tên chuyển chọn sang nút khác. Cuối mỗi khung hình
+        /// bỏ chọn mọi thứ TRỪ ô nhập chữ (đang gõ) và danh sách thả xuống (Dropdown cần giữ chọn khi đang mở).
+        /// </summary>
+        private void LateUpdate()
+        {
+            var es = EventSystem.current;
+            var sel = es != null ? es.currentSelectedGameObject : null;
+            if (sel == null) return;
+            if (sel.GetComponent<TMPro.TMP_InputField>() != null || sel.GetComponent<InputField>() != null) return;
+            if (sel.GetComponentInParent<TMPro.TMP_Dropdown>() != null || sel.GetComponentInParent<Dropdown>() != null) return;
+            es.SetSelectedGameObject(null);
+        }
+
         private void Update()
         {
             if (Core.GameInput.Blocked) return;

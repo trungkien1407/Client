@@ -60,11 +60,12 @@ namespace Assets.Script.Map
                 var label = new GameObject("Name");
                 label.transform.SetParent(go.transform, false);
                 var t = label.AddComponent<TextMeshPro>();
-                t.text = p.side == 2 ? $"{p.target}\n<size=2.2>bấm ↓ để vào</size>" : p.target;
+                t.text = p.side == 2 ? $"{p.target}\n<size=2.2>bấm xuống để vào</size>" : p.target;
                 t.fontSize = 2.8f;
                 t.color = Color.white;
                 t.outlineWidth = 0.25f;
                 t.outlineColor = Color.black;
+                Assets.Script.UI.Kit.UIStyle.Readable(t);   // viền + bóng đổ → đọc được cả trên nền trắng
                 t.sortingOrder = 32;
                 t.enableWordWrapping = false;
                 var rt = t.rectTransform;

@@ -70,6 +70,7 @@ namespace Assets.Script.UI
             targetName.alignment = TextAlignmentOptions.Bottom;
             targetName.outlineWidth = 0.25f;                        // viền đen → nổi trên nền game
             targetName.outlineColor = new Color32(0, 0, 0, 255);
+            Assets.Script.UI.Kit.UIStyle.Readable(targetName);   // viền + bóng đổ → đọc được cả trên nền trắng
         }
 
         // ===============================================

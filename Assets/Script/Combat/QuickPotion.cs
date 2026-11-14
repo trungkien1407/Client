@@ -90,6 +90,7 @@ namespace Assets.Script.Combat
             label.fontSize = 18;
             label.fontStyle = FontStyles.Bold;
             label.outlineWidth = 0.25f;
+            Assets.Script.UI.Kit.UIStyle.Readable(label);   // viền + bóng đổ → đọc được cả trên nền trắng
             label.raycastTarget = false;
             go.AddComponent<QuickPotionCount>().Init(label, hp);
         }

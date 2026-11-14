@@ -43,6 +43,9 @@ namespace Assets.Script.Entities
             gameObject.name = $"NPC_{config.defaultName}_{config.templateId}";
             TemplateId = config.templateId;
             npcNameText.text = config.defaultName;
+            // Tên NPC trắng: thêm viền + bóng → không chìm vào trời / tuyết trắng. Gọi ở đây (không ở Awake): Awake của NpcEntity
+            // có thể chạy TRƯỚC Awake của chữ TextMeshPro con → chữ khởi tạo xong lại vẽ bằng vật liệu cũ (đã gặp: không thấy viền)
+            Assets.Script.UI.Kit.UIStyle.Readable(npcNameText);
             this.npcId = npcId;
 
             // Lấy ảnh tức thì từ Atlas. (Lưu ý: Không tốn chi phí I/O vì Atlas đã ở sẵn trong RAM)

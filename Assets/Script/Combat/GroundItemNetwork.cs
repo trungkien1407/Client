@@ -12,11 +12,14 @@ using UnityEngine.InputSystem;
 namespace Assets.Script.Combat
 {
     /// <summary>
-    /// ĐỒ RƠI + TÚI ĐỒ (bản tối giản để chơi được):
-    ///   ITEM_DROP   -> vẽ 1 ô vuông nhỏ + nhãn tại chỗ rơi
+    /// ĐỒ RƠI TRÊN ĐẤT + phím bình máu:
+    ///   ITEM_DROP   -> vẽ icon + tên tại chỗ rơi (có chủ / thời gian giữ cho chủ ở đuôi gói)
     ///   ITEM_REMOVE -> xoá
-    ///   Tự nhặt     : đứng gần (<= 1.2 đơn vị) -> gửi PICK_ITEM (server kiểm tầm 3.0 và quyền nhặt)
-    ///   Phím Q = dùng bình máu (item 1), E = bình chakra (item 2) — số lượng đọc từ GameData.Inventory
+    ///   NHẶT (2026-11-14): CHỌN vật phẩm làm mục tiêu (bấm chuột / Tab) rồi BẤM ĐÁNH (J / Enter / nút Đánh) → tự chạy tới và nhặt
+    ///     (ActionInput, loại mục tiêu Item). Không còn tự nhặt khi đi ngang — trừ lúc bật Tự động (AutoPlay) thì vẫn tự nhặt.
+    ///   LUẬT (server GroundItem): đồ sống 30 giây; 25 giây đầu chỉ người hạ quái nhặt được (tên trắng với chủ, XÁM với người khác),
+    ///     5 giây cuối thành đồ tự do (tên VÀNG) — ai nhặt trước được trước. Server mới là nơi quyết định, client chỉ tô màu cho dễ thấy.
+    ///   Phím Q = dùng bình máu, E = bình chakra (QuickPotion chọn bình hợp nhất trong túi)
     /// </summary>
     public class GroundItemNetwork : NetworkListener
     {
@@ -29,6 +32,23 @@ namespace Assets.Script.Combat
             public float dropX, dropY;   // chỗ rơi server gửi (hình có thể dời sang bên cho khỏi chồng)
             public GameObject go;
             public float lastPickTry = -10f;
+            public int ownerId = -1;     // người hạ quái (-1 = không chủ)
+            public float freeAt;         // Time.time lúc thành đồ tự do (server gửi "còn bao nhiêu ms")
+            public int shownState = -1;  // màu tên đang vẽ: 0 của mình · 1 khoá (của người khác) · 2 tự do
+        }
+
+        /// <summary>Mình nhặt được món này lúc này không (theo dữ liệu server gửi — server vẫn kiểm lại).</summary>
+        private static bool CanPick(GroundItem it) => it.ownerId < 0 || it.ownerId == LocalPlayerState.Id || Time.time >= it.freeAt;
+
+        /// <summary>Món {id} mình nhặt được ngay không (ActionInput hỏi trước khi chạy tới).</summary>
+        public bool CanPick(int id) => _items.TryGetValue(id, out var it) && CanPick(it);
+
+        /// <summary>Gửi PICK_ITEM (giãn 0,5 giây giữa 2 lần cho cùng 1 món).</summary>
+        public void Pick(int id)
+        {
+            if (!_items.TryGetValue(id, out var it) || Time.time - it.lastPickTry < 0.5f) return;
+            it.lastPickTry = Time.time;
+            Data.GameActions.PickItem(id);
         }
 
         private readonly Dictionary<int, GroundItem> _items = new Dictionary<int, GroundItem>();
@@ -50,7 +70,7 @@ namespace Assets.Script.Combat
             float best = radius * radius;
             foreach (var it in _items.Values)
             {
-                if (it.go == null || (skip != null && skip(it.id))) continue;
+                if (it.go == null || !CanPick(it) || (skip != null && skip(it.id))) continue;   // đồ người khác còn khoá → bỏ
                 float sqr = ((Vector2)(it.go.transform.position - from)).sqrMagnitude;
                 if (sqr >= best) continue;
                 best = sqr; id = it.id; pos = it.go.transform.position;
@@ -74,7 +94,8 @@ namespace Assets.Script.Combat
             var local = NetworkPlayerManager.Instance != null ? NetworkPlayerManager.Instance.localPlayer : null;
             if (local == null || LocalPlayerState.IsDead) return;
 
-            AutoPick(local.transform.position);
+            if (AutoPlay.IsOn) AutoPick(local.transform.position);   // tay: chọn vật phẩm + bấm đánh (ActionInput)
+            RefreshLabels();
 
             // Q / E: tự chọn bình hợp nhất trong túi (trước đây chỉ Bình Nhỏ id 1 / 2)
             if (GameInput.Pressed(GameKey.PotionHp)) QuickPotion.Use(true);
@@ -85,7 +106,7 @@ namespace Assets.Script.Combat
         {
             foreach (var it in _items.Values)
             {
-                if (Time.time - it.lastPickTry < PickRetrySeconds) continue;
+                if (Time.time - it.lastPickTry < PickRetrySeconds || !CanPick(it)) continue;
                 if (((Vector2)(it.go.transform.position - playerPos)).sqrMagnitude > PickRadius * PickRadius) continue;
 
                 it.lastPickTry = Time.time;
@@ -93,13 +114,36 @@ namespace Assets.Script.Combat
             }
         }
 
-        /// <summary>ITEM_DROP: int groundId, int templateId, int qty, float x, float y</summary>
+        private float _nextLabels;
+
+        /// <summary>Tô lại tên đồ rơi khi quyền nhặt đổi (hết 25 giây → đồ tự do). 4 lần / giây là đủ.</summary>
+        private void RefreshLabels()
+        {
+            if (Time.time < _nextLabels) return;
+            _nextLabels = Time.time + 0.25f;
+            foreach (var it in _items.Values)
+            {
+                int state = it.ownerId < 0 || Time.time >= it.freeAt ? 2 : it.ownerId == LocalPlayerState.Id ? 0 : 1;
+                if (state == it.shownState || it.go == null) continue;
+                it.shownState = state;
+                var label = it.go.transform.Find("Label")?.GetComponent<TextMeshPro>();
+                if (label != null) label.color = state == 0 ? Color.white : state == 1 ? new Color(0.6f, 0.6f, 0.6f) : new Color(1f, 0.85f, 0.3f);
+            }
+        }
+
+        /// <summary>ITEM_DROP: int groundId, int templateId, int qty, float x, float y, đuôi: int ownerId, int ms giữ cho chủ, int ms còn sống</summary>
         private void OnItemDrop(byte[] data)
         {
             var r = new MessageReader(data);
             var it = new GroundItem { id = r.ReadInt(), templateId = r.ReadInt(), qty = r.ReadInt() };
             float x = r.ReadFloat();
             float y = r.ReadFloat();
+            if (r.Available() >= 12)   // server cũ không gửi đuôi → coi như đồ tự do
+            {
+                it.ownerId = r.ReadInt();
+                it.freeAt = Time.time + r.ReadInt() / 1000f;
+                r.ReadInt();   // ms còn sống (chưa dùng — server tự gửi ITEM_REMOVE khi hết)
+            }
             r.Cleanup();
 
             if (_items.ContainsKey(it.id)) return;
@@ -111,6 +155,7 @@ namespace Assets.Script.Combat
             float offset = near == 0 ? 0f : (near % 2 == 1 ? 1f : -1f) * ((near + 1) / 2) * 0.9f;
             it.dropX = x; it.dropY = y;
             it.go = CreateVisual(it, new Vector3(x + offset, y, 0f));
+            AddTarget(it);
             if (near % 2 == 1) { var lb = it.go.transform.Find("Label"); if (lb != null) lb.localPosition += new Vector3(0f, 0.35f, 0f); }
             _items[it.id] = it;
         }
@@ -194,8 +239,62 @@ namespace Assets.Script.Combat
             tmp.enableWordWrapping = false;
             tmp.outlineWidth = 0.25f;
             tmp.outlineColor = Color.black;
+            Assets.Script.UI.Kit.UIStyle.Readable(tmp);   // viền + bóng đổ → đọc được cả trên nền trắng
             tmp.sortingOrder = 6;
             return go;
+        }
+
+        // ---------------------------------------------------------------- chọn làm mục tiêu
+        private static int _targetLayer = -1;
+
+        /// <summary>
+        /// Cho đồ rơi CHỌN ĐƯỢC như quái: khung va chạm "trigger" (không cản ai) nằm trên layer mà PlayerTargeting quét
+        /// (click chuột = Raycast, Tab = OverlapCircle chỉ bắt layer trong targetableLayer) + thành phần ITargetable.
+        /// </summary>
+        private static void AddTarget(GroundItem it)
+        {
+            if (_targetLayer < 0)
+            {
+                var targeting = FindAnyObjectByType<PlayerTargeting>();
+                int mask = targeting != null ? targeting.targetableLayer.value : 0;
+                for (int i = 0; i < 32 && _targetLayer < 0; i++) if ((mask & (1 << i)) != 0) _targetLayer = i;
+                if (_targetLayer < 0) return;   // chưa có PlayerTargeting (chưa vào game) → lần sau thử lại
+            }
+            it.go.layer = _targetLayer;
+            var box = it.go.AddComponent<BoxCollider2D>();
+            box.isTrigger = true;
+            box.size = new Vector2(1.1f, 1.3f);
+            box.offset = new Vector2(0f, 0.55f);
+            var t = it.go.AddComponent<GroundItemTarget>();
+            t.Init(it.id, it.go.transform.Find("Label")?.GetComponent<TextMeshPro>());
+        }
+
+        /// <summary>Đồ rơi làm mục tiêu: tên lên thanh mục tiêu, đang chọn thì tên xanh lá + to hơn chút.</summary>
+        private class GroundItemTarget : MonoBehaviour, Interfaces.ITargetable
+        {
+            private int _id;
+            private TextMeshPro _label;
+            private Color _before;
+
+            public void Init(int id, TextMeshPro label) { _id = id; _label = label; }
+            public int GetId() => _id;
+            public string GetTargetName() => _label != null ? _label.text : "Vật phẩm";
+            public Interfaces.TargetType GetTargetType() => Interfaces.TargetType.Item;
+            public Transform GetTransform() => transform;
+
+            public void OnTargeted()
+            {
+                if (_label == null) return;
+                _before = _label.color;
+                _label.color = new Color(0.45f, 1f, 0.45f);
+                transform.localScale = Vector3.one * 1.15f;
+            }
+
+            public void OnDeselected()
+            {
+                transform.localScale = Vector3.one;
+                if (_label != null) _label.color = _before;
+            }
         }
 
         /// <summary>Ảnh trắng vuông (8 px) hoặc tròn mờ mép (bóng đổ), gốc ở giữa.</summary>

@@ -57,7 +57,7 @@ namespace Assets.Script.UI
                 _shownZone = LocalPlayerState.ZoneId;
                 _shownMap = GameData.MapName;
                 string zone = _shownZone == Constants.ZoneIds.Private ? "Khu riêng" : $"Khu {_shownZone + 1}";
-                _v.zoneBtn.SetLabel(string.IsNullOrEmpty(_shownMap) ? zone + " (đổi)" : $"{_shownMap} · {zone}"); // GĐ8: tên map
+                _v.zoneBtn.SetLabel(string.IsNullOrEmpty(_shownMap) ? zone + " (đổi)" : $"<b>{_shownMap}</b>  <color=#ffd56b>{zone}</color>"); // GĐ8: tên map
             }
         }
 
@@ -80,14 +80,16 @@ namespace Assets.Script.UI
             _leaveDungeon = UIKit.Button("LeaveDungeon", _v.eventPanel.transform, "Rời", () =>
                 ConfirmWindow.Ask("Rời phó bản về làng? Lượt hôm nay đã dùng, không được trả lại.", "Rời", GameActions.DungeonLeave), 14);
             ((RectTransform)_leaveDungeon.transform).Place(new Vector2(1, 1), new Vector2(1, 1), new Vector2(-4, -4), new Vector2(56, 30), new Vector2(1, 1));
-            HudMenuIcons.Apply(_v, MinimapWidth);   // có hình kho → 12 nút menu thành icon (không có → giữ nút chữ)   // icon choáng / chậm / bỏng / tăng sức mạnh / phân thân (cạnh ô cấp)
+            if (!HudMenuIcons.Apply(_v, MinimapWidth)) HudMenuIcons.LayoutText(_v, MinimapWidth);
+            CharacterTabs.Init();                          // Nhân vật · Hành trang · Kỹ năng · Thú cưng = 1 cửa sổ có tab
+            StyleRightColumn();   // có hình kho → 12 nút menu thành icon (không có → giữ nút chữ)   // icon choáng / chậm / bỏng / tăng sức mạnh / phân thân (cạnh ô cấp)
 
             // Hành động nút menu — cùng thứ tự GameHudView.MenuLabels
             System.Action[] actions =
             {
-                () => GameWindow.Get<CharacterWindow>().Toggle(),
-                () => GameWindow.Get<InventoryWindow>().Toggle(),
-                () => GameWindow.Get<SkillWindow>().Toggle(),
+                CharacterTabs.Toggle,                           // mở tab gần nhất (Nhân vật / Hành trang / Kỹ năng / Thú cưng)
+                () => CharacterTabs.Open(1),                    // (nút đã ẩn — giữ đúng thứ tự)
+                () => CharacterTabs.Open(2),
                 () => GameWindow.Get<QuestWindow>().Toggle(),
                 NpcNetwork.TalkToNearest,
                 () => GameWindow.Get<ActivityWindow>().Toggle(),
@@ -134,6 +136,16 @@ namespace Assets.Script.UI
             GameActions.ActivityRequest(); // lấy điểm hoạt động ngay khi vào game → nút hiện "!" nếu có rương chưa nhận
             UpdateExp(); UpdateMoney(); UpdatePk(); UpdateParty(); UpdateQuests();
             TutorialWindow.ShowIfFirstTime(); // lần đầu nhân vật này vào game
+        }
+
+        /// <summary>
+        /// Cột phải dưới minimap: nút "Tên map · Khu" thành chip tối viền vàng (trước là nút kem vuông thô), minimap có viền bo góc.
+        /// </summary>
+        private void StyleRightColumn()
+        {
+            UIStyle.Chip(_v.zoneBtn, 14);
+            var mini = _v.transform.Find("Minimap") ?? _v.transform.Find("MinimapHud");
+            if (mini != null) UIStyle.AddRing(mini, UIStyle.ChipBorder, 2f);
         }
 
         private void UpdateExp()

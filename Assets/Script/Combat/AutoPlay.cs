@@ -152,7 +152,7 @@ namespace Assets.Script.Combat
                 return false;
             }
             if (item != _itemId) { _itemId = item; _itemSince = Time.time; ResetStuck(me); }
-            if (Mathf.Abs(pos.x - me.transform.position.x) < 0.5f && Mathf.Abs(pos.y - me.transform.position.y) < 1f) me.AutoMoveX = 0f;   // đứng sát → chờ tự nhặt
+            if (Mathf.Abs(pos.x - me.transform.position.x) < 0.5f && Mathf.Abs(pos.y - me.transform.position.y) < 1f) me.AutoMoveX = 0f;   // đứng sát → GroundItemNetwork tự nhặt (chỉ khi bật Tự động)
             else Steer(me, pos);
             return true;
         }

@@ -69,5 +69,67 @@ namespace Assets.Script.Core
             if (dlg != null && dlg.IsOpen) dlg.Hide();
             AutoPath.Stop();
         }
+
+        /// <summary>
+        /// Bỏ focus nút sau khi bấm (Enter không bấm lại nút) · cửa sổ Nhân vật có tab · chữ tên NPC có viền + bóng ·
+        /// bản đồ Thế giới: đủ map, bấm 1 map → "Tự đi tới đây" → tự sang map đó.
+        /// </summary>
+        private IEnumerator TestTabsAndWorldMap()
+        {
+            // 1. Focus: nút vừa bấm bị EventSystem giữ "đang chọn" → cuối khung hình UIRoot bỏ chọn
+            var zone = GameObject.Find("Zone");
+            if (zone != null && UnityEngine.EventSystems.EventSystem.current != null)
+            {
+                UnityEngine.EventSystems.EventSystem.current.SetSelectedGameObject(zone);
+                yield return null; yield return null;
+                Check("Bấm nút xong không giữ focus (Enter không mở lại cửa sổ)", UnityEngine.EventSystems.EventSystem.current.currentSelectedGameObject == null);
+            }
+
+            // 2. Nhân vật · Hành trang · Kỹ năng · Thú cưng = 1 cửa sổ có tab
+            var menuBag = GameObject.Find("Menu1");
+            Check("HUD bỏ nút Túi / Kỹ năng riêng (gộp vào nút Nhân vật)", menuBag == null || !menuBag.activeInHierarchy);
+            CharacterTabs.Open(0);
+            yield return new WaitForSecondsRealtime(0.3f);
+            var cw = GameWindow.Get<CharacterWindow>();
+            var pos = ((RectTransform)cw.transform).anchoredPosition;
+            var tab1 = cw.transform.Find("Tabs/Tab1")?.GetComponent<UnityEngine.UI.Button>();
+            Check("Cửa sổ Nhân vật có hàng tab phía trên", tab1 != null && tab1.gameObject.activeInHierarchy);
+            tab1?.onClick.Invoke();
+            yield return new WaitForSecondsRealtime(0.3f);
+            var iw = GameWindow.Get<InventoryWindow>();
+            Check("Bấm tab Hành trang → đổi sang Hành trang tại đúng chỗ, tab cũ đóng",
+                iw.IsOpen && !cw.IsOpen && ((RectTransform)iw.transform).anchoredPosition == pos);
+            yield return Shot("CharTabs");
+            iw.transform.Find("Tabs/Tab2")?.GetComponent<UnityEngine.UI.Button>()?.onClick.Invoke();
+            yield return new WaitForSecondsRealtime(0.3f);
+            Check("Tab Kỹ năng mở được từ hàng tab", GameWindow.Get<SkillWindow>().IsOpen && !iw.IsOpen);
+            CharacterTabs.Toggle();
+            yield return null;
+            Check("Nút Nhân vật trên HUD bấm lần nữa → đóng", !GameWindow.Get<SkillWindow>().IsOpen);
+
+            // 3. Chữ tên NPC: vật liệu ĐANG VẼ (Renderer, không phải chỉ trường của TMP) có viền + bóng
+            var npc = Object.FindObjectsByType<Assets.Script.Entities.NpcEntity>(FindObjectsSortMode.None).FirstOrDefault();
+            var npcText = npc != null ? npc.GetComponentInChildren<TMPro.TextMeshPro>(true) : null;
+            Check("Tên NPC có viền + bóng đổ (đọc được trên nền trắng)", npcText == null || npcText.GetComponent<Renderer>().sharedMaterial.name.Contains("Readable"));
+
+            // 4. Bản đồ thế giới
+            GameActions.Chat(1, "/tele 1");
+            yield return WaitUntil(() => GameData.MapName == "Làng Lá", 8);
+            yield return new WaitForSecondsRealtime(1f);
+            var wm = GameWindow.Open<WorldMapWindow>();
+            if (!wm.ShowingWorld) wm.transform.Find("Body/TabWorld")?.GetComponent<UnityEngine.UI.Button>()?.onClick.Invoke();
+            yield return WaitUntil(() => wm.WorldNodeCount > 0 && GameData.WorldMapHere == 1, 5);
+            yield return new WaitForSecondsRealtime(0.3f);
+            Check($"Bản đồ thế giới: {wm.WorldNodeCount} map (không tính phó bản), đang ở Làng Lá", wm.ShowingWorld && wm.WorldNodeCount >= 11 && GameData.WorldMapHere == 1);
+            yield return Shot("WorldMap_World");
+            bool go = wm.ClickGo(2);
+            Check("Bấm Đồi Hoa Cúc → 'Tự đi tới đây' → đóng bản đồ, bắt đầu tự đi", go && !wm.IsOpen && AutoPath.IsActive);
+            yield return WaitUntil(() => GameData.MapName == "Đồi Hoa Cúc", 40);
+            yield return WaitUntil(() => !AutoPath.IsActive, 5);
+            Check($"Tự đi qua cổng sang Đồi Hoa Cúc rồi dừng ({AutoPath.LastText})", GameData.MapName == "Đồi Hoa Cúc" && !AutoPath.IsActive && AutoPath.LastText.Contains("Đã tới"));
+            AutoPath.Stop();
+            GameActions.Chat(1, "/tele 1");
+            yield return WaitUntil(() => GameData.MapName == "Làng Lá", 8);
+        }
     }
 }

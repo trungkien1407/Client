@@ -14,14 +14,14 @@ namespace Assets.Script.UI
     {
         public static readonly Vector2 Pos = AutoHud.Pos + new Vector2(0, -AutoHud.Size.y - 8), Size = AutoHud.Size;
         private Button _btn;
-        private Color _normal;
-        private bool _hasNormal, _shownRiding, _first = true;
+        private bool _shownRiding, _first = true;
         private float _next;
 
         public static MountHud Create(Transform parent)
         {
             var btn = UIKit.Button("MountBtn", parent, "Cưỡi (R)", Fx.PetMount.ToggleLocal, 14);
             ((RectTransform)btn.transform).Place(new Vector2(1, 1), new Vector2(1, 1), Pos, Size, new Vector2(1, 1));
+            UIStyle.Chip(btn, 14);
             var hud = btn.gameObject.AddComponent<MountHud>();
             hud._btn = btn;
             return hud;
@@ -42,10 +42,8 @@ namespace Assets.Script.UI
             if (riding == _shownRiding && !_first) return;
             _first = false;
             _shownRiding = riding;
-            // Màu gốc lấy ở lần đổi đầu tiên: UISkin tô nút SAU Start — lấy sớm sẽ ra màu chưa skin
-            if (!_hasNormal && img != null) { _normal = img.color; _hasNormal = true; }
             _btn.SetLabel(riding ? "Xuống (R)" : "Cưỡi (R)");
-            if (img != null) img.color = riding ? UIKit.ButtonHot : _normal;
+            UIStyle.SetChipOn(_btn, riding);
         }
     }
 }

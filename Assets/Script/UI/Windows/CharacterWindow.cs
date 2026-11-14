@@ -62,9 +62,7 @@ namespace Assets.Script.UI.Windows
                 _add5[i].onClick.AddListener(() => GameActions.AddPotential(stat, (short)Mathf.Min(5, GameData.Me.potential)));
             }
             GameData.OnChanged += k => { if (k == DataKind.Character) RefreshIfOpen(); };
-            // GĐ27: nút mở cửa sổ Thú cưng (góc phải trên, cạnh tên nhân vật) — prefab cũ không có → tạo bằng code
-            var pet = UIKit.Button("PetBtn", Body, "Thú cưng (P)", () => Get<PetWindow>().Toggle(), 15);
-            ((RectTransform)pet.transform).Place(new Vector2(1, 1), new Vector2(1, 1), Vector2.zero, new Vector2(140, 34), new Vector2(1, 1));
+            // Thú cưng / Hành trang / Kỹ năng: chuyển bằng tab phía trên cửa sổ (CharacterTabs) — không cần nút riêng nữa
         }
 
         protected override void Refresh()

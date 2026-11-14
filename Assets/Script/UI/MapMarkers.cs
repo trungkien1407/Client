@@ -78,6 +78,7 @@ namespace Assets.Script.UI
                 t.raycastTarget = false;
                 t.outlineWidth = 0.25f;
                 t.outlineColor = Color.black;
+                Assets.Script.UI.Kit.UIStyle.Readable(t);   // viền + bóng đổ → đọc được cả trên nền trắng
                 _texts.Add(t);
             }
             var tx = _texts[_text++];

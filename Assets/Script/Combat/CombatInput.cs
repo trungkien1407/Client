@@ -30,6 +30,7 @@ namespace Assets.Script.Combat
         public static void CastSelected()
         {
             if (UI.Kit.UIRoot.GameplayBlocked) return;   // đang mở túi / shop... → không đánh (cả nút cảm ứng)
+            if (ActionInput.TargetIsItem()) { ActionInput.Act(); return; }   // đang chọn vật phẩm → bấm đánh = chạy tới nhặt
             if (SkillBarManager.Instance != null) SkillCaster.TryCast(SkillBarManager.Instance.GetSelectedSkillId());
         }
 
