@@ -91,6 +91,14 @@ namespace Assets.Script.Core
             yield return new WaitForSecondsRealtime(2f); // để AppFlowManager kết nối + CHECK_VERSION
             var auth = FindAnyObjectByType<GameAuthManager>();
             Check("Có màn hình đăng nhập", auth != null);
+            // "-guest": chỉ chạy luồng chơi khách + xác thực tài khoản (AutoTestRunner.Guest) rồi thoát
+            if (auth != null && Array.IndexOf(Environment.GetCommandLineArgs(), "-guest") >= 0)
+            {
+                yield return GuestFlow(auth);
+                Debug.Log($"[AutoTest] KẾT QUẢ: {_pass} PASS, {_fail} FAIL");
+                Application.Quit(_fail);
+                yield break;
+            }
             if (auth != null)
             {
                 // 0. Các khung màn đăng nhập (dàn lại bằng Tools/Naruto/UI/4) — chụp + kiểm nối dây
@@ -115,6 +123,10 @@ namespace Assets.Script.Core
                 auth.ShowLoginForm(Arg("-user", "clientbot"));
                 yield return Shot("00_login"); // form đăng nhập + nút "Ghi nhớ đăng nhập"
                 Check("Ghi nhớ đăng nhập mặc định bật", SavedLogin.Remember);
+                Check("Màn đăng nhập mới: nút \"Chơi ngay (khách)\" + ô tích ghi nhớ + icon ô nhập",
+                    GameObject.Find("GuestPlay") != null && GameObject.Find("RememberLogin/Box") != null && GameObject.Find("FieldIcon") != null);
+                Check("Đăng ký thường không được dùng tên bắt đầu \"khach_\" (dành cho tài khoản khách)",
+                    AuthMessages.CheckRegisterForm("khach_abc", "123456", "123456", "a@b.cc") != null);
                 auth.AutoLogin(Arg("-user", "clientbot"), Arg("-pass", "test1234"));
             }
 

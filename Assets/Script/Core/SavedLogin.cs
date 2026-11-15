@@ -80,6 +80,32 @@ namespace Assets.Script.Core
             PlayerPrefs.Save();
         }
 
+        // ===================== Tài khoản khách (2026-11-15) =====================
+        // Lưu RIÊNG, không phụ thuộc nút "Ghi nhớ": tên + mật khẩu ngẫu nhiên do server cấp, người chơi không biết → mất là mất
+        // luôn nhân vật. Cũng mã hoá AES theo máy như trên. Xác thực xong (đặt tài khoản thật) → ClearGuest.
+        private const string KeyGuestUser = "GuestUser";
+        private const string KeyGuestPass = "GuestPassEnc";
+
+        public static string GuestUser => PlayerPrefs.GetString(KeyGuestUser, "");
+        public static bool HasGuest => !string.IsNullOrEmpty(GuestUser) && !string.IsNullOrEmpty(LoadGuestPassword());
+
+        public static void SaveGuest(string user, string password)
+        {
+            if (string.IsNullOrEmpty(user) || string.IsNullOrEmpty(password)) return;
+            PlayerPrefs.SetString(KeyGuestUser, user);
+            PlayerPrefs.SetString(KeyGuestPass, Encrypt(password));
+            PlayerPrefs.Save();
+        }
+
+        public static string LoadGuestPassword() => Decrypt(PlayerPrefs.GetString(KeyGuestPass, "")) ?? "";
+
+        public static void ClearGuest()
+        {
+            PlayerPrefs.DeleteKey(KeyGuestUser);
+            PlayerPrefs.DeleteKey(KeyGuestPass);
+            PlayerPrefs.Save();
+        }
+
         // ===================== Mã hoá =====================
 
         private static byte[] _encKey, _macKey;

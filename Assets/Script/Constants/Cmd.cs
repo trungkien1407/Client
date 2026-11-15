@@ -15,6 +15,9 @@
         public const short LOGOUT = 3;
         public const short HEARTBEAT = 4;           // C→S giữ kết nối (server kick nếu im > 60s)
         public const short CREATE_CHARACTER = 5;
+        public const short GUEST_CREATE = 9;        // C→S (rỗng) · S→C short status (0 + UTF tên + UTF mật khẩu · 4 spam + int giây · 5 bản cũ · 6 bảo trì · 7 IP tạo quá nhiều + int giây · -1 lỗi)
+        public const short ACCOUNT_VERIFY = 10;     // C→S UTF tên, UTF mật khẩu, UTF email · S→C short status (0 + UTF tên mới · 1 sai định dạng / tên "khach_" · 2 trùng · 3 email sai · 4 chưa đủ điều kiện · 5 không phải khách · 7 spam + int giây · -1 lỗi)
+        public const short ACCOUNT_INFO = 11;       // S→C byte isGuest, byte canVerify (vào game + khi khách lên cấp / trả nhiệm vụ)
         public const short CHANGE_PASSWORD = 8;     // C→S UTF cũ, UTF mới · S→C short status (0 xong · 1 mới sai độ dài · 2 sai cũ + int còn thử · 3 đợi + int giây · -1 lỗi)
         public const short CLIENT_ERROR = 6;        // C→S UTF version, UTF platform, UTF message, UTF stack — Core/ErrorReporter gửi khi game gặp lỗi
         public const short SERVER_NOTICE = 7;       // S→C byte type(1 thông báo/2 đếm ngược bảo trì/3 huỷ bảo trì/4 bị đưa ra vì bảo trì), int secs, UTF text

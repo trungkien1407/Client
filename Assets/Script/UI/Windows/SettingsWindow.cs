@@ -108,6 +108,7 @@ namespace Assets.Script.UI.Windows
                 PlaceAutoButton();
             }
             _pets.onClick.AddListener(() => { Fx.PetMount.ShowOthers = !Fx.PetMount.ShowOthers; Refresh(); });
+            BuildVerifyButton();
             _auto.onClick.AddListener(() => { Hide(); Open<AutoWindow>(); });
             _password.onClick.AddListener(() => { Hide(); Get<ChangePasswordWindow>().Open(); });
             _logout.onClick.AddListener(() =>
@@ -179,6 +180,21 @@ namespace Assets.Script.UI.Windows
             var names = QualitySettings.names;
             _quality.text = names.Length > 0 ? names[QualitySettings.GetQualityLevel()] : "-";
             if (_pets != null) _pets.SetLabel(Fx.PetMount.ShowOthers ? $"Thú người khác: HIỆN (tối đa {Fx.PetMount.MaxOthers} con gần nhất)" : "Thú người khác: ẨN (nhẹ máy)");
+            // Tài khoản khách: không có mật khẩu tự đặt → ẩn "Đổi mật khẩu"; đủ điều kiện (nhiệm vụ đầu / cấp 3) → hiện "Xác thực" ở đúng ô đó
+            if (_password != null) _password.gameObject.SetActive(!GameData.IsGuest);
+            if (_verify != null) _verify.gameObject.SetActive(GameData.IsGuest && GameData.CanVerify);
+        }
+
+        private Button _verify;
+
+        /// <summary>Nút "Xác thực" (tạo lúc chạy, nằm đúng ô của "Đổi mật khẩu", có icon khiên).</summary>
+        private void BuildVerifyButton()
+        {
+            _verify = UIKit.Button("Verify", Body, "     Xác thực", () => { Hide(); Get<AccountVerifyWindow>().Open(); }, 15);
+            Bottom(_verify, 0);
+            _verify.image.color = UIKit.ButtonHot;
+            UIIcons.Add(_verify.transform, UIIcons.Shield, 20, Color.white, new Vector2(-44, 0));
+            _verify.gameObject.SetActive(false);
         }
     }
 }

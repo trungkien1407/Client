@@ -42,6 +42,32 @@ namespace Assets.Script.Manager
             _ => "Lỗi máy chủ!"
         };
 
+        /// <summary>GUEST_CREATE (status ≠ 0). {extra}: số giây phải đợi (mã 4, 7).</summary>
+        public static string Guest(short status, int extra = -1) => status switch
+        {
+            4 => $"Mạng của bạn thử quá nhiều lần. Đợi {WaitText(extra)} rồi thử lại.",
+            5 => "Bản cài đặt đã cũ. Vui lòng cập nhật game lên phiên bản mới nhất!",
+            6 => "Máy chủ đang bảo trì. Vui lòng quay lại sau.",
+            7 => $"Mạng này đã tạo nhiều tài khoản khách. Đợi {WaitText(extra)} hoặc đăng ký tài khoản.",
+            _ => "Không tạo được tài khoản khách. Thử lại sau."
+        };
+
+        /// <summary>ACCOUNT_VERIFY (status ≠ 0). {extra}: số giây phải đợi (mã 7).</summary>
+        public static string Verify(short status, int extra = -1) => status switch
+        {
+            1 => "Tài khoản 4–32 ký tự (chữ không dấu, số, _), không bắt đầu bằng \"khach_\"; mật khẩu 6–64 ký tự.",
+            2 => "Tài khoản hoặc email đã được dùng!",
+            3 => "Email không hợp lệ.",
+            4 => "Cần xong nhiệm vụ đầu tiên hoặc đạt cấp 3 mới xác thực được.",
+            5 => "Tài khoản này đã xác thực rồi.",
+            7 => $"Thử quá nhiều lần. Đợi {WaitText(extra)} rồi thử lại.",
+            _ => "Máy chủ bận, thử lại sau."
+        };
+
+        /// <summary>Tên tài khoản khách server tạo luôn bắt đầu bằng chữ này (người đăng ký thường không được dùng).</summary>
+        public const string GuestPrefix = "khach_";
+        public static bool IsGuestName(string user) => !string.IsNullOrEmpty(user) && user.StartsWith(GuestPrefix, System.StringComparison.OrdinalIgnoreCase);
+
         /// <summary>
         /// Kiểm form đăng ký ở máy trước khi gửi (luật khớp RegisterHandler server). Trả null = hợp lệ, khác = lời báo lỗi.
         /// </summary>
@@ -51,6 +77,7 @@ namespace Assets.Script.Manager
                 return "Vui lòng điền đầy đủ thông tin!";
             if (user.Length < 4 || user.Length > 32 || !System.Text.RegularExpressions.Regex.IsMatch(user, "^[A-Za-z0-9_]+$"))
                 return "Tài khoản 4–32 ký tự, chỉ gồm chữ không dấu, số và _.";
+            if (IsGuestName(user)) return "Tên bắt đầu bằng \"khach_\" dành cho tài khoản khách, hãy chọn tên khác.";
             if (pass.Length < 6 || pass.Length > 64) return "Mật khẩu 6–64 ký tự.";
             if (pass != confirm) return "Mật khẩu nhập lại không khớp.";
             if (email.Length > 100 || !System.Text.RegularExpressions.Regex.IsMatch(email, @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"))

@@ -23,6 +23,10 @@ namespace Assets.Script.Data
         public static void Login(string user, string pass) => Send(Cmd.LOGIN, w => { w.WriteUTF(user); w.WriteUTF(pass); });
         /// <summary>Đổi mật khẩu khi đang đăng nhập (Cài đặt → Đổi mật khẩu). Kết quả: AccountNetwork.</summary>
         public static void ChangePassword(string oldPass, string newPass) => Send(Cmd.CHANGE_PASSWORD, w => { w.WriteUTF(oldPass); w.WriteUTF(newPass); });
+        /// <summary>Chơi khách: xin server tạo tài khoản khách (tên + mật khẩu ngẫu nhiên). Kết quả: GameAuthManager.</summary>
+        public static void GuestCreate() => Send(Cmd.GUEST_CREATE, w => { });
+        /// <summary>Khách xác thực tài khoản (Cài đặt → Xác thực tài khoản): đặt tên đăng nhập + mật khẩu + email thật. Kết quả: AccountNetwork.</summary>
+        public static void AccountVerify(string user, string pass, string email) => Send(Cmd.ACCOUNT_VERIFY, w => { w.WriteUTF(user); w.WriteUTF(pass); w.WriteUTF(email); });
         public static void Register(string user, string pass, string email) => Send(Cmd.REGISTER, w => { w.WriteUTF(user); w.WriteUTF(pass); w.WriteUTF(email); });
         /// <param name="classId">1 Đấu sĩ · 2 Hỗ trợ · 3 Sát thủ</param>
         public static void CreateCharacter(string name, int classId) => Send(Cmd.CREATE_CHARACTER, w => { w.WriteUTF(name); w.WriteByte((byte)classId); });

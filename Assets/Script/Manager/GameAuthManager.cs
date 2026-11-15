@@ -52,6 +52,7 @@ namespace Assets.Script.Manager
         private string _pendingUser;
         private string _pendingPass;
         private bool _pendingFromSaved; // đang đăng nhập bằng mật khẩu đã lưu (nút "Tiếp tục")
+        private bool _pendingGuest;     // đang đăng nhập bằng tài khoản khách lưu trên máy
         private Button _rememberBtn;
 
         void Start()
@@ -65,6 +66,7 @@ namespace Assets.Script.Manager
             if (btnSwitchAccount != null) btnSwitchAccount.onClick.AddListener(OnSwitchAccountClick);
             if (btnBackFromCreate != null) btnBackFromCreate.onClick.AddListener(OnBackFromCreate);
             BuildRememberToggle();
+            DecorateUI();
 
             // Enter ở ô cuối = bấm nút gửi; Enter ở ô giữa = sang ô kế (máy tính: Tab cũng sang ô kế — xem Update)
             ChainSubmit(SubmitLogin, inputLoginUser, inputLoginPass);
@@ -132,6 +134,59 @@ namespace Assets.Script.Manager
             Listen(Cmd.LOGIN, OnLoginResponse);
             Listen(Cmd.REGISTER, OnRegisterResponse);
             Listen(Cmd.CREATE_CHARACTER, OnCreateCharResponse);
+            Listen(Cmd.GUEST_CREATE, OnGuestCreateResponse);
+        }
+
+        // ==========================================
+        // GIAO DIỆN (2026-11-15): icon ô nhập, con mắt, nút tròn ✕ / ←, nút "Chơi ngay (khách)"
+        // ==========================================
+        private Button _guestBtn;
+
+        private void DecorateUI()
+        {
+            AuthSkin.FieldIcon(inputLoginUser, UIIcons.User);
+            AuthSkin.FieldIcon(inputLoginPass, UIIcons.Lock);
+            AuthSkin.EyeToggle(inputLoginPass);
+            AuthSkin.FieldIcon(inputRegUser, UIIcons.User);
+            AuthSkin.FieldIcon(inputRegPass, UIIcons.Lock);
+            AuthSkin.FieldIcon(inputRegConfirm, UIIcons.Lock);
+            AuthSkin.EyeToggle(inputRegPass);
+            AuthSkin.RoundIconButton(btnCloseRegister, UIIcons.Close, new Color(0.80f, 0.27f, 0.27f));
+            AuthSkin.RoundIconButton(btnBackFromCreate, UIIcons.Back, new Color(0.80f, 0.27f, 0.27f));
+            _guestBtn = AuthSkin.GuestButton(loginPanel, btnOpenRegister, btnLoginSend, OnGuestClick);
+        }
+
+        /// <summary>
+        /// CHƠI KHÁCH: máy đã có tài khoản khách → đăng nhập luôn; chưa có → xin server tạo (GUEST_CREATE), nhận tên + mật khẩu
+        /// ngẫu nhiên, lưu mã hoá trên máy (SavedLogin.SaveGuest) rồi đăng nhập như thường.
+        /// </summary>
+        public void OnGuestClick()
+        {
+            if (SavedLogin.HasGuest) { DoSocketLogin(SavedLogin.GuestUser, SavedLogin.LoadGuestPassword(), false, true); return; }
+            StartCoroutine(EnsureConnected(() =>
+            {
+                PopupAndLoad.Instance.ShowPopup("Đang tạo tài khoản khách...");
+                Data.GameActions.GuestCreate();
+            }));
+        }
+
+        /// <summary>GUEST_CREATE: short status (0 + UTF tên + UTF mật khẩu · khác = lỗi, xem AuthMessages.Guest)</summary>
+        private void OnGuestCreateResponse(byte[] data)
+        {
+            PopupAndLoad.Instance.HidePopup();
+            var r = new MessageReader(data);
+            short status = r.ReadShort();
+            if (status == 0)
+            {
+                string u = r.ReadUTF(), p = r.ReadUTF();
+                r.Cleanup();
+                SavedLogin.SaveGuest(u, p);
+                DoSocketLogin(u, p, false, true);
+                return;
+            }
+            int extra = (status == 4 || status == 7) && r.Available() >= 4 ? r.ReadInt() : -1;
+            r.Cleanup();
+            PopupAndLoad.Instance.ShowPopup(AuthMessages.Guest(status, extra));
         }
 
         private void InitUI()
@@ -178,7 +233,7 @@ namespace Assets.Script.Manager
         /// <summary>Hiện khung "Tiếp tục: tên" (có tài khoản đã lưu).</summary>
         public void ShowQuickLogin(string user)
         {
-            if (txtQuickLogin != null) txtQuickLogin.text = "Tiếp tục: " + user;
+            if (txtQuickLogin != null) txtQuickLogin.text = "Tiếp tục: " + (AuthMessages.IsGuestName(user) ? "Khách" : user);
             SwitchPanel(quickLoginPanel);
         }
 
@@ -217,13 +272,8 @@ namespace Assets.Script.Manager
         private void RefreshRememberToggle()
         {
             if (_rememberBtn == null) return;
-            _rememberBtn.SetLabel(SavedLogin.Remember ? "[X] Ghi nhớ đăng nhập" : "[   ] Ghi nhớ đăng nhập");
-            var label = _rememberBtn.GetComponentInChildren<TextMeshProUGUI>();
-            if (label != null)
-            {
-                label.alignment = TextAlignmentOptions.MidlineLeft;
-                label.color = new Color(0.35f, 0.22f, 0.14f, 1f); // nâu đậm: khung đăng nhập nền sáng
-            }
+            // Ô tích thật (hộp + dấu tích vẽ bằng code) thay cho chữ "[X]" (2026-11-15)
+            AuthSkin.Checkbox(_rememberBtn, SavedLogin.Remember, "Ghi nhớ đăng nhập", new Color(0.35f, 0.22f, 0.14f, 1f));
         }
 
         private void SwitchPanel(GameObject panel)
@@ -272,7 +322,7 @@ namespace Assets.Script.Manager
         /// <summary>Đăng nhập không qua ô nhập (dùng cho AutoTestRunner / công cụ kiểm thử).</summary>
         public void AutoLogin(string user, string pass) => DoSocketLogin(user, pass);
 
-        private void DoSocketLogin(string user, string pass, bool fromSaved = false)
+        private void DoSocketLogin(string user, string pass, bool fromSaved = false, bool guest = false)
         {
             if (string.IsNullOrEmpty(user) || string.IsNullOrEmpty(pass))
             {
@@ -285,6 +335,7 @@ namespace Assets.Script.Manager
                 _pendingUser = user;
                 _pendingPass = pass;
                 _pendingFromSaved = fromSaved;
+                _pendingGuest = guest || AuthMessages.IsGuestName(user);
                 PopupAndLoad.Instance.ShowPopup("Đang đăng nhập...");
 
                 Data.GameActions.Login(user, pass);
@@ -339,6 +390,16 @@ namespace Assets.Script.Manager
             int extra = status != 12 && r.Available() >= 4 ? r.ReadInt() : -1;
             r.Cleanup();
             // Mật khẩu đã lưu không còn đúng (đổi ở máy khác) → quên mật khẩu, điền sẵn tên để gõ lại
+            // Tài khoản khách lưu trên máy không còn đăng nhập được (đã xác thực thành tên khác / bị xoá) → bỏ, lần sau tạo mới
+            if (status == 3 && _pendingGuest && SavedLogin.GuestUser == _pendingUser)
+            {
+                SavedLogin.ClearGuest();
+                if (SavedLogin.User == _pendingUser) SavedLogin.Clear();
+                ShowLoginForm();
+                PopupAndLoad.Instance.ShowPopup("Tài khoản khách trên máy này không còn dùng được (có thể đã xác thực thành tài khoản thường). " +
+                                                "Hãy đăng nhập bằng tài khoản đã đặt, hoặc bấm \"Chơi ngay\" để tạo tài khoản khách mới.");
+                return;
+            }
             if (status == 3 && _pendingFromSaved)
             {
                 SavedLogin.ForgetPassword();

@@ -15,7 +15,7 @@ namespace Assets.Script.UI
     /// nhỏ treo trên sợi dây HẠ XUỐNG từ mép trên màn hình, dừng NGANG ĐẦU nhân vật (lệch trái chút), bong bóng chữ trên đầu thú,
     /// vài giây sau kéo lên lại. Thú đi theo nhân vật khi nhân vật chạy (vị trí tính lại mỗi khung hình).
     ///
-    /// Nguồn tin: mọi tin "Hệ thống" server gửi (ChatBox.OnChat kênh 3) trừ vài loại lặt vặt (QuietPrefixes) + tin client tự gọi Show.
+    /// Nguồn tin: tin "Hệ thống" server gửi (ChatBox.OnChat kênh 3) CÓ cụm quan trọng (ImportantKeys) + tin client tự gọi Show.
     /// Nhiều tin dồn dập → xếp hàng (tối đa MaxQueue, bỏ tin cũ nhất), tin trùng tin đang hiện thì chỉ kéo dài thời gian.
     /// Bấm vào bong bóng = cất ngay. Hình thú: luôn 1 con cố định nhỏ dễ thương (MascotArt = gấu mèo); không có hình
     /// (bản không có art demo) → vòng tròn "!" vẽ bằng code.
@@ -25,16 +25,22 @@ namespace Assets.Script.UI
         private const int MaxQueue = 4;
         private const int MascotArt = 1088;            // gấu mèo (Racoon) — nhỏ, mặt tròn dễ thương
         private const float DropTime = 0.7f, RiseTime = 0.45f;
-        private const float BubbleW = 320f;
-        private static readonly Vector2 PetSize = new Vector2(124, 84);   // gấu mèo 4 chân → khung ngang
-        private const float SideGap = 90f;             // thú đứng lệch sang trái nhân vật bao nhiêu (đơn vị UI)
+        private const float BubbleW = 280f;
+        private static readonly Vector2 PetSize = new Vector2(92, 62);    // gấu mèo 4 chân → khung ngang (nhỏ cho dễ thương, 2026-11-15)
+        private const float SideGap = 70f;             // thú đứng lệch sang trái nhân vật bao nhiêu (đơn vị UI)
 
-        /// <summary>Tin bắt đầu bằng các chữ này chỉ vào chat (lặt vặt / lặp liên tục khi tự động đánh).</summary>
-        private static readonly string[] QuietPrefixes =
+        /// <summary>
+        /// CHỈ tin có 1 trong các cụm này mới cho thú mang xuống (2026-11-15: trước nhận hết trừ vài loại → hạ xuống liên tục).
+        /// Tin khác (tinh anh / thủ lĩnh xuất hiện, người khác nâng cấp / nở thú hiếm, kết bạn, hoạt động +điểm…) chỉ vào chat.
+        /// So không phân biệt hoa thường.
+        /// </summary>
+        private static readonly string[] ImportantKeys =
         {
-            "Chờ ", "Hoạt động: +", "[GM]", "Vật phẩm của người khác", "Cho ăn ", "Đã nhận ", "Đã mời ", "Đã gửi lời mời",
+            "boss ", "lôi đài", "bảo trì", "máy chủ",              // sự kiện / máy chủ
+            "chưa cầm vũ khí", "hành trang đã đầy", "không đủ chỗ", "rương đã đầy",
+            "hết thể lực", "cấm chat", "quyền tài khoản", "khỏi gia tộc", "đã giải tán",
+            "chinh phục", "thất bại", "bị bỏ dở", "hết hạn", "nạp thành công", "người vô tội",
         };
-
         private static NoticeMascot _instance;
         private readonly List<string> _queue = new List<string>();
         private RectTransform _root, _petBox, _bubble, _rope;
@@ -55,9 +61,16 @@ namespace Assets.Script.UI
         /// <summary>Tin "Hệ thống" từ server: lọc tin lặt vặt rồi đưa thú xuống.</summary>
         public static void Offer(string text)
         {
-            if (string.IsNullOrEmpty(text)) return;
-            foreach (var q in QuietPrefixes) if (text.StartsWith(q)) return;
+            if (!IsImportant(text)) return;
             Show(text);
+        }
+
+        public static bool IsImportant(string text)
+        {
+            if (string.IsNullOrEmpty(text) || text.StartsWith("[GM]")) return false;
+            string t = text.ToLowerInvariant();
+            foreach (var k in ImportantKeys) if (t.Contains(k)) return true;
+            return false;
         }
 
         /// <summary>Đưa 1 tin cho thú mang xuống (gọi được từ mọi nơi, kể cả khi chưa vào game — khi đó bỏ qua).</summary>
@@ -116,7 +129,7 @@ namespace Assets.Script.UI
             ti.color = new Color(0.10f, 0.08f, 0.16f, 0.94f);
             ti.raycastTarget = false;
             tip.SetAsFirstSibling();
-            _text = UIKit.Text("Text", _bubble, "", 17, TextAlignmentOptions.Midline, Color.white);
+            _text = UIKit.Text("Text", _bubble, "", 15, TextAlignmentOptions.Midline, Color.white);
             _text.rectTransform.Fill(12, 12, 8, 8);
             _text.enableWordWrapping = true;
             _text.raycastTarget = false;

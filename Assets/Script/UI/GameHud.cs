@@ -176,6 +176,11 @@ namespace Assets.Script.UI
             UIStyle.HudPanel(_v.questBtn.image);
             UISkin.KeepLabelColor(_v.questBtn);
             UIStyle.Readable(_v.questText, 0.15f);
+            // Thu gọn / mở rộng khung nhiệm vụ (2026-11-15): mặc định chỉ việc cần làm của 1 nhiệm vụ, nút "Xem" mở hết
+            _questToggle = UIKit.Button("QuestExpand", _v.questBtn.transform, "Xem", ToggleQuests, 12);
+            ((RectTransform)_questToggle.transform).Place(new Vector2(1, 1), new Vector2(1, 1), new Vector2(-4, -4), new Vector2(58, 22), new Vector2(1, 1));
+            UIStyle.Chip(_questToggle, 12);
+            try { _questExpanded = PlayerPrefs.GetInt("quest_expanded", 0) == 1; } catch { _questExpanded = false; }
             // 4. Nhóm: khung dưới nút Cưỡi (cột phải), chỉ hiện khi có nhóm
             var panel = UIKit.Panel("PartyPanel", _v.transform, UIStyle.PanelBg);
             panel.rectTransform.Place(new Vector2(1, 1), new Vector2(1, 1), MountHud.Pos + new Vector2(0, -MountHud.Size.y - 8), new Vector2(MinimapHud.W + 20, 150), new Vector2(1, 1));
@@ -189,6 +194,14 @@ namespace Assets.Script.UI
             _partyPanel.SetActive(GameData.Party.Count > 0);
             // 5. Bấm avatar (khung máu góc trái) → cửa sổ nhân vật
             var av = UISetup.Instance != null ? UISetup.Instance.avatarSlot : null;
+            // Nút cũ "BtnTarget" trong scene (gọi script "test" đã xoá) phủ cả khung avatar → nuốt mất click. Giữ hình, bỏ nhận click.
+            var dead = av != null && av.transform.parent != null ? av.transform.parent.Find("BtnTarget") : null;
+            if (dead != null)
+            {
+                foreach (var g in dead.GetComponentsInChildren<Graphic>(true)) g.raycastTarget = false;
+                var db = dead.GetComponent<Button>();
+                if (db != null) db.enabled = false;
+            }
             if (av != null && av.GetComponent<Button>() == null)
             {
                 av.raycastTarget = true;
@@ -303,12 +316,14 @@ namespace Assets.Script.UI
             if (GameData.EventState == 1 || GameData.EventState == 2)
             {
                 if (sb.Length > 0) sb.Append('\n');
-                string name = GameData.EventType == 1 ? "Boss thế giới" : "Lôi đài";
-                string phase = GameData.EventState == 1 ? (GameData.EventType == 2 ? "đăng ký" : "sắp xuất hiện") : "đang diễn ra";
-                sb.Append($"<b>{name}</b> {phase}");
+                string name = GameData.EventType == 1 ? "<color=#ff9a4a>Boss thế giới</color>" : "<color=#7fd4ff>Lôi đài</color>";
+                string phase = GameData.EventState == 1 ? (GameData.EventType == 2 ? " đăng ký" : " sắp ra") : "";
+                sb.Append($"<b>{name}</b>{phase}");
                 if (GameData.EventEndTime > Time.time) sb.Append($"  <color=#fd5>{Clock(GameData.EventEndTime)}</color>");
-                string bosses = GameData.EventType == 1 && GameData.EventState == 2 ? BossList(GameData.EventText) : null;
-                if (!string.IsNullOrEmpty(bosses)) sb.Append($"\n<size=13>{bosses}</size>");
+                // Boss: mỗi boss 1 dòng "[TG] Tên - Map" (server không gửi khu — chống tool dò)
+                if (GameData.EventType == 1)
+                    foreach (var (boss, map) in BossList(GameData.EventText))
+                        sb.Append($"\n<color=#ff6b6b>[TG]</color> <b><color=#ffe08a>{boss}</color></b> <color=#9fd8ff>- {map}</color>");
                 if (GameData.EventType == 2 && GameData.EventState == 2 && GameData.ArenaScore.Count > 0)
                     for (int i = 0; i < Mathf.Min(5, GameData.ArenaScore.Count); i++)
                         sb.Append($"\n{i + 1}. {GameData.ArenaScore[i].Key} — {GameData.ArenaScore[i].Value} hạ");
@@ -317,35 +332,69 @@ namespace Assets.Script.UI
             if (GameData.EventState != 0 && GameData.EventEndTime > 0 && Time.time > GameData.EventEndTime + 5 && GameData.EventType == 1 && GameData.EventState == 1)
                 GameData.EventState = 0;
             string txt = sb.ToString();
-            if (txt != _eventShown) { _v.eventText.text = txt; _eventShown = txt; }
+            if (txt != _eventShown)
+            {
+                _v.eventText.text = txt;
+                _eventShown = txt;
+                // Khung hẹp (260) + cao vừa đủ chữ (trước 380 × 120 cố định, che nhiều màn hình)
+                _v.eventText.fontSize = 14;
+                _v.eventText.alignment = TextAlignmentOptions.TopLeft;
+                float h = txt.Length > 0 ? _v.eventText.GetPreferredValues(txt, EventPanelW - 12f, 0f).y + 10f : 0f;
+                _v.eventPanel.rectTransform.sizeDelta = new Vector2(EventPanelW, Mathf.Max(28f, h));
+            }
             if (_v.eventPanel.gameObject.activeSelf != (txt.Length > 0)) _v.eventPanel.gameObject.SetActive(txt.Length > 0);
             if (_leaveDungeon != null) _leaveDungeon.gameObject.SetActive(GameData.DungeonState == 2);
         }
 
+        private const float EventPanelW = 290f;
+        private static readonly System.Text.RegularExpressions.Regex BossItem =
+            new System.Text.RegularExpressions.Regex(@"\s*([^,(]+?)\s*\(([^)]*)\)");
+
         /// <summary>
-        /// Danh sách boss đang sống trong chữ EVENT_STATE của server ("… Đang có: A (map, khu 1), B …" / "… Còn: …" /
-        /// "… đang xuất hiện: …"). Không có → null.
+        /// Danh sách boss trong chữ EVENT_STATE của server ("… Đang có: A (map), B (map)." / "… Còn: …" / "… xuất hiện: …")
+        /// → các cặp (tên boss, tên map). Server cũ còn ghi ", khu 1" trong ngoặc → bỏ phần đó.
         /// </summary>
-        private static string BossList(string text)
+        public static List<(string, string)> BossList(string text)
         {
-            if (string.IsNullOrEmpty(text)) return null;
-            foreach (var key in new[] { "Còn: ", "Đang có: ", "đang xuất hiện: " })
+            var list = new List<(string, string)>();
+            if (string.IsNullOrEmpty(text)) return list;
+            foreach (var key in new[] { "Còn: ", "Đang có: ", "xuất hiện: " })
             {
                 int i = text.LastIndexOf(key, System.StringComparison.Ordinal);
-                if (i >= 0) return text.Substring(i + key.Length).TrimEnd('.', '!', ' ');
+                if (i < 0) continue;
+                foreach (System.Text.RegularExpressions.Match m in BossItem.Matches(text.Substring(i + key.Length)))
+                {
+                    string map = m.Groups[2].Value;
+                    int k = map.IndexOf(", khu", System.StringComparison.Ordinal);
+                    if (k >= 0) map = map.Substring(0, k);
+                    list.Add((m.Groups[1].Value.Trim(), map.Trim()));
+                }
+                break;
             }
-            return null;
+            return list;
         }
 
         /// <summary>Bảng theo dõi nhiệm vụ: tối đa 3 nhiệm vụ đang làm + tiến độ; chưa có thì nhắc gặp Hokage.</summary>
+        private Button _questToggle;
+        private bool _questExpanded;
+
+        /// <summary>Nút "Xem" / "Gọn" trên khung nhiệm vụ: mở rộng ↔ thu gọn, nhớ lựa chọn cho lần sau.</summary>
+        private void ToggleQuests()
+        {
+            _questExpanded = !_questExpanded;
+            try { PlayerPrefs.SetInt("quest_expanded", _questExpanded ? 1 : 0); } catch { }
+            UpdateQuests();
+        }
+
         private void UpdateQuests()
         {
             if (_v == null) return;
-            var sb = new StringBuilder("<color=#fd5><b>Nhiệm vụ</b></color>  <size=12><color=#9aa>(bấm để xem)</color></size>");
+            var sb = new StringBuilder("<color=#fd5><b>Nhiệm vụ</b></color>");
+            int max = _questExpanded ? 3 : 1;   // thu gọn: chỉ nhiệm vụ đầu
             int shown = 0;
             foreach (var kv in GameData.MyQuests)
             {
-                if (shown >= 3) break;
+                if (shown >= max) break;
                 if (!GameData.Quests.TryGetValue(kv.Key, out var q)) continue;
                 int progress = q.type == (int)Constants.QuestType.Collect ? Mathf.Min(q.targetCount, GameData.CountItem(q.targetId)) : kv.Value[0];
                 bool done = kv.Value[1] == 1 || (q.type == (int)Constants.QuestType.Collect && progress >= q.targetCount);
@@ -356,12 +405,24 @@ namespace Assets.Script.UI
                     2 => $"{GameData.ItemName(q.targetId)} {progress}/{q.targetCount}",
                     _ => ""
                 };
-                sb.Append($"\n<b>{q.name}</b>\n  ");
-                sb.Append(done ? $"<color=#7f7>Xong → trả cho {GameData.NpcName(q.npcId)}</color>" : $"<color=#ddd>{goal}</color>");
+                string state = done ? $"<color=#7f7>Xong → trả cho {GameData.NpcName(q.npcId)}</color>" : $"<color=#ddd>{goal}</color>";
+                if (_questExpanded) sb.Append($"\n<b>{q.name}</b>\n  ").Append(state);
+                else sb.Append('\n').Append(state);   // thu gọn: chỉ việc cần làm
                 shown++;
             }
-            if (shown == 0) sb.Append("\n<color=#ddd>Gặp <b>Hokage</b> ở Làng Lá (bấm Nói / F) để nhận nhiệm vụ.</color>");
+            int total = GameData.MyQuests.Count;
+            if (shown == 0) sb.Append(_questExpanded ? "\n<color=#ddd>Gặp <b>Hokage</b> ở Làng Lá (bấm Nói / F) để nhận nhiệm vụ.</color>"
+                                                     : "\n<color=#ddd>Gặp <b>Hokage</b> để nhận nhiệm vụ</color>");
+            else if (!_questExpanded && total > 1) sb.Append($"  <color=#9aa><size=12>(+{total - 1})</size></color>");
             _v.questText.text = sb.ToString();
+            _v.questText.enableWordWrapping = _questExpanded;
+            _v.questText.overflowMode = _questExpanded ? TextOverflowModes.Overflow : TextOverflowModes.Ellipsis;
+            // Cao vừa nội dung: thu gọn 2 dòng (50), mở rộng tối đa 150 (trước cố định 300 × 140)
+            var rt = (RectTransform)_v.questBtn.transform;
+            float w = _questExpanded ? 300f : 260f;
+            float h = _questExpanded ? Mathf.Clamp(_v.questText.GetPreferredValues(_v.questText.text, w - 12f, 0f).y + 12f, 56f, 150f) : 50f;
+            rt.sizeDelta = new Vector2(w, h);
+            if (_questToggle != null) _questToggle.SetLabel(_questExpanded ? "Gọn" : "Xem");
         }
 
         private void UpdateParty()
