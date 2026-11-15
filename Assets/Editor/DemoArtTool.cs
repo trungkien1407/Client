@@ -521,24 +521,29 @@ public static class DemoArtTool
     }
 
     /// <summary>
-    /// CHỈNH TAY vị trí thân của vài bộ NPC mà cách đo tự động chưa đẹp (xem bằng autotest "-npconly" → NpcArtSheet.png).
-    /// art → (x, y) điểm ảnh, cùng nghĩa với NpcArtSO.bodyOffsetPx.
-    /// </summary>
-    private static readonly Dictionary<int, Vector2> NpcFitOverride = new Dictionary<int, Vector2>
-    {
-        { 9, new Vector2(13, 8) },      // ninja áo đỏ (2026-11-15): giữa váy đỏ đặt trên giữa 2 ủng, 2 dải vải thõng rơi giữa 2 chân (trước -18: ủng phải rời ra)
-        { 12, new Vector2(18, 16) },    // ông lão chống gậy: ảnh chân có khúc cuối cây gậy → nối liền thân gậy
-        { 23, new Vector2(3, 15) },     // ông lão ăn mày (2026-11-15): gậy trong thân nối khúc gậy trong ảnh chân, vạt áo phủ ống quần (trước +26: chân rời ra bên trái)
-    };
-
-    /// <summary>
-    /// Vị trí thân của bộ NPC {art} (2026-11-14): NGANG theo FitBodyOnLegs (so dải cột — canh ngang tốt), DỌC theo FitWaist (eo / lưng quần)
-    /// nếu cách cũ bị hở không quá 20 px (đồ thòng xuống làm đáy thân thấp hơn eo); chênh hơn thế (áo choàng dài phủ chân) thì giữ cách cũ.
-    /// Có trong NpcFitOverride thì lấy bảng chỉnh tay.
+    /// Vị trí thân của bộ NPC {art}. CHỈNH TAY (2026-11-15): đọc file Assets/Editor/NpcFit/npc_fit_overrides.json (NpcFitOverrides)
+    /// — sửa bằng cửa sổ kéo thả Tools → VocVach → Ghép ảnh thân + chân; trước là bảng viết cứng ở đây. Không có → AutoFitNpc.
     /// </summary>
     private static Vector2 FitNpc(int art, string bodyPath, string legsPath)
     {
-        if (NpcFitOverride.TryGetValue(art, out var manual)) return manual;
+        if (NpcFitOverrides.TryGet(art, out var manual)) return manual;
+        return AutoFitNpc(bodyPath, legsPath);
+    }
+
+    /// <summary>Số đo TỰ ĐỘNG (bỏ qua số chỉnh tay) của bộ {art} — cửa sổ kéo thả vẽ bóng mờ để so. Thiếu ảnh chân → null.</summary>
+    public static Vector2? AutoFitNpc(int art)
+    {
+        string b = $"{NpcArtDir}/{art}/img0.png", l = $"{NpcArtDir}/{art}/img1.png";
+        if (!File.Exists(b) || !File.Exists(l)) return null;
+        return AutoFitNpc(b, l);
+    }
+
+    /// <summary>
+    /// Vị trí thân TỰ ĐỘNG (2026-11-14): NGANG theo FitBodyOnLegs (so dải cột — canh ngang tốt), DỌC theo FitWaist (eo / lưng quần)
+    /// nếu cách cũ bị hở không quá 20 px (đồ thòng xuống làm đáy thân thấp hơn eo); chênh hơn thế (áo choàng dài phủ chân) thì giữ cách cũ.
+    /// </summary>
+    private static Vector2 AutoFitNpc(string bodyPath, string legsPath)
+    {
         var old = FitBodyOnLegs(bodyPath, legsPath);
         float? waistDy = FitWaist(bodyPath, legsPath);
         float dy = waistDy.HasValue && old.y - waistDy.Value > 0 && old.y - waistDy.Value <= 20 ? waistDy.Value : old.y;

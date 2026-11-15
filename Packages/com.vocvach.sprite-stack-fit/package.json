@@ -1,0 +1,8 @@
+{
+  "name": "com.vocvach.sprite-stack-fit",
+  "version": "1.0.0",
+  "displayName": "VocVach Sprite Stack Fit",
+  "description": "Cửa sổ Editor ghép 2 ảnh chồng nhau (vd thân + chân NPC): kéo thả / phím mũi tên chỉnh độ lệch theo điểm ảnh, so với vị trí tự động, lưu cấu hình qua 1 lớp nguồn dữ liệu do dự án tự viết.",
+  "unity": "2022.3",
+  "author": { "name": "VocVach" }
+}

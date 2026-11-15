@@ -1,0 +1,23 @@
+{
+  "_ghi_chu": "Số chỉnh tay vị trí thân NPC (điểm ảnh, như NpcArtSO.bodyOffsetPx). Sửa bằng Tools → VocVach → Ghép ảnh thân + chân. Bộ không có ở đây = số tự động. Đọc bởi DemoArtTool khi nhập kho hình.",
+  "overrides": [
+    {
+      "art": 9,
+      "x": 13,
+      "y": 8,
+      "note": "ninja áo đỏ: giữa váy đỏ đặt trên giữa 2 ủng, 2 dải vải thõng rơi giữa 2 chân"
+    },
+    {
+      "art": 12,
+      "x": 18,
+      "y": 16,
+      "note": "ông lão chống gậy: ảnh chân có khúc cuối cây gậy → nối liền thân gậy"
+    },
+    {
+      "art": 23,
+      "x": 3,
+      "y": 15,
+      "note": "ông lão ăn mày: gậy trong thân nối khúc gậy trong ảnh chân, vạt áo phủ ống quần"
+    }
+  ]
+}

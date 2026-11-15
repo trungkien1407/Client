@@ -273,6 +273,12 @@
       "source": "embedded",
       "dependencies": {}
     },
+    "com.vocvach.sprite-stack-fit": {
+      "version": "file:com.vocvach.sprite-stack-fit",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {}
+    },
     "com.unity.modules.ai": {
       "version": "1.0.0",
       "depth": 0,
