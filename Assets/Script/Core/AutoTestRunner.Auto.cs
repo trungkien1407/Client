@@ -152,6 +152,8 @@ namespace Assets.Script.Core
                 int auBag2 = 0; foreach (var auS in GameData.Inventory) auBag2 += auS.qty;
                 Check($"Tự nhặt đồ: đi tới món rơi gần nhất + nhặt (túi {auBag} → {auBag2}, món còn trên đất lúc bật: {auStillThere})",
                     auStillThere && !GroundItemNetwork.Instance.Has(auItem) && auBag2 > auBag);
+                Check($"Đồ đã nhặt không bị huỷ mà cất vào pool để món rơi sau dùng lại ({GroundItemNetwork.Instance.PooledCount} khung)",
+                    GroundItemNetwork.Instance.PooledCount > 0);
                 AutoPlay.Instance.SetOn(false, null);
 
                 var auWin = GameWindow.Open<AutoWindow>();

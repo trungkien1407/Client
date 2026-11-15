@@ -2,6 +2,7 @@
 using System.Collections;
 using Assets.Script.Combat;
 using Assets.Script.Data;
+using Assets.Script.Manager;
 using Assets.Script.Skill;
 using Assets.Script.UI;
 using UnityEngine;
@@ -72,6 +73,10 @@ namespace Assets.Script.Core
             yield return WaitUntil(() => NoticeMascot.Current == null, 12);
             CheckHudClicks();
             yield return CheckCompactHud();
+            var npcs = NetworkNpcManager.Instance != null ? NetworkNpcManager.Instance.All : null;
+            int nNpc = 0, nArrow = 0;
+            if (npcs != null) foreach (var n in npcs) { nNpc++; var a = n.transform.Find("PointerArrow"); if (a != null && a.gameObject.activeSelf) nArrow++; }
+            Check($"NPC có mũi tên nhỏ trên tên ({nArrow}/{nNpc})", nNpc > 0 && nArrow >= nNpc - 1);   // NPC đang chọn (nếu có) hiện mũi tên chọn thay
         }
 
         /// <summary>Khung chat + khung nhiệm vụ thu gọn mặc định, bấm nút mũi tên / "Xem" thì mở rộng (vẫn nhỏ hơn bản cũ 470×170 / 300×140).</summary>

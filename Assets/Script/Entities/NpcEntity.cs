@@ -26,6 +26,10 @@ namespace Assets.Script.Entities
 
         private Vector3 _originalNamePosition;
         private Color _originalNameColor;
+        private Fx.PointerArrow _hintArrow;   // mũi tên nhỏ luôn hiện trên tên (2026-11-15) — ẩn khi đang chọn (mũi tên chọn hiện thay)
+
+        /// <summary>Chỗ mũi tên nhỏ: ngay trên tên NPC.</summary>
+        private Vector3 HintPos => _originalNamePosition + new Vector3(0f, 0.42f, 0f);
 
         private void Awake()
         {
@@ -36,6 +40,7 @@ namespace Assets.Script.Entities
                 _originalNamePosition = npcNameText.transform.localPosition;
                 _originalNameColor = npcNameText.color;
             }
+            _hintArrow = Fx.PointerArrow.Attach(transform, HintPos, 0.55f, 20);
         }
 
         // TRUYỀN THÊM SPRITE ATLAS VÀO HÀM SETUP
@@ -92,6 +97,7 @@ namespace Assets.Script.Entities
                     _originalNamePosition = new Vector3(_originalNamePosition.x, top + 0.35f, _originalNamePosition.z);
                     npcNameText.transform.localPosition = _originalNamePosition;
                 }
+                if (_hintArrow != null) _hintArrow.SetBase(HintPos);
                 if (targetArrow != null)
                 {
                     var p = targetArrow.transform.localPosition;
@@ -125,6 +131,7 @@ namespace Assets.Script.Entities
         public void OnTargeted()
         {
             if (targetArrow != null) targetArrow.SetActive(true);
+            if (_hintArrow != null && targetArrow != null) _hintArrow.gameObject.SetActive(false);
 
             if (npcNameText != null)
             {
@@ -138,6 +145,7 @@ namespace Assets.Script.Entities
         public void OnDeselected()
         {
             if (targetArrow != null) targetArrow.SetActive(false);
+            if (_hintArrow != null) _hintArrow.gameObject.SetActive(true);
 
             if (npcNameText != null)
             {

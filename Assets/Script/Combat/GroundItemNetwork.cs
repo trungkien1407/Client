@@ -156,7 +156,7 @@ namespace Assets.Script.Combat
             // dời sang bên mà hụt khỏi mép bục (lơ lửng) → thử bên kia, không được thì để chồng tại chỗ (server đã đặt chỗ rơi lên mặt đất)
             if (offset != 0f && !HasGround(x + offset, y)) offset = HasGround(x - offset, y) ? -offset : 0f;
             it.dropX = x; it.dropY = y;
-            it.go = CreateVisual(it, new Vector3(x + offset, y, 0f));
+            it.go = Acquire(it, new Vector3(x + offset, y, 0f));
             AddTarget(it);
             if (near % 2 == 1) { var lb = it.go.transform.Find("Label"); if (lb != null) lb.localPosition += new Vector3(0f, 0.35f, 0f); }
             _items[it.id] = it;
@@ -178,7 +178,7 @@ namespace Assets.Script.Combat
             r.Cleanup();
             if (_items.TryGetValue(id, out var it))
             {
-                if (it.go != null) Destroy(it.go);
+                Release(it.go);
                 _items.Remove(id);
             }
         }
@@ -188,24 +188,56 @@ namespace Assets.Script.Combat
 
         private void ClearAll()
         {
-            foreach (var it in _items.Values) if (it.go != null) Destroy(it.go);
+            foreach (var it in _items.Values) Release(it.go);
             _items.Clear();
+        }
+
+
+        // ---------------------------------------------------------------- POOL (2026-11-15)
+        // Trước: mỗi món rơi = new GameObject + 5 thành phần, nhặt xong Destroy → bật Tự động đánh quái là tạo / huỷ liên tục (rác bộ nhớ, giật GC).
+        // Nay: dựng KHUNG 1 lần (BuildView), nhặt xong / đổi khu thì tắt đi cất vào pool; món rơi sau lấy khung cũ ra, chỉ đổi icon / chữ (Setup).
+        private readonly Stack<GroundItemView> _pool = new Stack<GroundItemView>();
+        private const int PoolMax = 48;   // cất tối đa bấy nhiêu khung, dư thì huỷ
+        private Transform _poolRoot;
+
+        /// <summary>Số khung đang nằm trong pool (AutoTestRunner kiểm).</summary>
+        public int PooledCount => _pool.Count;
+
+        private GameObject Acquire(GroundItem it, Vector3 pos)
+        {
+            GroundItemView v = null;
+            while (_pool.Count > 0 && v == null) v = _pool.Pop();   // khung bị huỷ ngoài ý muốn → bỏ qua
+            if (v == null) v = BuildView();
+            v.transform.SetParent(null, false);
+            v.Setup(it, pos);
+            return v.gameObject;
+        }
+
+        private void Release(GameObject go)
+        {
+            if (go == null) return;
+            var v = go.GetComponent<GroundItemView>();
+            if (v == null || _pool.Count >= PoolMax) { Destroy(go); return; }
+            go.SetActive(false);
+            if (_poolRoot == null) { _poolRoot = new GameObject("GroundItemPool").transform; _poolRoot.SetParent(transform, false); }
+            go.transform.SetParent(_poolRoot, false);
+            _pool.Push(v);
         }
 
         private const float IconSize = 0.75f;   // cạnh dài của icon trên mặt đất (đơn vị thế giới)
         private static Sprite _shadowSprite;
 
         /// <summary>
-        /// Hình đồ rơi: ICON THẬT của vật phẩm (kho ảnh img{iconId}, như trong túi đồ) + bóng đổ dưới chân + tên có viền.
-        /// Vừa rơi ra thì nảy lên rồi lơ lửng nhẹ (ItemBob). Ảnh chưa tải xong / chưa có → ô vuông màu như cũ.
+        /// Dựng KHUNG đồ rơi (1 lần cho mỗi khung trong pool): bóng đổ dưới chân + icon (nảy lên rồi lơ lửng — ItemBob) + tên có viền
+        /// + mũi tên nhỏ chỉ xuống trên tên (PointerArrow). Icon / chữ / màu đặt ở GroundItemView.Setup.
         /// </summary>
-        private static GameObject CreateVisual(GroundItem it, Vector3 pos)
+        private static GroundItemView BuildView()
         {
             if (_squareSprite == null) _squareSprite = SolidSprite(8, false);
             if (_shadowSprite == null) _shadowSprite = SolidSprite(32, true);
 
-            var go = new GameObject($"GroundItem_{it.id}");
-            go.transform.position = pos;
+            var go = new GameObject("GroundItem");
+            var v = go.AddComponent<GroundItemView>();
 
             // bóng đổ hình bầu dục dưới chân → món đồ "nằm" trên mặt đất
             var shadow = new GameObject("Shadow");
@@ -219,39 +251,64 @@ namespace Assets.Script.Combat
             var icon = new GameObject("Icon");
             icon.transform.SetParent(go.transform, false);
             icon.transform.localPosition = new Vector3(0f, IconSize * 0.5f + 0.05f, 0f);
-            icon.transform.localScale = Vector3.one * (IconSize / 0.4f) * 0.6f;   // ô vuông tạm (0,4 đơn vị) nhỏ hơn icon thật
-            var sr = icon.AddComponent<SpriteRenderer>();
-            sr.sprite = _squareSprite;
-            sr.color = it.templateId == ItemIds.HpPotion ? new Color(1f, 0.3f, 0.3f)
-                     : it.templateId == ItemIds.MpPotion ? new Color(0.3f, 0.5f, 1f)
-                     : new Color(1f, 0.85f, 0.3f);
-            sr.sortingOrder = 5;
-            icon.AddComponent<ItemBob>();
-            int iconId = Assets.Script.Data.GameData.Items.TryGetValue(it.templateId, out var tpl) ? tpl.iconId : 0;
-            if (iconId > 0)
-                ImageBank.Get(iconId, sprite =>
-                {
-                    if (sr == null || sprite == null) return;
-                    sr.sprite = sprite;
-                    sr.color = Color.white;
-                    float big = Mathf.Max(sprite.bounds.size.x, sprite.bounds.size.y);
-                    if (big > 0.0001f) icon.transform.localScale = Vector3.one * (IconSize / big);
-                });
+            v.icon = icon.AddComponent<SpriteRenderer>();
+            v.icon.sortingOrder = 5;
+            v.bob = icon.AddComponent<ItemBob>();
 
             var label = new GameObject("Label");
             label.transform.SetParent(go.transform, false);
-            label.transform.localPosition = new Vector3(0f, IconSize + 0.45f, 0f);
-            var tmp = label.AddComponent<TextMeshPro>();
-            string nm = Assets.Script.Data.GameData.ItemName(it.templateId);
-            tmp.text = it.qty > 1 ? $"{nm} x{it.qty}" : nm;
-            tmp.fontSize = 2.2f;
-            tmp.alignment = TextAlignmentOptions.Center;
-            tmp.enableWordWrapping = false;
-            tmp.outlineWidth = 0.25f;
-            tmp.outlineColor = Color.black;
-            Assets.Script.UI.Kit.UIStyle.Readable(tmp);   // viền + bóng đổ → đọc được cả trên nền trắng
-            tmp.sortingOrder = 6;
-            return go;
+            v.label = label.AddComponent<TextMeshPro>();
+            v.label.fontSize = 2.2f;
+            v.label.alignment = TextAlignmentOptions.Center;
+            v.label.enableWordWrapping = false;
+            v.label.outlineWidth = 0.25f;
+            v.label.outlineColor = Color.black;
+            Assets.Script.UI.Kit.UIStyle.Readable(v.label);   // viền + bóng đổ → đọc được cả trên nền trắng
+            v.label.sortingOrder = 6;
+
+            // mũi tên NHỎ chỉ xuống, ngay trên tên (2026-11-15) — dễ thấy đồ rơi giữa đám quái / cỏ
+            v.arrow = Fx.PointerArrow.Attach(go.transform, new Vector3(0f, IconSize + 0.85f, 0f), 0.5f, 7);
+            return v;
+        }
+
+        /// <summary>Phần hình của 1 món đồ rơi (giữ tham chiếu để dùng lại khung trong pool).</summary>
+        private class GroundItemView : MonoBehaviour
+        {
+            public SpriteRenderer icon;
+            public TextMeshPro label;
+            public ItemBob bob;
+            public Fx.PointerArrow arrow;
+            private int _token;   // mỗi lần dùng lại +1 → ảnh icon tải xong muộn của món TRƯỚC không ghi đè món mới
+
+            /// <summary>Đặt hình cho món {it}: icon thật (kho ảnh img{iconId}, như trong túi; chưa tải xong → ô vuông màu), tên, vị trí.</summary>
+            public void Setup(GroundItem it, Vector3 pos)
+            {
+                int token = ++_token;
+                name = $"GroundItem_{it.id}";
+                transform.position = pos;
+                transform.localScale = Vector3.one;
+                icon.sprite = _squareSprite;
+                icon.color = it.templateId == ItemIds.HpPotion ? new Color(1f, 0.3f, 0.3f)
+                           : it.templateId == ItemIds.MpPotion ? new Color(0.3f, 0.5f, 1f)
+                           : new Color(1f, 0.85f, 0.3f);
+                icon.transform.localScale = Vector3.one * (IconSize / 0.4f) * 0.6f;   // ô vuông tạm (0,4 đơn vị) nhỏ hơn icon thật
+                string nm = Assets.Script.Data.GameData.ItemName(it.templateId);
+                label.text = it.qty > 1 ? $"{nm} x{it.qty}" : nm;
+                label.color = Color.white;
+                label.transform.localPosition = new Vector3(0f, IconSize + 0.45f, 0f);
+                gameObject.SetActive(true);
+                bob.Restart();
+                int iconId = Assets.Script.Data.GameData.Items.TryGetValue(it.templateId, out var tpl) ? tpl.iconId : 0;
+                if (iconId > 0)
+                    ImageBank.Get(iconId, sprite =>
+                    {
+                        if (this == null || token != _token || sprite == null) return;
+                        icon.sprite = sprite;
+                        icon.color = Color.white;
+                        float big = Mathf.Max(sprite.bounds.size.x, sprite.bounds.size.y);
+                        if (big > 0.0001f) icon.transform.localScale = Vector3.one * (IconSize / big);
+                    });
+            }
         }
 
         // ---------------------------------------------------------------- chọn làm mục tiêu
@@ -271,11 +328,14 @@ namespace Assets.Script.Combat
                 if (_targetLayer < 0) return;   // chưa có PlayerTargeting (chưa vào game) → lần sau thử lại
             }
             it.go.layer = _targetLayer;
-            var box = it.go.AddComponent<BoxCollider2D>();
-            box.isTrigger = true;
-            box.size = new Vector2(1.1f, 1.3f);
-            box.offset = new Vector2(0f, 0.55f);
-            var t = it.go.AddComponent<GroundItemTarget>();
+            if (!it.go.TryGetComponent<BoxCollider2D>(out var box))
+            {
+                box = it.go.AddComponent<BoxCollider2D>();
+                box.isTrigger = true;
+                box.size = new Vector2(1.1f, 1.3f);
+                box.offset = new Vector2(0f, 0.55f);
+            }
+            if (!it.go.TryGetComponent<GroundItemTarget>(out var t)) t = it.go.AddComponent<GroundItemTarget>();
             t.Init(it.id, it.go.transform.Find("Label")?.GetComponent<TextMeshPro>());
         }
 
@@ -328,13 +388,17 @@ namespace Assets.Script.Combat
         private class ItemBob : MonoBehaviour
         {
             private float _baseY, _phase, _born;
+            private bool _hasBase;
 
-            private void Start()
+            /// <summary>Bắt đầu lại hiệu ứng nảy (món mới rơi ra / khung trong pool được dùng lại).</summary>
+            public void Restart()
             {
-                _baseY = transform.localPosition.y;
+                if (!_hasBase) { _baseY = transform.localPosition.y; _hasBase = true; }
                 _phase = Random.value * 6.28f;
                 _born = Time.time;
             }
+
+            private void Start() { if (!_hasBase) Restart(); }
 
             private void Update()
             {
