@@ -241,6 +241,7 @@ namespace Assets.Script.Data
         }
         public static int BagCapacity = 40;
         public static readonly Dictionary<int, int> Equipment = new Dictionary<int, int>();   // slot → templateId
+        public static bool EquipmentReceived;   // đã nhận gói EQUIPMENT lần nào chưa (SkillCaster.Unarmed)
         public static readonly Dictionary<int, int> EquipLevel = new Dictionary<int, int>();  // slot → cấp +N
         public static readonly Dictionary<int, BagSlot> EquipSlots = new Dictionary<int, BagSlot>(); // GĐ9: slot → đủ thuộc tính (phẩm chất, ngọc)
         // GĐ9 khảm ngọc (GEM_OPEN)
@@ -380,7 +381,7 @@ namespace Assets.Script.Data
         public static void ClearSession()
         {
             Me.Reset();
-            Inventory.Clear(); Equipment.Clear(); EquipLevel.Clear(); EquipSlots.Clear(); GemNpc = -1; MySkills.Clear(); MyQuests.Clear();
+            Inventory.Clear(); Equipment.Clear(); EquipmentReceived = false; EquipLevel.Clear(); EquipSlots.Clear(); GemNpc = -1; MySkills.Clear(); MyQuests.Clear();
             Storage.Clear(); StorageNpc = -1; Upgrade = null; TradeWith = 0; Pets.Clear(); PetListReceived = false;
             MapName = ""; GemMessage = ""; BagCapacity = 40;
             foreach (var side in new[] { TradeMine, TradeTheirs }) { side.locked = side.confirmed = false; side.yen = 0; side.items.Clear(); }

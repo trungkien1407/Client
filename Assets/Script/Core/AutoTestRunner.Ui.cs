@@ -154,6 +154,9 @@ namespace Assets.Script.Core
             GameWindow.Get<SettingsWindow>().Hide(); GameWindow.Get<UpgradeWindow>().Hide(); GameWindow.Get<StorageWindow>().Hide();
             GameWindow.Get<PlayerActionWindow>().Hide(); GameWindow.Get<InventoryWindow>().Hide();
 
+            // 3b2. Hướng dẫn chỉ tay + thú đưa tin + tay không không đánh (2026-11-15)
+            yield return CheckTourAndNotice();
+
             // 3c. Gói xã hội: xếp hạng + gia tộc + thư phải có phản hồi
             bool gotTop = false, gotGuild = false, gotMail = false;
             System.Action<DataKind> onData = k => { if (k == DataKind.Top) gotTop = true; if (k == DataKind.Guild) gotGuild = true; if (k == DataKind.Mails) gotMail = true; };

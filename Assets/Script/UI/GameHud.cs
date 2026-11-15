@@ -28,6 +28,9 @@ namespace Assets.Script.UI
         /// <summary>Bề rộng dành cho minimap góc phải trên (MinimapHud) — menu xếp sang trái nó.</summary>
         public static float MinimapWidth = MinimapHud.W + 16f;
 
+        /// <summary>Bố cục HUD đang dùng (null khi chưa vào game) — GuidedTour tìm nút để chỉ vào.</summary>
+        public static GameHudView View => _instance != null ? _instance._v : null;
+
         private static GameHud _instance;
         private GameHudView _v;
         private Button _leaveDungeon;
@@ -136,7 +139,7 @@ namespace Assets.Script.UI
             };
             GameActions.ActivityRequest(); // lấy điểm hoạt động ngay khi vào game → nút hiện "!" nếu có rương chưa nhận
             UpdateExp(); UpdateMoney(); UpdatePk(); UpdateParty(); UpdateQuests();
-            TutorialWindow.ShowIfFirstTime(); // lần đầu nhân vật này vào game
+            GuidedTour.StartIfFirstTime();    // lần đầu nhân vật này vào game: hướng dẫn chỉ vào từng nút / NPC (2026-11-15, thay 5 trang chữ)
         }
 
         /// <summary>

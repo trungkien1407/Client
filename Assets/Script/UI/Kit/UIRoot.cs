@@ -97,7 +97,7 @@ namespace Assets.Script.UI.Kit
                 if (_instance == null) return false;
                 if (_blockFrame == Time.frameCount) return _blockCached;
                 _blockFrame = Time.frameCount;
-                _blockCached = false;
+                _blockCached = GuidedTour.Active;   // đang xem hướng dẫn: Enter = "Tiếp", không đánh / đi
                 foreach (var w in _instance._windows)
                     if (w != null && w.IsOpen && w.BlocksGameplay) { _blockCached = true; break; }
                 return _blockCached;

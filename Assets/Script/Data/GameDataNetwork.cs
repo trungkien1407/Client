@@ -257,6 +257,7 @@ namespace Assets.Script.Data
                 GameData.EquipSlots[slot] = s;
             }
             r.Cleanup();
+            GameData.EquipmentReceived = true;
             GameData.Notify(DataKind.Equipment);
         }
 

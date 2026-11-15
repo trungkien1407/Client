@@ -98,7 +98,12 @@ namespace Assets.Script.Combat
             string msg = r.ReadUTF();
             r.Cleanup();
 
-            if (channel == 3) { AddSystem(msg); return; } // tin hệ thống (trả lời lệnh GM, thông báo lỗi...)
+            if (channel == 3)   // tin hệ thống (thông báo lỗi thao tác, sự kiện, trả lời lệnh GM...)
+            {
+                AddSystem(msg);
+                UI.NoticeMascot.Offer(msg);   // + thú đưa tin hạ xuống (trừ tin lặt vặt) — nhiều người không đọc chat
+                return;
+            }
             Push(channel, $"{ChannelTag(channel)} {from}: {msg}");
         }
 

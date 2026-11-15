@@ -24,7 +24,10 @@ namespace Assets.Script.Combat
         private const float QueueWindow = 0.35f;     // bấm khi đòn trước còn ≤ 0,35 giây thì nhớ lệnh
 
         private static float _nextAttackTime;
-        private static float _nextWarn;
+        private static float _nextWarn, _nextUnarmedWarn;
+
+        /// <summary>Đã nhận danh sách trang bị mà ô vũ khí (slot 1) trống. Chưa nhận (vừa vào game) → coi như có, để server quyết.</summary>
+        public static bool Unarmed => Data.GameData.EquipmentReceived && !Data.GameData.Equipment.ContainsKey(1);
         private static PlayerTargeting _targeting;
         private static int _queuedSkill = -1;
         private static float _queuedUntil;
@@ -73,6 +76,18 @@ namespace Assets.Script.Combat
             }
 
             ITargetable target = PickTarget(local.transform.position);
+            // Tay không (2026-11-15): chưa mặc vũ khí → không đánh (server cũng chặn). Chọn NPC thì vẫn nói chuyện được.
+            if (Unarmed && (target == null || target.GetTargetType() != TargetType.NPC))
+            {
+                if (Time.time >= _nextUnarmedWarn)
+                {
+                    _nextUnarmedWarn = Time.time + 3f;
+                    const string msg = "Chưa cầm vũ khí — mở Hành trang (phím I) mặc vũ khí rồi mới đánh được.";
+                    ChatBox.AddSystem(msg);
+                    UI.NoticeMascot.Show(msg);
+                }
+                return;
+            }
             if (target == null) { Swing(local, skillId); return; }
 
             AttackTarget targetType;

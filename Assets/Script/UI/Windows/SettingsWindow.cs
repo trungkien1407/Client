@@ -85,7 +85,7 @@ namespace Assets.Script.UI.Windows
             MakeToggle(_sfx, () => { AudioManager.SfxOn = !AudioManager.SfxOn; Refresh(); });
             foreach (var t in Body.GetComponentsInChildren<TextMeshProUGUI>(true))
                 if (t.name == "Note") t.text = NoteText;   // prefab cũ còn câu cũ
-            _tutorial.onClick.AddListener(() => Get<TutorialWindow>().ShowFromStart());
+            _tutorial.onClick.AddListener(() => { Hide(); GuidedTour.Begin(0.2f); });   // hướng dẫn chỉ vào từng nút (TutorialWindow 5 trang chữ vẫn còn, không tự mở)
             if (_logout == null || _password == null)   // prefab xuất trước khi có các nút này
             {
                 if (_logout == null) _logout = UIKit.Button("Logout", Body, "Đăng xuất", null, 15);
