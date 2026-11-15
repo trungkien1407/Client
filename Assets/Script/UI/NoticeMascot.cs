@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using Assets.Script.Core;
-using Assets.Script.Data;
+using Assets.Script.Manager;
 using Assets.Script.UI.Kit;
 using Spine.Unity;
 using TMPro;
@@ -12,20 +12,22 @@ namespace Assets.Script.UI
 {
     /// <summary>
     /// THÚ ĐƯA TIN (2026-11-15): thông báo quan trọng không chỉ nằm trong khung chat (nhiều người không đọc) mà có 1 con thú
-    /// treo trên sợi dây HẠ XUỐNG từ mép trên màn hình, cầm bong bóng chữ, vài giây sau kéo lên lại.
+    /// nhỏ treo trên sợi dây HẠ XUỐNG từ mép trên màn hình, dừng NGANG ĐẦU nhân vật (lệch trái chút), bong bóng chữ trên đầu thú,
+    /// vài giây sau kéo lên lại. Thú đi theo nhân vật khi nhân vật chạy (vị trí tính lại mỗi khung hình).
     ///
     /// Nguồn tin: mọi tin "Hệ thống" server gửi (ChatBox.OnChat kênh 3) trừ vài loại lặt vặt (QuietPrefixes) + tin client tự gọi Show.
     /// Nhiều tin dồn dập → xếp hàng (tối đa MaxQueue, bỏ tin cũ nhất), tin trùng tin đang hiện thì chỉ kéo dài thời gian.
-    /// Bấm vào bong bóng = cất ngay. Hình thú: thú đang mang → con đầu tiên trong túi → DefaultArt; không có hình (bản không có
-    /// art demo) → vòng tròn "!" vẽ bằng code.
+    /// Bấm vào bong bóng = cất ngay. Hình thú: luôn 1 con cố định nhỏ dễ thương (MascotArt = gấu mèo); không có hình
+    /// (bản không có art demo) → vòng tròn "!" vẽ bằng code.
     /// </summary>
     public class NoticeMascot : MonoBehaviour, IPointerClickHandler
     {
         private const int MaxQueue = 4;
-        private const int DefaultArt = 1024;           // thú mặc định khi người chơi chưa có thú
-        private const float DropTime = 0.55f, RiseTime = 0.4f;
-        private const float RestY = -118f;             // vị trí dừng (dưới hàng nút menu, so với mép trên)
-        private const float HideY = 260f;              // nằm khuất trên mép màn hình
+        private const int MascotArt = 1088;            // gấu mèo (Racoon) — nhỏ, mặt tròn dễ thương
+        private const float DropTime = 0.7f, RiseTime = 0.45f;
+        private const float BubbleW = 320f;
+        private static readonly Vector2 PetSize = new Vector2(124, 84);   // gấu mèo 4 chân → khung ngang
+        private const float SideGap = 90f;             // thú đứng lệch sang trái nhân vật bao nhiêu (đơn vị UI)
 
         /// <summary>Tin bắt đầu bằng các chữ này chỉ vào chat (lặt vặt / lặp liên tục khi tự động đánh).</summary>
         private static readonly string[] QuietPrefixes =
@@ -42,6 +44,9 @@ namespace Assets.Script.UI
         private string _current;
         private float _t;                 // thời gian trong pha hiện tại
         private float _hold;              // thời gian đứng yên của tin hiện tại
+        private float _hideY;             // y nằm khuất trên mép màn hình (tính theo cỡ canvas)
+        private BoxCollider2D _meCol;     // khung va chạm nhân vật mình (để biết đầu đang ở đâu trên màn hình)
+        private Object _meOwner;
         private int _phase;               // 0 ẩn · 1 hạ xuống · 2 đứng · 3 kéo lên
 
         /// <summary>Tin đang hiện (autotest kiểm).</summary>
@@ -74,7 +79,8 @@ namespace Assets.Script.UI
             var root = UIRoot.Instance;
             if (root == null) return null;
             var rt = UIKit.Rect("NoticeMascot", root.transform);
-            rt.Place(new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(-60, HideY), new Vector2(560, 120), new Vector2(0.5f, 1));
+            // gốc = điểm chân thú (giữa đáy); bong bóng xếp chồng lên trên
+            rt.Place(new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(BubbleW, 140), new Vector2(0.5f, 0));
             _instance = rt.gameObject.AddComponent<NoticeMascot>();
             _instance.Build(rt);
             return _instance;
@@ -83,34 +89,35 @@ namespace Assets.Script.UI
         private void Build(RectTransform rt)
         {
             _root = rt;
-            // sợi dây từ mép trên xuống đầu thú
+            // sợi dây từ mép trên màn hình xuống đỉnh bong bóng (bong bóng che chân dây)
             _rope = UIKit.Rect("Rope", rt);
-            _rope.Place(new Vector2(0, 1), new Vector2(0, 1), new Vector2(58, 0), new Vector2(2, 800), new Vector2(0.5f, 0));
+            _rope.Place(new Vector2(0.5f, 1), new Vector2(0.5f, 1), new Vector2(0, -4), new Vector2(2, 1600), new Vector2(0.5f, 0));
             var ri = _rope.gameObject.AddComponent<Image>();
             ri.sprite = UIKit.WhiteSprite;
             ri.color = new Color(0.95f, 0.85f, 0.6f, 0.9f);
             ri.raycastTarget = false;
             _rope.gameObject.AddComponent<NoSkin>();
 
+            // thú nhỏ ở dưới cùng
             _petBox = UIKit.Rect("Pet", rt);
-            _petBox.Place(new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, 0), new Vector2(116, 104), new Vector2(0, 1));
+            _petBox.Place(new Vector2(0.5f, 0), new Vector2(0.5f, 0), Vector2.zero, PetSize, new Vector2(0.5f, 0));
 
+            // bong bóng chữ ngay trên đầu thú, mũi nhọn chỉ xuống đầu thú
             _bubble = UIKit.Rect("Bubble", rt);
-            _bubble.Place(new Vector2(0, 1), new Vector2(0, 1), new Vector2(124, -8), new Vector2(420, 60), new Vector2(0, 1));
+            _bubble.Place(new Vector2(0.5f, 0), new Vector2(0.5f, 0), new Vector2(0, PetSize.y + 10), new Vector2(BubbleW, 60), new Vector2(0.5f, 0));
             var bg = _bubble.gameObject.AddComponent<Image>();
             UIStyle.SetRound(bg, new Color(0.10f, 0.08f, 0.16f, 0.94f), 1.5f);
             UIStyle.AddRing(_bubble, new Color(1f, 0.82f, 0.40f, 0.9f), 1.5f);
-            // mũi bong bóng chỉ về con thú
             var tip = UIKit.Rect("Tip", _bubble);
-            tip.Place(new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, -30), new Vector2(14, 14), new Vector2(0.5f, 0.5f));
+            tip.Place(new Vector2(0.5f, 0), new Vector2(0.5f, 0), Vector2.zero, new Vector2(14, 14), new Vector2(0.5f, 0.5f));
             tip.localRotation = Quaternion.Euler(0, 0, 45f);
             var ti = tip.gameObject.AddComponent<Image>();
             ti.sprite = UIKit.WhiteSprite;
             ti.color = new Color(0.10f, 0.08f, 0.16f, 0.94f);
             ti.raycastTarget = false;
             tip.SetAsFirstSibling();
-            _text = UIKit.Text("Text", _bubble, "", 17, TextAlignmentOptions.MidlineLeft, Color.white);
-            _text.rectTransform.Fill(14, 12, 8, 8);
+            _text = UIKit.Text("Text", _bubble, "", 17, TextAlignmentOptions.Midline, Color.white);
+            _text.rectTransform.Fill(12, 12, 8, 8);
             _text.enableWordWrapping = true;
             _text.raycastTarget = false;
             _root.gameObject.SetActive(false);
@@ -130,9 +137,13 @@ namespace Assets.Script.UI
             _root.gameObject.SetActive(true);
             _root.SetAsLastSibling();   // trên HUD + cửa sổ
             _text.text = "<color=#ffd56b><b>Thông báo</b></color>\n" + text;
-            // bong bóng cao vừa chữ (rộng cố định 420)
-            var pref = _text.GetPreferredValues(_text.text, 420f - 26f, 0f);
-            _bubble.sizeDelta = new Vector2(420f, Mathf.Clamp(pref.y + 18f, 56f, 200f));
+            // bong bóng cao vừa chữ (rộng cố định BubbleW); khung gốc cao = thú + bong bóng
+            var pref = _text.GetPreferredValues(_text.text, BubbleW - 24f, 0f);
+            float bh = Mathf.Clamp(pref.y + 18f, 56f, 220f);
+            _bubble.sizeDelta = new Vector2(BubbleW, bh);
+            _root.sizeDelta = new Vector2(BubbleW, PetSize.y + 10f + bh);
+            var parent = (RectTransform)_root.parent;
+            _hideY = parent.rect.height / 2f + 40f;   // đáy khung nằm trên mép trên màn hình
             _hold = Mathf.Clamp(2.6f + text.Length * 0.045f, 3f, 7f);
             if (_queue.Count > 0) _hold = Mathf.Min(_hold, 3f);   // còn tin chờ → mỗi tin ngắn lại
             if (_phase == 0 || _phase == 3) { _phase = 1; _t = 0f; }
@@ -144,26 +155,54 @@ namespace Assets.Script.UI
         {
             if (_phase == 0) return;
             _t += Time.unscaledDeltaTime;
+            Vector2 rest = RestPoint();
             float y;
             switch (_phase)
             {
                 case 1:   // hạ xuống, nảy nhẹ cuối đường
                     float k = Mathf.Clamp01(_t / DropTime);
-                    y = Mathf.LerpUnclamped(HideY, RestY, EaseOutBack(k));
+                    y = Mathf.LerpUnclamped(_hideY, rest.y, EaseOutBack(k));
                     if (k >= 1f) { _phase = 2; _t = 0f; }
                     break;
-                case 2:   // đứng, đung đưa nhẹ trên dây
-                    y = RestY + Mathf.Sin(_t * 3f) * 3f;
+                case 2:   // đứng, nhún nhẹ trên dây
+                    y = rest.y + Mathf.Abs(Mathf.Sin(_t * 3f)) * 4f;
                     _root.localRotation = Quaternion.Euler(0, 0, Mathf.Sin(_t * 2.2f) * 1.5f);
                     if (_t >= _hold) { _phase = 3; _t = 0f; }
                     break;
                 default:  // kéo lên
                     float u = Mathf.Clamp01(_t / RiseTime);
-                    y = Mathf.Lerp(RestY, HideY, u * u);
+                    y = Mathf.Lerp(rest.y, _hideY, u * u);
                     if (u >= 1f) { _root.localRotation = Quaternion.identity; Next(); return; }
                     break;
             }
-            _root.anchoredPosition = new Vector2(_root.anchoredPosition.x, y);
+            _root.anchoredPosition = new Vector2(rest.x, y);
+        }
+
+        /// <summary>
+        /// Chỗ thú dừng (toạ độ UI, gốc giữa màn hình): ngang đầu nhân vật, lệch sang trái SideGap. Không tìm được nhân vật
+        /// → hơi dưới giữa màn hình (camera vốn bám nhân vật). Kẹp để bong bóng không lọt ra ngoài màn hình.
+        /// </summary>
+        private Vector2 RestPoint()
+        {
+            var parent = (RectTransform)_root.parent;
+            Vector2 half = parent.rect.size / 2f;
+            Vector2 p = new Vector2(-SideGap, 0f);
+            var cam = Camera.main;
+            var me = NetworkPlayerManager.Instance != null ? NetworkPlayerManager.Instance.localPlayer : null;
+            if (cam != null && me != null)
+            {
+                // đỉnh đầu = mép trên khung va chạm (BoxCollider2D) — khung hình Renderer có cả hiệu ứng / thanh máu nên cao quá
+                if (_meOwner != me || _meCol == null) { _meOwner = me; _meCol = me.GetComponent<BoxCollider2D>(); }
+                Vector3 head = _meCol != null ? new Vector3(_meCol.bounds.center.x, _meCol.bounds.max.y + 0.15f, 0)
+                                              : me.transform.position + Vector3.up * 1.6f;
+                Vector2 sp = cam.WorldToScreenPoint(head);
+                if (RectTransformUtility.ScreenPointToLocalPointInRectangle(parent, sp, null, out var lp))
+                    p = new Vector2(lp.x - SideGap, lp.y);
+            }
+            float hw = BubbleW / 2f + 8f;
+            p.x = Mathf.Clamp(p.x, -half.x + hw, half.x - hw);
+            p.y = Mathf.Clamp(p.y, -half.y + 8f, half.y - _root.sizeDelta.y - 70f);   // chừa hàng nút trên cùng
+            return p;
         }
 
         public void OnPointerClick(PointerEventData e)
@@ -179,16 +218,9 @@ namespace Assets.Script.UI
 
         // ------------------------------------------------------------------ hình thú
 
-        private static int PickArt()
-        {
-            if (GameData.MyPet != null && GameData.MyPet.art > 0) return GameData.MyPet.art;
-            if (GameData.Pets.Count > 0 && GameData.Pets[0].art > 0) return GameData.Pets[0].art;
-            return DefaultArt;
-        }
-
         private void LoadPet()
         {
-            int art = PickArt();
+            int art = MascotArt;
             if (art == _sgArt && (_sg != null || _petBox.childCount > 0)) return;
             _sgArt = art;
             if (_sg != null) { Destroy(_sg.gameObject); _sg = null; }
@@ -219,7 +251,7 @@ namespace Assets.Script.UI
             t.fontStyle = FontStyles.Bold;
         }
 
-        /// <summary>Thu / phóng hình vừa khung (giống PetWindow.Fit). Ảnh thú vốn nhìn sang phải = về phía bong bóng.</summary>
+        /// <summary>Thu / phóng hình vừa khung (giống PetWindow.Fit), chân chạm đáy khung. Ảnh gốc nhìn sang phải = về phía nhân vật.</summary>
         private static void Fit(SkeletonGraphic sg, Vector2 box)
         {
             var sk = sg.Skeleton;
@@ -231,8 +263,9 @@ namespace Assets.Script.UI
             float s = Mathf.Min(box.x / (w * ppu), box.y / (h * ppu)) * 0.95f;
             var rt = sg.rectTransform;
             rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
-            rt.localScale = new Vector3(s, s, 1f);
-            rt.anchoredPosition = -new Vector2(x + w / 2f, y + h / 2f) * ppu * s;
+            rt.localScale = new Vector3(s, s, 1f);   // ảnh gốc nhìn sang phải = về phía nhân vật
+            // giữa ngang, đáy hình chạm đáy khung (thú "đứng" trên mặt đất cạnh nhân vật)
+            rt.anchoredPosition = new Vector2(-(x + w / 2f) * ppu * s, -box.y / 2f - y * ppu * s);
         }
     }
 }

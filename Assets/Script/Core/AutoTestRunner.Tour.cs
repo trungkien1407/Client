@@ -55,6 +55,8 @@ namespace Assets.Script.Core
                 yield return new WaitForSecondsRealtime(0.2f);
                 Check("Tháo vũ khí → bấm đánh bị chặn, thú báo \"Chưa cầm vũ khí\"",
                     SkillCaster.Unarmed && NoticeMascot.Current != null && NoticeMascot.Current.Contains("vũ khí"));
+                yield return new WaitForSecondsRealtime(0.9f);
+                yield return Shot("NoticeMascot_VuKhi");
                 int idx = GameData.Inventory.FindIndex(x => x.tpl == wpn);
                 if (idx >= 0) GameActions.Equip(idx);
                 yield return WaitUntil(() => GameData.Equipment.ContainsKey(1), 5);
