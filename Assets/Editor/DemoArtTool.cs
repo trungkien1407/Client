@@ -526,8 +526,9 @@ public static class DemoArtTool
     /// </summary>
     private static readonly Dictionary<int, Vector2> NpcFitOverride = new Dictionary<int, Vector2>
     {
-        { 9, new Vector2(-18, 14) },    // ninja áo đỏ: dải vải thõng phải cắm vào ủng trái
+        { 9, new Vector2(13, 8) },      // ninja áo đỏ (2026-11-15): giữa váy đỏ đặt trên giữa 2 ủng, 2 dải vải thõng rơi giữa 2 chân (trước -18: ủng phải rời ra)
         { 12, new Vector2(18, 16) },    // ông lão chống gậy: ảnh chân có khúc cuối cây gậy → nối liền thân gậy
+        { 23, new Vector2(3, 15) },     // ông lão ăn mày (2026-11-15): gậy trong thân nối khúc gậy trong ảnh chân, vạt áo phủ ống quần (trước +26: chân rời ra bên trái)
     };
 
     /// <summary>

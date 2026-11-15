@@ -25,6 +25,26 @@ namespace Assets.Script.Models
         /// <summary>Vị trí đặt ảnh thân (đơn vị thế giới, so với gốc NPC).</summary>
         public Vector2 BodyPos => legs == null ? Vector2.zero : bodyOffsetPx / Ppu;
 
+        /// <summary>
+        /// Giữa bề ngang cả hình (thân + chân ghép lại), đơn vị thế giới, so với gốc NPC. Ảnh thân hay nghiêng / cầm đồ chìa 1 bên
+        /// nên chân ở gốc mà cả hình lệch hẳn sang 1 phía so với tên → NpcEntity dời cả hình đi -CenterX. Ảnh đã cắt sát mép nên lấy khung ảnh.
+        /// </summary>
+        public float CenterX
+        {
+            get
+            {
+                if (body == null) return 0f;
+                float bw = body.rect.width / Ppu, bx = BodyPos.x;
+                float min = bx - bw / 2f, max = bx + bw / 2f;
+                if (legs != null)
+                {
+                    float lw = legs.rect.width / legs.pixelsPerUnit;
+                    min = Mathf.Min(min, -lw / 2f); max = Mathf.Max(max, lw / 2f);
+                }
+                return (min + max) / 2f;
+            }
+        }
+
         /// <summary>Đỉnh đầu (đơn vị thế giới) — đặt tên NPC / mũi tên chọn phía trên.</summary>
         public float TopY => BodyPos.y + (body != null ? body.rect.height / body.pixelsPerUnit : 1.5f);
     }

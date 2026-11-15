@@ -171,7 +171,7 @@ namespace Assets.Script.UI.Kit
         /// <summary>Khung màu phẳng có màu ô / khung phụ của theme cũ → hình bo góc + màu mới (hàng danh sách, ô đồ...).</summary>
         public static void SkinPanel(Image img)
         {
-            if (!Enabled || img == null || !IsFlat(img) || img.GetComponent<Selectable>() != null) return;
+            if (!Enabled || img == null || !IsFlat(img) || img.GetComponent<Selectable>() != null || img.GetComponent<NoSkin>() != null) return;
             if (Near(img.color, _oldSlot) || Near(img.color, UIKit.SlotColor))
             {
                 Set(img, Get(Slot), keepColor: true);

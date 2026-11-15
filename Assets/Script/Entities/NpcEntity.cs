@@ -30,6 +30,7 @@ namespace Assets.Script.Entities
         private void Awake()
         {
             if (targetArrow != null) targetArrow.SetActive(false);
+            if (headRenderer != null) _bodyBase = headRenderer.transform.localScale;
             if (npcNameText != null)
             {
                 _originalNamePosition = npcNameText.transform.localPosition;
@@ -77,12 +78,14 @@ namespace Assets.Script.Entities
             {
                 if (this == null || so == null || so.body == null || AppliedArt != art) return;
                 legRenderer.sprite = so.legs;
-                legRenderer.transform.localPosition = Vector3.zero;
-                legRenderer.transform.localScale = new Vector3(scale, scale, 1f);   // gốc chân (pivot giữa-đáy) giữ nguyên → vẫn đứng trên đất
-                headRenderer.sprite = so.body;
                 var bp = so.BodyPos * scale;   // thân lệch theo eo (đo sẵn), không đặt thẳng tâm ảnh
-                headRenderer.transform.localPosition = new Vector3(bp.x, bp.y, 0f);
+                float cx = so.CenterX * scale;  // giữa khối hình (thân + chân) → dời cả hình cho nằm đúng dưới tên
+                legRenderer.transform.localPosition = new Vector3(-cx, 0f, 0f);
+                legRenderer.transform.localScale = new Vector3(scale, scale, 1f);   // gốc chân (pivot giữa-đáy) giữ độ cao → vẫn đứng trên đất
+                headRenderer.sprite = so.body;
+                headRenderer.transform.localPosition = new Vector3(bp.x - cx, bp.y, 0f);
                 headRenderer.transform.localScale = new Vector3(scale, scale, 1f);
+                _bodyBase = new Vector3(scale, scale, 1f);
                 float top = so.TopY * scale;
                 if (npcNameText != null)
                 {
@@ -95,6 +98,20 @@ namespace Assets.Script.Entities
                     targetArrow.transform.localPosition = new Vector3(p.x, top + 0.75f, p.z);
                 }
             });
+        }
+
+        private Vector3 _bodyBase = Vector3.one;   // cỡ thân khi đứng yên (thở quanh cỡ này)
+
+        /// <summary>
+        /// NPC "thở" khi đứng: ảnh THÂN (pivot giữa-đáy = eo) phồng lên / xẹp xuống rất nhẹ theo hình sin, chân đứng yên.
+        /// Lệch pha theo id để các NPC không thở cùng nhịp.
+        /// </summary>
+        private void Update()
+        {
+            if (headRenderer == null) return;
+            float t = Time.time * 2.2f + npcId * 1.7f;     // ~0,35 nhịp / giây
+            float s = Mathf.Sin(t);
+            headRenderer.transform.localScale = new Vector3(_bodyBase.x * (1f - 0.006f * s), _bodyBase.y * (1f + 0.018f * s), _bodyBase.z);
         }
 
         // --- Hiện thực Interface ITargetable ---

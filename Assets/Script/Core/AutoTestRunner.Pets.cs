@@ -141,9 +141,12 @@ namespace Assets.Script.Core
             yield return new WaitForSecondsRealtime(0.8f);
             Check("Cửa sổ Thú cưng (P) liệt kê thú", pw.IsOpen && pw.GetComponentsInChildren<UnityEngine.UI.Button>(true).Length > 2);
             Check("Cửa sổ Thú cưng hiện thể lực",
-                pw.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true).Any(t => t.text.Contains("Thể lực")));
+                pw.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true).Any(t => t.text != null && t.text.Contains("Thể lực")));
             Check("Cửa sổ Thú cưng hiện dòng tiềm năng",
-                pw.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true).Any(t => t.text.Contains("Tiềm năng") && pet != null && pet.pot.Count > 0 && t.text.Contains(PetInfo.PotNames[pet.pot[0].kind])));
+                // 2026-11-15 bảng: nhãn "Tiềm năng" và từng dòng nằm ở các ô khác nhau
+                pet != null && pet.pot.Count > 0
+                && pw.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true).Any(t => t.text != null && t.text.Contains("Tiềm năng"))
+                && pw.GetComponentsInChildren<TMPro.TextMeshProUGUI>(true).Any(t => t.text != null && t.text.Contains(PetInfo.PotNames[pet.pot[0].kind])));
             if (art)
             {
                 yield return WaitUntil(() => pw.GetComponentInChildren<Spine.Unity.SkeletonGraphic>() != null, 3);

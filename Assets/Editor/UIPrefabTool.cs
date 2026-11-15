@@ -37,6 +37,20 @@ public static class UIPrefabTool
         Report(n);
     }
 
+    /// <summary>
+    /// Không mở Editor, GHI ĐÈ vài cửa sổ đã đổi bố cục trong code: -executeMethod UIPrefabTool.BatchReexport -windows CharacterWindow,PetWindow
+    /// (prefab cũ giữ bố cục cũ → đổi Build() mà không xuất lại thì game vẫn hiện bố cục cũ).
+    /// </summary>
+    public static void BatchReexport()
+    {
+        var args = Environment.GetCommandLineArgs();
+        int k = Array.IndexOf(args, "-windows");
+        var names = k >= 0 && k + 1 < args.Length ? args[k + 1].Split(',') : new string[0];
+        int n = 0;
+        foreach (var t in WindowTypes().Where(t => names.Contains(t.Name))) if (ExportWindow(t, true)) n++;
+        Debug.Log($"[UIPrefabTool] Xuất lại {n} / {names.Length} cửa sổ: {string.Join(", ", names)}");
+    }
+
     public static void BatchGenerate()
     {
         int n = GenerateKit(false) + ExportWindows(false) + ExportHud(false);

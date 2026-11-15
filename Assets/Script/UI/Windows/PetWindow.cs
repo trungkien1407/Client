@@ -24,7 +24,11 @@ namespace Assets.Script.UI.Windows
         private static readonly int[] HerbSta = { 200, 500 };
 
         [SerializeField] private RectTransform _list, _preview, _foods;
-        [SerializeField] private TextMeshProUGUI _head, _detail, _note;
+        [SerializeField] private TextMeshProUGUI _head, _note;
+        [SerializeField] private RectTransform _detailBox;   // chỗ đặt bảng chi tiết (UITable dựng lại mỗi lần Refresh)
+        private UITable _detail;
+        private static readonly float[] DetailCols = { 0.30f, 0.70f };
+        private static readonly float[] PotCols = { 0.31f, 0.19f, 0.31f, 0.19f };   // 2 dòng tiềm năng / hàng: tên | chất | tên | chất
         [SerializeField] private Button _equip, _release;
         private int _selUid = -1;
         private SkeletonGraphic _sg;
@@ -51,8 +55,8 @@ namespace Assets.Script.UI.Windows
             _preview = UIKit.Rect("Preview", box).Fill(6, 6, 6, 6);
             box.gameObject.AddComponent<RectMask2D>();
 
-            _detail = UIKit.Text("Detail", body, "", 14, TextAlignmentOptions.TopLeft);
-            _detail.rectTransform.Place(new Vector2(1, 1), new Vector2(1, 1), new Vector2(0, -154), new Vector2(400, 162), new Vector2(1, 1));
+            _detailBox = UIKit.Rect("Detail", body);
+            _detailBox.Place(new Vector2(1, 1), new Vector2(1, 1), new Vector2(0, -154), new Vector2(400, 162), new Vector2(1, 1));
             _equip = UIKit.Button("Equip", body, "Cưỡi con này", null, 15);
             ((RectTransform)_equip.transform).Place(new Vector2(1, 1), new Vector2(1, 1), new Vector2(-206, -320), new Vector2(190, 36), new Vector2(1, 1));
             _release = UIKit.Button("Release", body, "Phóng sinh", null, 15);
@@ -94,6 +98,16 @@ namespace Assets.Script.UI.Windows
             if (!IsOpen) Show(); else Refresh();
         }
 
+        /// <summary>Bảng chi tiết (tạo lần đầu cần dùng — cửa sổ dựng từ prefab cũng chạy được).</summary>
+        private UITable Detail()
+        {
+            if (_detail != null) return _detail;
+            if (_detailBox == null) { _detailBox = UIKit.Rect("Detail", Body); _detailBox.Place(new Vector2(1, 1), new Vector2(1, 1), new Vector2(0, -154), new Vector2(400, 162), new Vector2(1, 1)); }
+            _detail = new UITable("Table", _detailBox, 22);
+            _detail.Root.Place(new Vector2(0, 1), new Vector2(1, 1), Vector2.zero, Vector2.zero, new Vector2(0.5f, 1));
+            return _detail;
+        }
+
         private PetInfo Selected()
         {
             foreach (var p in GameData.Pets) if (p.uid == _selUid) return p;
@@ -131,7 +145,7 @@ namespace Assets.Script.UI.Windows
             _release.gameObject.SetActive(sel != null);
             if (sel == null)
             {
-                _detail.text = "";
+                Detail().Clear();
                 SetPreview(0, 0);
                 UIKit.Clear(_foods);
                 return;
@@ -139,32 +153,41 @@ namespace Assets.Script.UI.Windows
             _equip.SetLabel(sel.on ? "Cất (thôi cưỡi)" : "Cưỡi con này");
             string exp = sel.expNext > 0 ? $"EXP {sel.exp:N0} / {sel.expNext:N0} ({100f * sel.exp / sel.expNext:F0}%)" : "Cấp tối đa";
             bool capped = sel.expNext > 0 && sel.level >= GameData.Me.level && sel.exp >= sel.expNext - 1;
-            var sb = new System.Text.StringBuilder();
-            sb.Append($"<b>{sel.ColoredName}</b>  <color=#9aa>{PetInfo.RarityNames[Mathf.Clamp(sel.rarity, 0, 3)]} · loại {PetInfo.KindNames[Mathf.Clamp(sel.kind, 0, 3)]} · dáng {sel.stage}/4</color>\n");
-            sb.Append($"Cấp {sel.level}   {exp}{(capped ? "  <color=#f77>(chờ bạn lên cấp)</color>" : "")}\n");
+            // 2026-11-15: chi tiết kẻ BẢNG (trước là khối chữ nhiều dòng, khó dò) — mỗi mục 1 hàng "nhãn | giá trị"
+            var t = Detail();
+            t.Clear();
+            t.Header(DetailCols, sel.ColoredName, $"{PetInfo.RarityNames[Mathf.Clamp(sel.rarity, 0, 3)]} · loại {PetInfo.KindNames[Mathf.Clamp(sel.kind, 0, 3)]} · dáng {sel.stage}/4");
+            t.Row(DetailCols, "Cấp", $"{sel.level}   <color=#9aa>{exp}</color>{(capped ? "  <color=#f77>(chờ bạn lên cấp)</color>" : "")}");
             if (sel.stamina >= 0)   // GĐ28 thể lực: hết = không cưỡi được
             {
                 string sc = sel.stamina <= 0 ? "#ff6b6b" : sel.stamina < 200 ? "#ffb35a" : "#9fe39f";
-                sb.Append($"Thể lực <color={sc}>{sel.stamina} / {sel.staminaMax}</color> <size=12><color=#888>(−50 mỗi ngày{(sel.stamina <= 0 ? " · HẾT: không cưỡi được" : "")})</color></size>\n");
+                t.Row(DetailCols, "Thể lực", $"<color={sc}>{sel.stamina} / {sel.staminaMax}</color>  <size=12><color=#888>{(sel.stamina <= 0 ? "HẾT: không cưỡi được" : "−50 mỗi ngày")}</color></size>");
             }
-            sb.Append(sel.on ? "<color=#7f7>Đang cưỡi (chạy nhanh hơn 30%, phím R lên / xuống) — cộng cho bạn:</color>\n" : "<color=#9aa>Khi cưỡi cộng cho bạn:</color>\n");
-            if (sel.bonus[2] > 0) sb.Append($"+{sel.bonus[2]} sát thương  ");
-            if (sel.bonus[0] > 0) sb.Append($"+{sel.bonus[0]} HP tối đa  ");
-            if (sel.bonus[1] > 0) sb.Append($"+{sel.bonus[1]} MP tối đa  ");
-            if (sel.bonus[3] > 0) sb.Append($"+{sel.bonus[3]} phòng thủ");
+            var bonus = new System.Collections.Generic.List<string>();
+            if (sel.bonus[2] > 0) bonus.Add($"+{sel.bonus[2]} sát thương");
+            if (sel.bonus[0] > 0) bonus.Add($"+{sel.bonus[0]} HP");
+            if (sel.bonus[1] > 0) bonus.Add($"+{sel.bonus[1]} MP");
+            if (sel.bonus[3] > 0) bonus.Add($"+{sel.bonus[3]} phòng thủ");
+            t.Row(DetailCols, sel.on ? "<color=#7f7>Đang cưỡi</color>" : "Khi cưỡi", bonus.Count > 0 ? string.Join(" · ", bonus) : "—");
             // GĐ28 dòng tiềm năng: tung lúc nở, mạnh dần theo cấp thú; chất cao (≥ 70%) tô vàng
             if (sel.pot.Count > 0)
             {
-                sb.Append("\n<color=#fd5>Tiềm năng</color> <size=12><color=#9aa>(tăng theo cấp thú)</color></size>");
-                for (int i = 0; i < sel.pot.Count; i++)
+                t.Row(DetailCols, "<color=#fd5>Tiềm năng</color>", "<size=12><color=#9aa>tăng theo cấp thú · không tẩy lại</color></size>");
+                for (int i = 0; i < sel.pot.Count; i += 2)
                 {
-                    var l = sel.pot[i];
-                    string c = l.quality >= 70 ? "#ffd75a" : l.quality >= 40 ? "#9fe39f" : "#dddddd";
-                    sb.Append(i % 2 == 0 ? "\n" : "    ");
-                    sb.Append($"<color={c}>{PetInfo.PotText(l)}</color> <size=11><color=#888>chất {l.quality}%</color></size>");
+                    var cells = new[] { "", "", "", "" };   // số dòng lẻ → 2 ô cuối để trống (không để null)
+                    for (int k = 0; k < 2 && i + k < sel.pot.Count; k++)
+                    {
+                        var l = sel.pot[i + k];
+                        string c = l.quality >= 70 ? "#ffd75a" : l.quality >= 40 ? "#9fe39f" : "#dddddd";
+                        cells[k * 2] = $"<color={c}>{PetInfo.PotText(l)}</color>";
+                        cells[k * 2 + 1] = $"<size=12><color=#888>chất {l.quality}%</color></size>";
+                    }
+                    t.Row(PotCols, cells);
                 }
             }
-            _detail.text = sb.ToString();
+            t.Finish();
+            if (sel.on) _note.text += " Đang cưỡi: chạy nhanh hơn 30%, phím R lên / xuống.";
             SetPreview(sel.art, sel.stage);
 
             // ---- thức ăn trong túi ----
