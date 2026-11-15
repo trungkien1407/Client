@@ -266,8 +266,9 @@ namespace Assets.Script.Combat
             Assets.Script.UI.Kit.UIStyle.Readable(v.label);   // viền + bóng đổ → đọc được cả trên nền trắng
             v.label.sortingOrder = 6;
 
-            // mũi tên NHỎ chỉ xuống, ngay trên tên (2026-11-15) — dễ thấy đồ rơi giữa đám quái / cỏ
+            // mũi tên NHỎ chỉ xuống, ngay trên tên — CHỈ hiện khi món này đang được chọn (GroundItemTarget)
             v.arrow = Fx.PointerArrow.Attach(go.transform, new Vector3(0f, IconSize + 0.85f, 0f), 0.5f, 7);
+            v.arrow.gameObject.SetActive(false);
             return v;
         }
 
@@ -296,6 +297,7 @@ namespace Assets.Script.Combat
                 label.text = it.qty > 1 ? $"{nm} x{it.qty}" : nm;
                 label.color = Color.white;
                 label.transform.localPosition = new Vector3(0f, IconSize + 0.45f, 0f);
+                arrow.gameObject.SetActive(false);   // khung dùng lại: món trước có thể đang được chọn
                 gameObject.SetActive(true);
                 bob.Restart();
                 int iconId = Assets.Script.Data.GameData.Items.TryGetValue(it.templateId, out var tpl) ? tpl.iconId : 0;
@@ -358,12 +360,20 @@ namespace Assets.Script.Combat
                 _before = _label.color;
                 _label.color = new Color(0.45f, 1f, 0.45f);
                 transform.localScale = Vector3.one * 1.15f;
+                SetArrow(true);
             }
 
             public void OnDeselected()
             {
                 transform.localScale = Vector3.one;
                 if (_label != null) _label.color = _before;
+                SetArrow(false);
+            }
+
+            private void SetArrow(bool on)
+            {
+                var v = GetComponent<GroundItemView>();
+                if (v != null && v.arrow != null) v.arrow.gameObject.SetActive(on);
             }
         }
 

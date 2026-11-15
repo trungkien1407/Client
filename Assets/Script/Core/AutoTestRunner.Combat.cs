@@ -335,7 +335,7 @@ namespace Assets.Script.Core
             if (drops > 0)
             {
                 Check($"Đồ rơi hiện icon thật của vật phẩm ({withIcon}/{drops})", withIcon > 0);
-                Check($"Đồ rơi có mũi tên nhỏ chỉ xuống ({withArrow}/{drops})", withArrow == drops);
+                Check($"Đồ rơi chưa chọn thì KHÔNG có mũi tên ({withArrow}/{drops} đang hiện)", withArrow == 0);
                 yield return Shot("GroundItems");
                 // NHẶT TAY: đi ngang không tự nhặt nữa → chọn vật phẩm làm mục tiêu + bấm đánh (J) → tự chạy tới nhặt
                 // món GẦN nhất (/killall hạ cả map → đồ rơi khắp nơi; món ở xa sau bậc địa hình chạy không tới trong 8 giây)
@@ -356,6 +356,9 @@ namespace Assets.Script.Core
                     int bag0 = 0; foreach (var s0 in GameData.Inventory) bag0 += s0.qty;
                     targeting.SelectTarget(item);
                     Check("Chọn vật phẩm → ActionInput coi là mục tiêu Item", ActionInput.TargetIsItem());
+                    var arr = ((Component)item).transform.Find("PointerArrow");
+                    Check("Chọn vật phẩm → hiện mũi tên nhỏ trên món đó", arr != null && arr.gameObject.activeSelf);
+                    yield return Shot("GroundItem_chon");
                     CombatInput.CastSelected();   // = bấm J
                     int gid = item.GetId();
                     yield return WaitUntil(() => !GroundItemNetwork.Instance.Has(gid), 8);

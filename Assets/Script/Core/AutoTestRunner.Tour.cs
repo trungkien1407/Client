@@ -73,10 +73,24 @@ namespace Assets.Script.Core
             yield return WaitUntil(() => NoticeMascot.Current == null, 12);
             CheckHudClicks();
             yield return CheckCompactHud();
+            // Mũi tên nhỏ trên NPC chỉ hiện khi NPC đó đang được chọn (2026-11-16)
+            var tg = FindAnyObjectByType<Player.PlayerTargeting>();
+            if (tg != null) tg.ClearTarget();
             var npcs = NetworkNpcManager.Instance != null ? NetworkNpcManager.Instance.All : null;
             int nNpc = 0, nArrow = 0;
-            if (npcs != null) foreach (var n in npcs) { nNpc++; var a = n.transform.Find("PointerArrow"); if (a != null && a.gameObject.activeSelf) nArrow++; }
-            Check($"NPC có mũi tên nhỏ trên tên ({nArrow}/{nNpc})", nNpc > 0 && nArrow >= nNpc - 1);   // NPC đang chọn (nếu có) hiện mũi tên chọn thay
+            Entities.NpcEntity first = null;
+            if (npcs != null) foreach (var n in npcs) { nNpc++; if (n.ArrowShown) nArrow++; if (first == null) first = n; }
+            Check($"NPC chưa chọn thì KHÔNG có mũi tên ({nArrow}/{nNpc} đang hiện)", nNpc > 0 && nArrow == 0);
+            if (tg != null && first != null)
+            {
+                tg.SelectTarget(first);
+                yield return null;
+                Check("Chọn NPC → hiện mũi tên nhỏ trên tên NPC đó", first.ArrowShown);
+                yield return Shot("Npc_chon");
+                tg.ClearTarget();
+                yield return null;
+                Check("Bỏ chọn → mũi tên tắt", !first.ArrowShown);
+            }
         }
 
         /// <summary>Khung chat + khung nhiệm vụ thu gọn mặc định, bấm nút mũi tên / "Xem" thì mở rộng (vẫn nhỏ hơn bản cũ 470×170 / 300×140).</summary>

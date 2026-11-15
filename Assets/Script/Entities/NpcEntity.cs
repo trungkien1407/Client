@@ -26,10 +26,10 @@ namespace Assets.Script.Entities
 
         private Vector3 _originalNamePosition;
         private Color _originalNameColor;
-        private Fx.PointerArrow _hintArrow;   // mũi tên nhỏ luôn hiện trên tên (2026-11-15) — ẩn khi đang chọn (mũi tên chọn hiện thay)
+        private Fx.PointerArrow _hintArrow;   // mũi tên nhỏ trên tên — CHỈ hiện khi NPC đang được chọn (2026-11-16; thay mũi tên to cũ trong prefab)
 
         /// <summary>Chỗ mũi tên nhỏ: ngay trên tên NPC.</summary>
-        private Vector3 HintPos => _originalNamePosition + new Vector3(0f, 0.42f, 0f);
+        private Vector3 HintPos => _originalNamePosition + new Vector3(0f, namePushUpDistance + 0.5f, 0f);   // tên nhích lên khi được chọn → mũi tên trên đó
 
         private void Awake()
         {
@@ -41,7 +41,11 @@ namespace Assets.Script.Entities
                 _originalNameColor = npcNameText.color;
             }
             _hintArrow = Fx.PointerArrow.Attach(transform, HintPos, 0.55f, 20);
+            _hintArrow.gameObject.SetActive(false);
         }
+
+        /// <summary>Mũi tên chọn đang hiện không (AutoTestRunner kiểm).</summary>
+        public bool ArrowShown => _hintArrow != null && _hintArrow.gameObject.activeSelf;
 
         // TRUYỀN THÊM SPRITE ATLAS VÀO HÀM SETUP
         public void Setup(NpcDatabaseSO.NpcConfig config, int npcId, SpriteAtlas globalAtlas)
@@ -130,8 +134,9 @@ namespace Assets.Script.Entities
 
         public void OnTargeted()
         {
-            if (targetArrow != null) targetArrow.SetActive(true);
-            if (_hintArrow != null && targetArrow != null) _hintArrow.gameObject.SetActive(false);
+            // mũi tên nhỏ thay mũi tên to cũ (targetArrow của prefab giữ tắt)
+            if (_hintArrow != null) _hintArrow.gameObject.SetActive(true);
+            else if (targetArrow != null) targetArrow.SetActive(true);
 
             if (npcNameText != null)
             {
@@ -145,7 +150,7 @@ namespace Assets.Script.Entities
         public void OnDeselected()
         {
             if (targetArrow != null) targetArrow.SetActive(false);
-            if (_hintArrow != null) _hintArrow.gameObject.SetActive(true);
+            if (_hintArrow != null) _hintArrow.gameObject.SetActive(false);
 
             if (npcNameText != null)
             {
