@@ -354,6 +354,7 @@ namespace Assets.Script.Core
                     var label = ((Component)item).transform.Find("Label")?.GetComponent<TMPro.TextMeshPro>();
                     Check("Đồ mình hạ (100% sát thương) rơi ra: mình nhặt được — tên trắng (của mình) hoặc vàng (đồ lặt vặt tự do), không xám", label != null && label.color.r > 0.95f && label.color.g > 0.8f);
                     int bag0 = 0; foreach (var s0 in GameData.Inventory) bag0 += s0.qty;
+                    int shown0 = GroundItemNetwork.PickedShown;
                     targeting.SelectTarget(item);
                     Check("Chọn vật phẩm → ActionInput coi là mục tiêu Item", ActionInput.TargetIsItem());
                     var arr = ((Component)item).transform.Find("PointerArrow");
@@ -365,6 +366,9 @@ namespace Assets.Script.Core
                     yield return new WaitForSecondsRealtime(0.4f);
                     int bag1 = 0; foreach (var s1 in GameData.Inventory) bag1 += s1.qty;
                     Check($"Chọn vật phẩm + bấm đánh → chạy tới nhặt (túi {bag0} → {bag1})", !GroundItemNetwork.Instance.Has(gid) && bag1 > bag0);
+                    Check($"Nhặt xong → báo cho mình \"{GroundItemNetwork.LastPickedText}\" (chữ bay trên đầu + dòng chat)",
+                        GroundItemNetwork.PickedShown > shown0 && !string.IsNullOrEmpty(GroundItemNetwork.LastPickedText));
+                    yield return Shot("NhatDuoc");
                 }
             }
             else Debug.Log("[AutoTest] lần này không có đồ rơi — bỏ qua kiểm icon đồ rơi");

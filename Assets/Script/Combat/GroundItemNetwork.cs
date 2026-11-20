@@ -47,8 +47,7 @@ namespace Assets.Script.Combat
         public void Pick(int id)
         {
             if (!_items.TryGetValue(id, out var it) || Time.time - it.lastPickTry < 0.5f) return;
-            it.lastPickTry = Time.time;
-            Data.GameActions.PickItem(id);
+            SendPick(it);
         }
 
         private readonly Dictionary<int, GroundItem> _items = new Dictionary<int, GroundItem>();
@@ -56,7 +55,7 @@ namespace Assets.Script.Combat
 
         public static GroundItemNetwork Instance { get; private set; }
 
-        private void Awake() { Instance = this; Data.GameData.OnSessionReset += ClearAll; }
+        private void Awake() { Instance = this; Data.GameData.OnSessionReset += ClearAll; Data.GameData.OnChanged += OnDataChanged; }
 
         /// <summary>
         /// Món đồ trên đất gần {from} nhất trong {radius} ô (bỏ món {skip} trả true) — AutoPlay đi tới, tới sát thì AutoPick tự nhặt.
@@ -77,7 +76,7 @@ namespace Assets.Script.Combat
             }
             return id >= 0;
         }
-        protected override void OnDestroy() { base.OnDestroy(); Data.GameData.OnSessionReset -= ClearAll; }
+        protected override void OnDestroy() { base.OnDestroy(); Data.GameData.OnSessionReset -= ClearAll; Data.GameData.OnChanged -= OnDataChanged; }
 
         protected override void RegisterHandlers()
         {
@@ -109,10 +108,70 @@ namespace Assets.Script.Combat
                 if (Time.time - it.lastPickTry < PickRetrySeconds || !CanPick(it)) continue;
                 if (((Vector2)(it.go.transform.position - playerPos)).sqrMagnitude > PickRadius * PickRadius) continue;
 
-                it.lastPickTry = Time.time;
-                Data.GameActions.PickItem(it.id);
+                SendPick(it);
             }
         }
+
+        // ---------------------------------------------------------------- báo "nhặt được" (2026-11-20)
+        // Server không gửi tin riêng khi nhặt (đỡ băng thông) → client tự suy: lúc gửi PICK_ITEM nhớ món đang nhặt + số đang có trong túi;
+        // gói túi đồ về mà số món đó TĂNG (và món đã biến khỏi đất) = mình nhặt được → chữ bay trên đầu + 1 dòng chat. Chỉ máy mình thấy.
+        private struct PendingPick { public int tpl, qty, before; public float at; }
+        private readonly Dictionary<int, PendingPick> _pending = new Dictionary<int, PendingPick>();
+
+        /// <summary>Số lần đã báo "nhặt được" (AutoTestRunner kiểm) + dòng báo gần nhất.</summary>
+        public static int PickedShown { get; private set; }
+        public static string LastPickedText { get; private set; }
+
+        private void SendPick(GroundItem it)
+        {
+            it.lastPickTry = Time.time;
+            _pending[it.id] = new PendingPick
+            {
+                tpl = it.templateId, qty = it.qty, at = Time.time,
+                before = _pending.TryGetValue(it.id, out var old) ? old.before : Data.GameData.CountItem(it.templateId),
+            };
+            Data.GameActions.PickItem(it.id);
+        }
+
+        private readonly List<int> _done = new List<int>();
+
+        /// <summary>Gói túi đồ / ITEM_REMOVE tới: món đang chờ đã biến khỏi đất + số trong túi tăng → báo. Quá 5 giây → bỏ.</summary>
+        private void CheckPicked()
+        {
+            if (_pending.Count == 0) return;
+            _done.Clear();
+            foreach (var kv in _pending)
+            {
+                var pp = kv.Value;
+                if (Time.time - pp.at > 5f) { _done.Add(kv.Key); continue; }
+                if (_items.ContainsKey(kv.Key)) continue;                       // còn trên đất (chưa nhặt xong)
+                int now = Data.GameData.CountItem(pp.tpl);
+                if (now <= pp.before) continue;                                  // túi chưa cập nhật (hoặc người khác nhặt mất)
+                _done.Add(kv.Key);
+                ShowPicked(pp.tpl, Mathf.Max(pp.qty, 1));
+            }
+            foreach (int id in _done)
+            {
+                if (!_pending.TryGetValue(id, out var pp)) continue;
+                _pending.Remove(id);
+                // món khác cùng loại đang chờ: số "trước khi nhặt" của nó phải cộng phần vừa vào túi
+                foreach (var k in new List<int>(_pending.Keys))
+                    if (_pending[k].tpl == pp.tpl) { var o = _pending[k]; o.before += pp.qty; _pending[k] = o; }
+            }
+        }
+
+        private static void ShowPicked(int tpl, int qty)
+        {
+            string name = Data.GameData.ItemName(tpl);
+            string text = qty > 1 ? $"+ {name} x{qty}" : $"+ {name}";
+            PickedShown++;
+            LastPickedText = text;
+            var me = NetworkPlayerManager.Instance != null ? NetworkPlayerManager.Instance.localPlayer : null;
+            if (me != null) DamagePopup.Show(me.transform.position + new Vector3(0f, 0.4f, 0f), text, new Color(1f, 0.86f, 0.35f), 3.6f);
+            ChatBox.AddSystem($"Nhặt được {name}" + (qty > 1 ? $" x{qty}" : ""));
+        }
+
+        private void OnDataChanged(Data.DataKind k) { if (k == Data.DataKind.Inventory) CheckPicked(); }
 
         private float _nextLabels;
 
@@ -181,6 +240,7 @@ namespace Assets.Script.Combat
                 Release(it.go);
                 _items.Remove(id);
             }
+            CheckPicked();
         }
 
         /// <summary>Đổi map/khu: đồ rơi của khu cũ không còn -> xoá hết (khu mới sẽ gửi lại ITEM_DROP).</summary>
@@ -190,6 +250,7 @@ namespace Assets.Script.Combat
         {
             foreach (var it in _items.Values) Release(it.go);
             _items.Clear();
+            _pending.Clear();
         }
 
 
